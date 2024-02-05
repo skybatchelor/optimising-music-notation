@@ -1,0 +1,49 @@
+
+{
+	Initialize "() {
+AddToPluginsMenu('Mike','Run');
+
+// The following enables the latest behavior for the ManuScript interpreter.
+// If you intend your plugin to run on previous versions of Sibelius where that functionality
+// didn't exist, you will likely have to revisit the following:
+if (Sibelius.ProgramVersion > 20200600) {
+    SetInterpreterOption(TreatSingleCharacterAsString);
+    SetInterpreterOption(SupportHalfSemitonePitchValues);
+} }"
+	Run "() {
+// check if we should throw any errors
+
+// export the file
+filePath = ExportMusicXML();
+
+// add extra information to the file at filePath
+
+// check if we should throw any warnings (not enough line breaks etc.)
+
+Sibelius.MessageBox('Mike');}"
+	ExportMusicXML "() {
+score = Sibelius.ActiveScore;
+
+ret = SplitByFinalDelimiter(score.FileName, '\\');
+filePath = ret[0];
+fileNameWithExt = ret[1];
+
+ret = SplitByFinalDelimiter(fileNameWithExt, '.');
+fileNameNoExt = ret[0];
+
+return ExportMuiscXMLWithPath(filePath, fileNameNoExt);}"
+	SplitByFinalDelimiter "(path, delimiter) {
+array = SplitString(path, delimiter).ConvertToSparseArray();
+lastWord = array[-1];
+array.Pop();
+firstWords = JoinStrings(array, delimiter);
+
+ret = CreateSparseArray(firstWords, lastWord);
+return ret;}"
+	ExportMusicXMLWithPath "(path, name) {
+score = Sibelius.ActiveScore;
+
+score.SaveAs(path & name & '.musicxml');
+
+return path & name & '.musicxml';}"
+}
