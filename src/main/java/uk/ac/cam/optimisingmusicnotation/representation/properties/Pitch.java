@@ -1,4 +1,4 @@
-package uk.ac.cam.optimisingmusicnotation.interfaces;
+package uk.ac.cam.optimisingmusicnotation.representation.properties;
 
 public record Pitch (Integer RootStaveLine, Integer SemitonesAbove) {
 }

@@ -1,4 +1,7 @@
-package uk.ac.cam.optimisingmusicnotation.interfaces;
+package uk.ac.cam.optimisingmusicnotation.representation;
+
+import uk.ac.cam.optimisingmusicnotation.Canvas;
+import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 
 import java.util.List;
 
