@@ -8,7 +8,7 @@ public class NoteMarking extends BeamGroup {
     NoteMarking noteToMark;
 
     @Override
-    public void Draw(Canvas canvas, RenderingConfiguration config) {
+    public void draw(Canvas canvas, RenderingConfiguration config) {
 
     }
 }

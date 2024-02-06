@@ -5,7 +5,7 @@ import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConf
 
 public class ArtisticWhitespace implements Whitespace {
     @Override
-    public void Draw(Canvas canvas, RenderingConfiguration config) {
+    public void draw(Canvas canvas, RenderingConfiguration config) {
 
     }
 }

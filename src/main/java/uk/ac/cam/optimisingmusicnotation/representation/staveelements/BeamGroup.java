@@ -9,7 +9,7 @@ import java.util.List;
 public class BeamGroup extends MusicGroup {
     List<BeamGroup> contents;
     @Override
-    public void Draw(Canvas canvas, RenderingConfiguration config) {
+    public void draw(Canvas canvas, RenderingConfiguration config) {
 
     }
 }

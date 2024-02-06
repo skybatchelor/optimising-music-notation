@@ -7,7 +7,7 @@ import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConf
 public class Note extends Chord {
     Pitch pitch;
     @Override
-    public void Draw(Canvas canvas, RenderingConfiguration config) {
+    public void draw(Canvas canvas, RenderingConfiguration config) {
 
     }
 }

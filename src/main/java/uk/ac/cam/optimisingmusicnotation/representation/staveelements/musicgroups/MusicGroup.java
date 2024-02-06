@@ -9,7 +9,7 @@ import java.util.List;
 public class MusicGroup implements StaveElement {
     List<MusicGroup> groups;
     @Override
-    public void Draw(Canvas canvas, RenderingConfiguration config) {
+    public void draw(Canvas canvas, RenderingConfiguration config) {
 
     }
 }

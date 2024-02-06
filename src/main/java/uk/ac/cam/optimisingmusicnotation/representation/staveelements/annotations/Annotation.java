@@ -6,7 +6,7 @@ import uk.ac.cam.optimisingmusicnotation.representation.staveelements.StaveEleme
 
 public class Annotation implements StaveElement {
     @Override
-    public void Draw(Canvas canvas, RenderingConfiguration config) {
+    public void draw(Canvas canvas, RenderingConfiguration config) {
 
     }
 }

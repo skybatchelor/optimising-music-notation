@@ -9,7 +9,7 @@ public class Line implements Drawable {
     Integer lineNumber;
     List<Stave> staves;
     @Override
-    public void Draw(Canvas canvas, RenderingConfiguration config) {
+    public void draw(Canvas canvas, RenderingConfiguration config) {
 
     }
 }

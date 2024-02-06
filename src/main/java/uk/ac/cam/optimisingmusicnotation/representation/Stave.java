@@ -11,7 +11,7 @@ public class Stave implements Drawable {
     List<StaveElement> staveElements;
     List<Whitespace> whitespaces;
     @Override
-    public void Draw(Canvas canvas, RenderingConfiguration config) {
+    public void draw(Canvas canvas, RenderingConfiguration config) {
 
     }
 }
