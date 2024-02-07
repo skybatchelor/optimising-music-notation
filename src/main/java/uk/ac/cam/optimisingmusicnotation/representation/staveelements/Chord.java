@@ -6,11 +6,17 @@ import uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmarkings.ChordMarking;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Chord extends BeamGroup {
-    List<Note> notes;
-    List<ChordMarking> markings;
+    protected final List<Note> notes;
+    protected final List<ChordMarking> markings;
+
+    public Chord(){
+        notes = new ArrayList<>();
+        markings = new ArrayList<>();
+    };
     @Override
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
 

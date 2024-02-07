@@ -4,10 +4,16 @@ import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.MusicGroup;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class BeamGroup extends MusicGroup {
-    List<BeamGroup> contents;
+    private final List<BeamGroup> contents;
+
+    public BeamGroup() {
+        contents = new ArrayList<>();
+    }
+
     @Override
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
 
