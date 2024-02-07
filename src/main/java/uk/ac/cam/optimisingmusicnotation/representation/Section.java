@@ -9,6 +9,8 @@ public class Section implements Drawable {
     List<Line> lines;
     @Override
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
-
+        for (Line l: lines){
+            l.draw(canvas,config);
+        }
     }
 }

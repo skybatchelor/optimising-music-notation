@@ -6,7 +6,7 @@ import uk.ac.cam.optimisingmusicnotation.representation.staveelements.StaveEleme
 
 import java.util.List;
 
-public class MusicGroup implements StaveElement {
+public abstract class MusicGroup implements StaveElement {
     List<MusicGroup> groups;
     @Override
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
