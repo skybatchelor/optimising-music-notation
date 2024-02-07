@@ -10,6 +10,10 @@ public class Line implements Drawable {
     List<Stave> staves;
     @Override
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
+        // TODO draw pulse lines
+        for (Stave s: staves){
+            s.draw(canvas,config);
+        }
 
     }
 }

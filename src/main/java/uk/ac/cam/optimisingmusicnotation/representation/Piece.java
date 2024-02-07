@@ -10,5 +10,8 @@ public class Piece implements Drawable {
     //TODO Alphonso converts MusicXML to this
     @Override
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
+        for (Section s: sections) {
+            s.draw(canvas, config);
+        }
     }
 }
