@@ -1,4 +1,6 @@
 package uk.ac.cam.optimisingmusicnotation.representation.properties;
 
-public record MusicalPosition(Integer line, float crotchetsIntoLine) {
+import uk.ac.cam.optimisingmusicnotation.representation.Line;
+
+public record MusicalPosition(Line line, float crotchetsIntoLine) {
 }
