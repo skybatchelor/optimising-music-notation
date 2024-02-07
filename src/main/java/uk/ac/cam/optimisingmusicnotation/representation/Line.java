@@ -18,6 +18,7 @@ public class Line {
     public Line(){
         staves = new ArrayList<>();
         lengthInCrotchets = 16;
+        staves.add(new Stave());
     }
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
         // TODO draw pulse lines

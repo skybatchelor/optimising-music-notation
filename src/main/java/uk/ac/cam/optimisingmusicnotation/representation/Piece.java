@@ -10,6 +10,7 @@ public class Piece {
     private final List<Section> sections;
     public Piece(){
         sections = new ArrayList<>();
+        sections.add(new Section());
     }
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
         for (Section s: sections) {

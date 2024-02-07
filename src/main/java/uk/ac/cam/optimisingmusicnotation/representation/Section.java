@@ -10,6 +10,7 @@ public class Section {
     private final List<Line> lines;
     public Section(){
         lines = new ArrayList<>();
+        lines.add(new Line());
     }
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
         for (Line l: lines){

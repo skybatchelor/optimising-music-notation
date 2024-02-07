@@ -18,7 +18,6 @@ public class Stave {
         whitespaces = new ArrayList<>();
     }
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Line line, RenderingConfiguration config) {
-        // TODO draw bars (stave lines)
         drawStaveLines(canvas, line);
         for (Whitespace w : whitespaces) {
             w.draw(canvas, config);
