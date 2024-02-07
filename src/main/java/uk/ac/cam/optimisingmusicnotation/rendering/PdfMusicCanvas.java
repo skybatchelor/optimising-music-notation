@@ -44,7 +44,7 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     @Override
     public Anchor getAnchor(MusicalPosition musicalPosition) {
         // TODO: check how Pitch works
-        return getAnchor(musicalPosition, new Pitch(0, 0));
+        return getAnchor(musicalPosition, new Pitch(8, 0));
     }
 
     @Override
@@ -55,7 +55,7 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
 
         return new Anchor(lineAnchor.page,
                 lineAnchor.x + musicalPosition.crotchetsIntoLine() * CROTCHET_WIDTH * page.getPageSize().getWidth() / STAVE_SPACING,
-                lineAnchor.y + (pitch.rootStaveLine() + 0.5f * pitch.semitonesAbove()));
+                lineAnchor.y + 0.5f * (pitch.rootStaveLine() - 8));
     }
 
     @Override

@@ -26,17 +26,17 @@ public class Main {
 //                canvas.drawLine(anchor1, -2f, -i, anchor2, 2f, -i, 0.1f);
 //            }
 //
-//            PdfMusicCanvas.Anchor anchor = canvas.getAnchor(new MusicalPosition(0, 0), new Pitch(-4, 1));
+//            PdfMusicCanvas.Anchor anchor = canvas.getAnchor(new MusicalPosition(0, 0), new Pitch(0, 1));
 //            canvas.drawCircle(anchor, 0f, 0f, 0.5f);
-//            anchor = canvas.getAnchor(new MusicalPosition(0, 1), new Pitch(-3, 1));
+//            anchor = canvas.getAnchor(new MusicalPosition(0, 1), new Pitch(1, 1));
 //            canvas.drawCircle(anchor, 0f, 0f, 0.5f);
-//            anchor = canvas.getAnchor(new MusicalPosition(0, 1.5f), new Pitch(-2, 1));
+//            anchor = canvas.getAnchor(new MusicalPosition(0, 1.5f), new Pitch(3, 1));
 //            canvas.drawCircle(anchor, 0f, 0f, 0.5f);
-//            anchor = canvas.getAnchor(new MusicalPosition(0, 2), new Pitch(-1, 1));
+//            anchor = canvas.getAnchor(new MusicalPosition(0, 2), new Pitch(4, 1));
 //            canvas.drawCircle(anchor, 0f, 0f, 0.5f);
 //
-//            anchor1 = canvas.getAnchor(new MusicalPosition(0, 2.5f), new Pitch(0, 1));
-//            anchor2 = canvas.getAnchor(new MusicalPosition(0, 4.0f), new Pitch(-4, -1));
+//            anchor1 = canvas.getAnchor(new MusicalPosition(0, 2.5f), new Pitch(10, 0));
+//            anchor2 = canvas.getAnchor(new MusicalPosition(0, 4.0f), new Pitch(-1, 0));
 //            canvas.drawWhitespace(anchor1, 0f, 0f, anchor2, 0f, 0f);
 
             pdf.close();
