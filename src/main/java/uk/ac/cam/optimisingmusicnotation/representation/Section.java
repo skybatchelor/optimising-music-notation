@@ -5,9 +5,8 @@ import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConf
 
 import java.util.List;
 
-public class Section implements Drawable {
+public class Section {
     List<Line> lines;
-    @Override
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
         for (Line l: lines){
             l.draw(canvas,config);

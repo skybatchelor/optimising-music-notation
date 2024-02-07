@@ -5,10 +5,9 @@ import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConf
 
 import java.util.List;
 
-public class Line implements Drawable {
+public class Line {
     Integer lineNumber;
     List<Stave> staves;
-    @Override
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
         // TODO draw pulse lines
         for (Stave s: staves){

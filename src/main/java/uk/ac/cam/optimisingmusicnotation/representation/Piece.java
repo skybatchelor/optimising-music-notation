@@ -5,10 +5,9 @@ import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConf
 
 import java.util.List;
 
-public class Piece implements Drawable {
+public class Piece {
     List<Section> sections;
     //TODO Alphonso converts MusicXML to this
-    @Override
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
         for (Section s: sections) {
             s.draw(canvas, config);
