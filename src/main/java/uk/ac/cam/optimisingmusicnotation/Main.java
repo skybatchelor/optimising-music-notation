@@ -35,6 +35,10 @@ public class Main {
             anchor = canvas.getAnchor(new MusicalPosition(0, 2), new Pitch(-1, 1));
             canvas.drawCircle(anchor, 0f, 0f, 0.5f);
 
+            anchor1 = canvas.getAnchor(new MusicalPosition(0, 2.5f), new Pitch(0, 1));
+            anchor2 = canvas.getAnchor(new MusicalPosition(0, 4.0f), new Pitch(-4, -1));
+            canvas.drawWhitespace(anchor1, 0f, 0f, anchor2, 0f, 0f);
+
             pdf.close();
         }
         catch (IOException e) {

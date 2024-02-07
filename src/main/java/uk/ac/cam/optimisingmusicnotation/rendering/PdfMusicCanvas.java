@@ -1,5 +1,6 @@
 package uk.ac.cam.optimisingmusicnotation.rendering;
 
+import com.itextpdf.kernel.colors.ColorConstants;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfPage;
 import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
@@ -77,6 +78,22 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     public void drawLine(Anchor anchor1, float x1, float y1, Anchor anchor2, float x2, float y2, float lineWidth) {
         // TODO: check anchors are on same line
         drawLine(anchor1, x1, y1, anchor2.x + x2 - anchor1.x, anchor2.y + y2 - anchor1.y, lineWidth);
+    }
+
+    @Override
+    public void drawWhitespace(Anchor topLeftAnchor, float topLeftX, float topLeftY, float width, float height) {
+        PdfCanvas canvas = new PdfCanvas(pdf.getPage(topLeftAnchor.page + 1));
+
+        canvas.rectangle((topLeftAnchor.x + topLeftX) * STAVE_SPACING, (topLeftAnchor.y + topLeftY) * STAVE_SPACING,
+                width * STAVE_SPACING, height * STAVE_SPACING).setFillColor(ColorConstants.WHITE).fill();
+    }
+
+    @Override
+    public void drawWhitespace(Anchor topLeftAnchor, float topLeftX, float topLeftY,
+                               Anchor bottomRightAnchor, float bottomRightX, float bottomRightY) {
+        drawWhitespace(topLeftAnchor, topLeftX, topLeftY,
+                (bottomRightAnchor.x + bottomRightX) - (topLeftAnchor.x - topLeftX),
+                (bottomRightAnchor.y + bottomRightY) - (topLeftAnchor.y - topLeftY));
     }
 
     @Override
