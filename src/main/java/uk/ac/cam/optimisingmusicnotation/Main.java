@@ -10,11 +10,25 @@ import uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class Main {
 
     public static void main(String[] args) {
-        try (PdfWriter writer = new PdfWriter("out/test.pdf")) {
+        String outDir = "./out/"; // Output Directory
+        Path outDirPath = Paths.get(outDir);
+        if (!Files.exists(outDirPath)) {
+            try {
+                Files.createDirectory(outDirPath);
+            } catch (IOException e) {
+                System.err.println("Error while creating output directory path: ");
+                e.printStackTrace();
+            }
+        }
+
+        try (PdfWriter writer = new PdfWriter(outDir + "test.pdf")) {
             PdfDocument pdf = new PdfDocument(writer);
             PageSize ps = PageSize.A4;
             pdf.addNewPage(ps);
