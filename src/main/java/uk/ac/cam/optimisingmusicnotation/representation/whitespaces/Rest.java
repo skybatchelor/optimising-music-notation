@@ -7,8 +7,8 @@ import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConf
 
 public class Rest implements Whitespace {
 
-    private MusicalPosition startMusicalPosition;
-    private MusicalPosition endMusicalPosition;
+    private final MusicalPosition startMusicalPosition;
+    private final MusicalPosition endMusicalPosition;
 
     public Rest(MusicalPosition startMusicalPosition, MusicalPosition endMusicalPosition) {
         this.startMusicalPosition = startMusicalPosition;
