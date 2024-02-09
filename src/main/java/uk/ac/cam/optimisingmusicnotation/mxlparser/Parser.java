@@ -361,21 +361,17 @@ public class Parser {
         return new Chord(pitches, accidentals, chord.crochets - lineTime, chord.duration, convertNoteType(chord.notes.get(0).getType()));
     }
 
-    static NoteType convertNoteType(org.audiveris.proxymusic.NoteType noteType) {
+    static uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType convertNoteType(NoteType noteType) {
         switch (noteType.getValue()) {
-            case "maxima" -> { return NoteType.X4; }
-            case "long" -> { return NoteType.X2; }
-            case "whole" -> { return NoteType.X1; }
-            case "half" -> { return NoteType.D2; }
-            case "quarter" -> { return NoteType.D4; }
-            case "eighth" -> { return NoteType.D8; }
-            case "16th" -> { return NoteType.D16; }
-            case "32nd" -> { return NoteType.D32; }
-            case "64th" -> { return NoteType.D64; }
-            case "128th" -> { return NoteType.D128; }
-            case "256th" -> { return NoteType.D256; }
-            case "512th" -> { return NoteType.D512; }
-            case "1024th" -> { return NoteType.D1024; }
+            case "maxima" -> { return uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.MAXIMA; }
+            case "long" -> { return uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.BREVE; }
+            case "whole" -> { return uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.SEMIBREVE; }
+            case "half" -> { return uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.MINIM; }
+            case "quarter" -> { return uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.CROTCHET; }
+            case "eighth" -> { return uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.QUAVER; }
+            case "16th" -> { return uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.SQUAVER; }
+            case "32nd" -> { return uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.DSQUAVER; }
+            case "64th" -> { return uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.HDSQUAVER; }
             default -> { throw new IllegalArgumentException(); }
         }
     }
