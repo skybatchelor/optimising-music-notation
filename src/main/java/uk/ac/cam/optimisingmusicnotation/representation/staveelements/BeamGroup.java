@@ -13,6 +13,7 @@ public class BeamGroup extends MusicGroup {
     public BeamGroup() {
         contents = new ArrayList<>();
     }
+    public BeamGroup(List<BeamGroup> contents) { this.contents = contents; }
 
     @Override
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {

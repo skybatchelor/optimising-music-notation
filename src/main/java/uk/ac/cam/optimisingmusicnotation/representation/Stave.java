@@ -14,10 +14,16 @@ import java.util.List;
 public class Stave {
     private final List<StaveElement> staveElements;
     private final List<Whitespace> whitespaces;
-    public Stave(){
+    public Stave() {
         staveElements = new ArrayList<>();
         whitespaces = new ArrayList<>();
     }
+
+    public Stave(List<StaveElement> staveElements, List<Whitespace> whitespaces) {
+        this.staveElements = staveElements;
+        this.whitespaces = whitespaces;
+    }
+
     public void addWhiteSpace(Whitespace whitespace) {
         whitespaces.add(whitespace);
     }

@@ -9,21 +9,42 @@ import uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmarki
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class Chord extends BeamGroup {
+public class Chord extends BeamGroup {
     protected final List<Note> notes;
     protected final List<ChordMarking> markings;
+    protected final float crotchetsIntoLine;
 
-    public Chord(){
+    public Chord() {
         notes = new ArrayList<>();
         markings = new ArrayList<>();
+        crotchetsIntoLine = 0;
     };
+
+    public Chord(List<Pitch> pitches, List<Accidental> accidentals, float crotchetsIntoLine) {
+        notes = new ArrayList<>(pitches.size());
+        for (int i = 0; i < pitches.size(); ++i) {
+            notes.add(new Note(pitches.get(i), accidentals.get(i)));
+        }
+        markings = new ArrayList<>();
+        this.crotchetsIntoLine = crotchetsIntoLine;
+    }
+
+    public void addMarking(ChordMarking marking) {
+        markings.add(marking);
+    }
+
     @Override
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
 
     }
 
-    private static abstract class Note {
+    private static class Note {
         Pitch pitch;
         Accidental accidental;
+
+        public Note(Pitch pitch, Accidental accidental) {
+            this.pitch = pitch;
+            this.accidental = accidental;
+        }
     }
 }
