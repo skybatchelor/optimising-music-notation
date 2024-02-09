@@ -1,12 +1,14 @@
 package uk.ac.cam.optimisingmusicnotation.rendering;
 
 import com.itextpdf.kernel.colors.ColorConstants;
+import com.itextpdf.kernel.colors.DeviceRgb;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfPage;
 import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -70,9 +72,15 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
 
     @Override
     public void drawLine(Anchor anchor, float x1, float y1, float x2, float y2, float lineWidth) {
+        drawLine(anchor, x1, y1, x2, y2, lineWidth, Color.BLACK);
+    }
+
+    @Override
+    public void drawLine(Anchor anchor, float x1, float y1, float x2, float y2, float lineWidth, Color color) {
         PdfCanvas canvas = new PdfCanvas(pdf.getPage(anchor.page + 1));
 
         canvas.setLineWidth(lineWidth * STAVE_SPACING);
+        canvas.setStrokeColor(new DeviceRgb(color.getRed(), color.getGreen(), color.getBlue()));
         canvas.moveTo((anchor.x + x1) * STAVE_SPACING, (anchor.y + y1) * STAVE_SPACING)
                 .lineTo((anchor.x + x2) * STAVE_SPACING, (anchor.y + y2) * STAVE_SPACING)
                 .stroke();
@@ -80,8 +88,13 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
 
     @Override
     public void drawLine(Anchor anchor1, float x1, float y1, Anchor anchor2, float x2, float y2, float lineWidth) {
+        drawLine(anchor1, x1, y1, anchor2, x2, y2, lineWidth, Color.BLACK);
+    }
+
+    @Override
+    public void drawLine(Anchor anchor1, float x1, float y1, Anchor anchor2, float x2, float y2, float lineWidth, Color color) {
         // TODO: check anchors are on same line
-        drawLine(anchor1, x1, y1, anchor2.x + x2 - anchor1.x, anchor2.y + y2 - anchor1.y, lineWidth);
+        drawLine(anchor1, x1, y1, anchor2.x + x2 - anchor1.x, anchor2.y + y2 - anchor1.y, lineWidth, color);
     }
 
     @Override
