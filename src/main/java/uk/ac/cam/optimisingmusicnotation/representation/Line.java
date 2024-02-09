@@ -34,6 +34,10 @@ public class Line {
         this.offsetInCrochets = offsetInCrochets;
     }
 
+    public List<Stave> getStaves() {
+        return staves;
+    }
+
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
         // TODO draw pulse lines
         for (Stave s: staves){

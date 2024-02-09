@@ -8,12 +8,36 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BeamGroup extends MusicGroup {
-    private final List<BeamGroup> contents;
+    private static class Beam {
+        int startIndex;
+        int endIndex;
+        // Zero indexed beams
+        int number;
+
+        public Beam(int startIndex, int endIndex, int number) {
+            this.startIndex = startIndex;
+            this.endIndex = endIndex;
+            this.number = number;
+        }
+    }
+
+    private final List<Chord> contents;
+    // The list of secondary beams. Note that beam groups always have an implicit first level beam.
+    private final List<Beam> beams;
 
     public BeamGroup() {
         contents = new ArrayList<>();
+        beams = new ArrayList<>();
     }
-    public BeamGroup(List<BeamGroup> contents) { this.contents = contents; }
+
+    public BeamGroup(List<Chord> contents) {
+        this.contents = contents;
+        beams = new ArrayList<>();
+    }
+
+    void addBeam(int startIndex, int endIndex, int number) {
+        beams.add(new Beam(startIndex, endIndex, number));
+    }
 
     @Override
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {

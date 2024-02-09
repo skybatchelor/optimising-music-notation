@@ -2,7 +2,7 @@ package uk.ac.cam.optimisingmusicnotation.mxlparser;
 
 public class Clef {
     public enum ClefType {
-        C, F, G
+        C, F, G, PERCUSSION
     }
 
     ClefType clefType;
