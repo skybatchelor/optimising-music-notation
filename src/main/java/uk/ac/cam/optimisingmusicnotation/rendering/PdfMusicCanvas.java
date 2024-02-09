@@ -92,8 +92,8 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     public void drawWhitespace(Anchor topLeftAnchor, float topLeftX, float topLeftY,
                                Anchor bottomRightAnchor, float bottomRightX, float bottomRightY) {
         drawWhitespace(topLeftAnchor, topLeftX, topLeftY,
-                (bottomRightAnchor.x + bottomRightX) - (topLeftAnchor.x - topLeftX),
-                (bottomRightAnchor.y + bottomRightY) - (topLeftAnchor.y - topLeftY));
+                (bottomRightAnchor.x + bottomRightX) - (topLeftAnchor.x + topLeftX),
+                (bottomRightAnchor.y + bottomRightY) - (topLeftAnchor.y + topLeftY));
     }
 
     @Override

@@ -5,6 +5,7 @@ import uk.ac.cam.optimisingmusicnotation.rendering.PdfMusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.StaveElement;
+import uk.ac.cam.optimisingmusicnotation.representation.whitespaces.Rest;
 import uk.ac.cam.optimisingmusicnotation.representation.whitespaces.Whitespace;
 
 import java.util.ArrayList;
@@ -17,10 +18,13 @@ public class Stave {
         staveElements = new ArrayList<>();
         whitespaces = new ArrayList<>();
     }
+    public void addWhiteSpace(Whitespace whitespace) {
+        whitespaces.add(whitespace);
+    }
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Line line, RenderingConfiguration config) {
         drawStaveLines(canvas, line);
         for (Whitespace w : whitespaces) {
-            w.draw(canvas, config);
+            w.draw(canvas, line, config);
         }
         for (StaveElement s : staveElements) {
             s.draw(canvas, config);
