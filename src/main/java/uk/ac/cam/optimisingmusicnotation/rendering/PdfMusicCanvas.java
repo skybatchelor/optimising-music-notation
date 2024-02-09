@@ -8,13 +8,12 @@ import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPositi
 import uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
 
     // TODO: make these configurable
     private final float LINE_WIDTH = 0.8f;
-    private final int CROTCHETS_PER_LINE = 16;
-    private final float CROTCHET_WIDTH = LINE_WIDTH / CROTCHETS_PER_LINE;
     private final float STAVE_SPACING = 5f;
 
     public static class Anchor {
@@ -29,15 +28,18 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
         }
     }
 
-    private final ArrayList<Anchor> lineAnchors;
+    private final List<Anchor> lineAnchors;
     private final PdfDocument pdf;
 
     public PdfMusicCanvas(PdfDocument pdf) {
         PdfPage page = pdf.getPage(1);
 
         lineAnchors = new ArrayList<>();
-        lineAnchors.add(new Anchor(0, (page.getPageSize().getWidth() * (1f - LINE_WIDTH) * 0.5f) / STAVE_SPACING,
-                (page.getPageSize().getTop() - 30f) / STAVE_SPACING));
+        // TODO: make method to add new lines instead of hardcoding it
+        for (int i = 0; i < 10; i++) {
+            lineAnchors.add(new Anchor(0, (page.getPageSize().getWidth() * (1f - LINE_WIDTH) * 0.5f) / STAVE_SPACING,
+                    (page.getPageSize().getTop() - 40f) / STAVE_SPACING - i * 12f));
+        }
         this.pdf = pdf;
     }
 
@@ -50,11 +52,13 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     @Override
     public Anchor getAnchor(MusicalPosition musicalPosition, Pitch pitch) {
         // TODO: ask about line numbers
-        Anchor lineAnchor = lineAnchors.get(0);
+        Anchor lineAnchor = lineAnchors.get(musicalPosition.line().getLineNumber());
         PdfPage page = pdf.getPage(lineAnchor.page + 1);
 
         return new Anchor(lineAnchor.page,
-                lineAnchor.x + musicalPosition.crotchetsIntoLine() * CROTCHET_WIDTH * page.getPageSize().getWidth() / STAVE_SPACING,
+                lineAnchor.x + musicalPosition.crotchetsIntoLine()
+                        * (LINE_WIDTH / musicalPosition.line().getLengthInCrotchets())
+                        * page.getPageSize().getWidth() / STAVE_SPACING,
                 lineAnchor.y + 0.5f * (pitch.rootStaveLine() - 8));
     }
 
