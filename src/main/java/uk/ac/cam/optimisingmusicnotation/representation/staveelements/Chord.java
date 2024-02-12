@@ -42,7 +42,13 @@ public class Chord extends BeamGroup {
 
     @Override
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
-
+        for (Note note: notes) {
+            int noteVerticalPosition = note.pitch.rootStaveLine() + note.pitch.semitonesAbove();
+            // int sign = config.noteStemDirection() ? 1 : -1; // decide to draw the not stem upwards or downwards
+            int sign = 1;
+            canvas.drawCircle(canvas.getAnchor(musicalPosition), 0, noteVerticalPosition, .5f); // draw note head [!need to adjust on noteType]
+            canvas.drawLine(canvas.getAnchor(musicalPosition), 0, noteVerticalPosition + sign * .5f, 0, noteVerticalPosition + sign * 3.5f, .15f);// draw stem
+        }
     }
 
     private static class Note {

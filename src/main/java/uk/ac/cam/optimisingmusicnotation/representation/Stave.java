@@ -18,6 +18,9 @@ public class Stave {
         staveElements = new ArrayList<>();
         whitespaces = new ArrayList<>();
     }
+    public void addStaveElements(StaveElement staveElement) {
+        staveElements.add(staveElement);
+    }
     public void addWhiteSpace(Whitespace whitespace) {
         whitespaces.add(whitespace);
     }
