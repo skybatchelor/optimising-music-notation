@@ -4,6 +4,7 @@ import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPositi
 import uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch;
 
 import java.awt.*;
+import java.io.IOException;
 
 public interface MusicCanvas<Anchor> {
 
@@ -18,7 +19,9 @@ public interface MusicCanvas<Anchor> {
     void drawWhitespace(Anchor topLeftAnchor, float topLeftX, float topLeftY, float width, float height);
     void drawWhitespace(Anchor topLeftAnchor, float topLeftX, float topLeftY,
                         Anchor bottomRightAnchor, float bottomRightX, float bottomRightY);
-    void drawImage(String fileName, Anchor topLeftAnchor, float topLeftX, float topLeftY, float width, float height);
+    void drawImage(String fileName, Anchor topLeftAnchor, float topLeftX, float topLeftY, float width, float height)
+            throws IOException;
     void drawImage(String fileName, Anchor topLeftAnchor, float topLeftX, float topLeftY,
-                   Anchor bottomRightAnchor, float bottomRightX, float bottomRightY);
+                   Anchor bottomRightAnchor, float bottomRightX, float bottomRightY)
+            throws IOException;
 }

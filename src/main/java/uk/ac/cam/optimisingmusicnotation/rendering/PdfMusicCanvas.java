@@ -2,15 +2,22 @@ package uk.ac.cam.optimisingmusicnotation.rendering;
 
 import com.itextpdf.kernel.colors.ColorConstants;
 import com.itextpdf.kernel.colors.DeviceRgb;
+import com.itextpdf.kernel.geom.Rectangle;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfPage;
 import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
+import com.itextpdf.kernel.pdf.xobject.PdfXObject;
+import com.itextpdf.svg.converter.SvgConverter;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch;
 
 import java.awt.*;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
 
@@ -31,12 +38,14 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     }
 
     private final List<Anchor> lineAnchors;
+    private final Map<String, PdfXObject> images;
     private final PdfDocument pdf;
 
     public PdfMusicCanvas(PdfDocument pdf) {
         PdfPage page = pdf.getPage(1);
 
         lineAnchors = new ArrayList<>();
+        images = new HashMap<>();
         // TODO: make method to add new lines instead of hardcoding it
         for (int i = 0; i < 10; i++) {
             lineAnchors.add(new Anchor(0, (page.getPageSize().getWidth() * (1f - LINE_WIDTH) * 0.5f) / STAVE_SPACING,
@@ -47,13 +56,11 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
 
     @Override
     public Anchor getAnchor(MusicalPosition musicalPosition) {
-        // TODO: check how Pitch works
         return getAnchor(musicalPosition, new Pitch(8, 0));
     }
 
     @Override
     public Anchor getAnchor(MusicalPosition musicalPosition, Pitch pitch) {
-        // TODO: ask about line numbers
         Anchor lineAnchor = lineAnchors.get(musicalPosition.line().getLineNumber());
         PdfPage page = pdf.getPage(lineAnchor.page + 1);
 
@@ -101,7 +108,7 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     public void drawWhitespace(Anchor topLeftAnchor, float topLeftX, float topLeftY, float width, float height) {
         PdfCanvas canvas = new PdfCanvas(pdf.getPage(topLeftAnchor.page + 1));
 
-        canvas.rectangle((topLeftAnchor.x + topLeftX) * STAVE_SPACING, (topLeftAnchor.y + topLeftY) * STAVE_SPACING,
+        canvas.rectangle((topLeftAnchor.x + topLeftX) * STAVE_SPACING, (topLeftAnchor.y + topLeftY - height) * STAVE_SPACING,
                 width * STAVE_SPACING, height * STAVE_SPACING).setFillColor(ColorConstants.WHITE).fill();
     }
 
@@ -110,17 +117,37 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
                                Anchor bottomRightAnchor, float bottomRightX, float bottomRightY) {
         drawWhitespace(topLeftAnchor, topLeftX, topLeftY,
                 (bottomRightAnchor.x + bottomRightX) - (topLeftAnchor.x + topLeftX),
-                (bottomRightAnchor.y + bottomRightY) - (topLeftAnchor.y + topLeftY));
+                (topLeftAnchor.y + topLeftY) - (bottomRightAnchor.y + bottomRightY));
     }
 
     @Override
-    public void drawImage(String fileName, Anchor topLeftAnchor, float topLeftX, float topLeftY, float width, float height) {
+    public void drawImage(String fileName, Anchor topLeftAnchor, float topLeftX, float topLeftY, float width, float height)
+            throws IOException {
+        PdfXObject image;
 
+        // cache image if it's the first time loading it, since images are usually reused
+        if (!images.containsKey(fileName)) {
+            FileInputStream imageFile = new FileInputStream(fileName);
+            image = SvgConverter.convertToXObject(imageFile, pdf);
+            imageFile.close();
+            images.put(fileName, image);
+        }
+        else {
+            image = images.get(fileName);
+        }
+
+        PdfCanvas canvas = new PdfCanvas(pdf.getPage(topLeftAnchor.page + 1));
+        canvas.addXObjectFittedIntoRectangle(image, new Rectangle(
+                (topLeftAnchor.x + topLeftX) * STAVE_SPACING, (topLeftAnchor.y + topLeftY - height) * STAVE_SPACING,
+                width * STAVE_SPACING, height * STAVE_SPACING
+        ));
     }
 
     @Override
     public void drawImage(String fileName, Anchor topLeftAnchor, float topLeftX, float topLeftY,
-                          Anchor bottomRightAnchor, float bottomRightX, float bottomRightY) {
-
+                          Anchor bottomRightAnchor, float bottomRightX, float bottomRightY) throws IOException {
+        drawImage(fileName, topLeftAnchor, topLeftX, topLeftY,
+                (bottomRightAnchor.x + bottomRightX) - (topLeftAnchor.x + topLeftX),
+                (topLeftAnchor.y + topLeftY) - (bottomRightAnchor.y + bottomRightY));
     }
 }
