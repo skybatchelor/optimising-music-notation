@@ -136,6 +136,13 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
             image = images.get(fileName);
         }
 
+        if (width == 0) {
+            width = (height / image.getHeight()) * image.getWidth();
+        }
+        else if (height == 0) {
+            height = (width / image.getWidth()) * image.getHeight();
+        }
+
         PdfCanvas canvas = new PdfCanvas(pdf.getPage(topLeftAnchor.page + 1));
         canvas.addXObjectFittedIntoRectangle(image, new Rectangle(
                 (topLeftAnchor.x + topLeftX) * STAVE_SPACING, (topLeftAnchor.y + topLeftY - height) * STAVE_SPACING,

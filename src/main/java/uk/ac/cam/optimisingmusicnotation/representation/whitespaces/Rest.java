@@ -17,6 +17,7 @@ public class Rest implements Whitespace {
 
     @Override
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Line line, RenderingConfiguration config) {
-        canvas.drawWhitespace(canvas.getAnchor(startMusicalPosition), 0, (float).5, canvas.getAnchor(endMusicalPosition), 0, (float)(-4.5));
+        canvas.drawWhitespace(canvas.getAnchor(startMusicalPosition), 0, 0.5f,
+                canvas.getAnchor(endMusicalPosition), 0, -4.5f);
     }
 }
