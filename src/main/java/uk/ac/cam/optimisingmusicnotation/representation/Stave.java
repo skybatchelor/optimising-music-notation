@@ -43,14 +43,4 @@ public class Stave {
             canvas.drawLine(anchor1, -2f, -i, anchor2, 2f, -i, 0.1f);
         }
     }
-
-    public <Anchor> void drawClef(MusicCanvas<Anchor> canvas, Clef clef, Line line){
-        Anchor anchor = canvas.getAnchor(new MusicalPosition(line, 0));
-        String clefPath = "img/clefs/" + clef.toString().toLowerCase() + ".svg";
-        try{
-            canvas.drawImage(clefPath,anchor,-2f,2f,0f,8f);
-        }catch (java.io.IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
 }

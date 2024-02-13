@@ -18,7 +18,7 @@ public class Section {
     }
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
         for (Stave s: lines.get(0).getStaves()){
-            s.drawClef(canvas, clef,lines.get(0));
+            clef.draw(canvas,lines.get(0));
         }
         for (Line l: lines){
             l.draw(canvas,config);
