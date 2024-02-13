@@ -13,6 +13,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Line {
+    public List<Stave> getStaves() {
+        return staves;
+    }
+
     private final List<Stave> staves;
 
     private final Integer lineNumber;
