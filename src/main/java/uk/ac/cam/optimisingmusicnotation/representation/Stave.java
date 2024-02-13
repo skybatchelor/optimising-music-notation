@@ -48,7 +48,7 @@ public class Stave {
         Anchor anchor = canvas.getAnchor(new MusicalPosition(line, 0));
         String clefPath = "img/clefs/" + clef.toString().toLowerCase() + ".svg";
         try{
-            canvas.drawImage(clefPath,anchor,0f,0f,0f,8f);
+            canvas.drawImage(clefPath,anchor,-2f,2f,0f,8f);
         }catch (java.io.IOException e) {
             throw new RuntimeException(e);
         }
