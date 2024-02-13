@@ -22,15 +22,25 @@ public class Line {
     private final Integer lineNumber;
     private final Integer lengthInCrotchets;
 
-    public Line(Integer lineNumber){
+    public Line(Integer lineNumber, int testType){
         staves = new ArrayList<>();
         lengthInCrotchets = 16;
         this.lineNumber = lineNumber;
         Stave stave = new Stave();
-        stave.addStaveElements(getTestChord()); // test note
-        stave.addWhiteSpace(new Rest(new MusicalPosition(this, 2), new MusicalPosition(this, 5)));// test white space
+        if (testType == 1){
+                stave.addStaveElements(getTestChord(NoteType.CROTCHET, 1, 0, 1)); // test note
+                stave.addStaveElements(getTestChord(NoteType.CROTCHET, 1, 1, 2));
+                stave.addStaveElements(getTestChord(NoteType.CROTCHET, 1, 2, 3));
+                stave.addStaveElements(getTestChord(NoteType.CROTCHET, 1, 3, 4));
+                stave.addStaveElements(getTestChord(NoteType.CROTCHET, 1, 4, 5));
+                stave.addWhiteSpace(new Rest(new MusicalPosition(this, 4f), new MusicalPosition(this, 7f)));// test white space
+                stave.addStaveElements(getTestChord(NoteType.CROTCHET, 1, 8, 5)); // test note
+                stave.addStaveElements(getTestChord(NoteType.CROTCHET, 1, 9, 4));
+                stave.addStaveElements(getTestChord(NoteType.CROTCHET, 1, 10, 3));
+                stave.addStaveElements(getTestChord(NoteType.CROTCHET, 1, 11, 2));
+                stave.addStaveElements(getTestChord(NoteType.CROTCHET, 4, 12, 1));
+            }
         staves.add(stave);
-
     }
 
     /* A test function for getting chord */
@@ -41,9 +51,20 @@ public class Line {
         pitches.add(new Pitch(0, 0));
         accidentals.add(Accidental.NONE);
 
-        MusicalPosition musicalPosition = new MusicalPosition(this, 1);
+        MusicalPosition musicalPosition = new MusicalPosition(this, 0);
         float durationInCrochets = 1f;
         NoteType noteType = NoteType.CROTCHET;
+        return new Chord(pitches, accidentals, musicalPosition, durationInCrochets, noteType);
+    }
+    private Chord getTestChord(NoteType type, float durationInCrochets, float crochetsIntoLine, int rootStaveLine) {
+        List<Pitch> pitches = new ArrayList<>();
+        List<Accidental> accidentals = new ArrayList<>();
+
+        pitches.add(new Pitch(rootStaveLine, 0));
+        accidentals.add(Accidental.NONE);
+
+        MusicalPosition musicalPosition = new MusicalPosition(this, crochetsIntoLine);
+        NoteType noteType = type;
         return new Chord(pitches, accidentals, musicalPosition, durationInCrochets, noteType);
     }
     /* A test function for getting chord */
@@ -57,7 +78,11 @@ public class Line {
     }
 
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
-        // TODO draw pulse lines
+        for (int i = 0; i <= lengthInCrotchets; i++) {
+            MusicalPosition startPosition = new MusicalPosition(this, i);
+            Anchor startAnchor = canvas.getAnchor(startPosition);
+            canvas.drawLine(startAnchor,0f,2f,0f,0f,RenderingConfiguration.pulseLineWidth);
+        }
         for (Stave s: staves){
             s.draw(canvas,this, config);
         }
