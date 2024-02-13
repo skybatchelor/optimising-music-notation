@@ -35,12 +35,18 @@ public class Stave {
     }
 
     private <Anchor> void drawStaveLines(MusicCanvas<Anchor> canvas, Line line){
-        //TODO ask sky to change getAnchor y pos to reflect line number
         Anchor anchor1 = canvas.getAnchor(new MusicalPosition(line, 0));
         Anchor anchor2 = canvas.getAnchor(new MusicalPosition(line, line.getLengthInCrotchets()));
 
         for (int i = 0; i < 5; i++) {
-            canvas.drawLine(anchor1, -2f, -i, anchor2, 2f, -i, 0.1f);
+            canvas.drawLine(anchor1, -1f, -i, anchor2, 2f, -i, 0.1f);
+        }
+    }
+
+    public <Anchor> void drawPreStaveLines(MusicCanvas<Anchor> canvas, Line line){
+        Anchor anchor1 = canvas.getAnchor(new MusicalPosition(line, 0));
+        for (int i = 0; i < 5; i++) {
+            canvas.drawLine(anchor1, -8f, -i, -2f, -i, 0.1f);
         }
     }
 }
