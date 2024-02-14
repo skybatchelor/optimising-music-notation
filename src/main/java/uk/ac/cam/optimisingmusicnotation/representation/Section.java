@@ -18,13 +18,14 @@ public class Section {
         lines.add(new Line(0,1));
         lines.add(new Line(1,0));
     }
-
-    public Section(Line line) {
+    public Section(Line line, Clef clef) {
         lines = new ArrayList<>() {{ add(line); }};
+        this.clef = clef;
     }
 
-    public Section(List<Line> lines) {
+    public Section(List<Line> lines, Clef clef) {
         this.lines = lines;
+        this.clef = clef;
     }
 
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {

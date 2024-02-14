@@ -8,10 +8,15 @@ import java.util.List;
 
 public class Piece {
     private final List<Section> sections;
-    public Piece(){
+    public Piece() {
         sections = new ArrayList<>();
         sections.add(new Section());
     }
+
+    public Piece(List<Section> sections) {
+        this.sections = sections;
+    }
+
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
         for (Section s: sections) {
             s.draw(canvas, config);

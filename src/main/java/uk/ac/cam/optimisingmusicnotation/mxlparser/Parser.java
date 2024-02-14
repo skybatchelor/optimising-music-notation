@@ -1,11 +1,17 @@
 package uk.ac.cam.optimisingmusicnotation.mxlparser;
 
+import com.itextpdf.kernel.geom.PageSize;
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfWriter;
 import org.audiveris.proxymusic.*;
 import org.audiveris.proxymusic.util.Marshalling;
+import uk.ac.cam.optimisingmusicnotation.rendering.PdfMusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.Line;
+import uk.ac.cam.optimisingmusicnotation.representation.Piece;
 import uk.ac.cam.optimisingmusicnotation.representation.Section;
 import uk.ac.cam.optimisingmusicnotation.representation.Stave;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
+import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.BeamGroup;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.StaveElement;
@@ -14,7 +20,11 @@ import uk.ac.cam.optimisingmusicnotation.representation.whitespaces.Whitespace;
 
 import javax.xml.bind.JAXBElement;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.lang.String;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -22,14 +32,31 @@ import java.util.zip.ZipInputStream;
 public class Parser {
     private static class ChordTuple {
         List<Note> notes;
-        float crochets;
+        float crotchets;
         float duration;
         int lowestLine;
 
         public ChordTuple(float crochets, int lowestLine) {
             notes = new ArrayList<>();
-            this.crochets = crochets;
+            this.crotchets = crochets;
             this.lowestLine = lowestLine;
+        }
+    }
+
+    private static class InstantiatedChordTuple {
+        List<uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch> pitches;
+        List<uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental> accidentals;
+        float crotchetsIntoLine;
+        float duration;
+        uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType noteType;
+
+        public InstantiatedChordTuple(List<uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch> pitches, List<uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental> accidentals,
+                                      float crotchetsIntoLine, float duration, uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType noteType) {
+            this.pitches = pitches;
+            this.accidentals = accidentals;
+            this.crotchetsIntoLine = crotchetsIntoLine;
+            this.duration = duration;
+            this.noteType = noteType;
         }
     }
 
@@ -39,6 +66,12 @@ public class Parser {
         public BeamTuple() {
             chords = new ArrayList<>();
         }
+    }
+
+    private static class InstantiatedBeamTuple {
+        List<InstantiatedChordTuple> chords;
+
+        public InstantiatedBeamTuple() { chords = new ArrayList<>(); }
     }
 
     private static class RestTuple {
@@ -88,7 +121,7 @@ public class Parser {
 
             float totalLength = 0;
 
-            TreeMap<String, List<List<BeamGroup>>> partLines = new TreeMap<>();
+            TreeMap<String, List<List<InstantiatedBeamTuple>>> partLines = new TreeMap<>();
             TreeMap<String, List<List<RestTuple>>> partRests = new TreeMap<>();
             TreeMap<String, List<TreeMap<Float, Line>>> partSections = new TreeMap<>();
             List<ScorePartwise.Part> musicParts = partwise.getPart();
@@ -127,7 +160,7 @@ public class Parser {
                             }
                             if (attributes.getClef() != null) {
                                 for(org.audiveris.proxymusic.Clef clef : attributes.getClef()) {
-                                    Clef parsed = parseClef(clef);
+                                    uk.ac.cam.optimisingmusicnotation.representation.properties.Clef parsed = parseClef(clef);
                                     lowestLineGrandStaveLine = clefToLowestLineGrandStaveLine(parsed);
                                     currentChord.lowestLine = lowestLineGrandStaveLine;
                                 }
@@ -144,7 +177,7 @@ public class Parser {
                             }
                             if (note.getChord() == null) {
                                 if (currentChord.notes.size() != 0) {
-                                    chords.put(currentChord.crochets, currentChord);
+                                    chords.put(currentChord.crotchets, currentChord);
                                 }
                                 currentChord = new ChordTuple(measureStartTime + measureTime, lowestLineGrandStaveLine);
                                 measureTime += prevChange;
@@ -233,7 +266,7 @@ public class Parser {
                     lineLengths.add(newline - prevLineStart);
                     prevLineStart = newline;
                 }
-                for (List<List<BeamGroup>> partList : partLines.values()) {
+                for (List<List<InstantiatedBeamTuple>> partList : partLines.values()) {
                     partList.add(new ArrayList<>());
                 }
                 for (List<List<RestTuple>> restList : partRests.values()) {
@@ -257,12 +290,12 @@ public class Parser {
             for (String partId : partLines.navigableKeySet()) {
                 List<BeamTuple> partNotes = beamGroups.get(partId);
                 for (BeamTuple beam : partNotes) {
-                    float lineStart = newlines.floorKey(beam.chords.get(0).crochets);
+                    float lineStart = newlines.floorKey(beam.chords.get(0).crotchets);
                     int lineNum = lineIndices.get(lineStart);
                     if (isRest(beam)) {
                         partRests.get(partId).get(lineNum).add(beamTupleToRestTuple(beam, lineStart));
                     } else {
-                        partLines.get(partId).get(lineNum).add(beamTupleToBeamGroup(beam, lineStart, lineNum));
+                        partLines.get(partId).get(lineNum).add(beamTupleToInstantiatedBeamTuple(beam, lineStart, lineNum));
                     }
                 }
             }
@@ -270,18 +303,21 @@ public class Parser {
             List<Float> newlinesList = newlines.keySet().stream().toList();
 
 
-            for (Map.Entry<String, List<List<BeamGroup>>> part : partLines.entrySet()) {
+            for (Map.Entry<String, List<List<InstantiatedBeamTuple>>> part : partLines.entrySet()) {
                 finalLines.put(part.getKey(), new ArrayList<>());
                 for (int i = 0; i < part.getValue().size(); ++i) {
-                    List<BeamGroup> line = part.getValue().get(i);
-                    List<StaveElement> elements = new ArrayList<>(line);
+                    List<StaveElement> elements = new ArrayList<>();
                     Stave stave = new Stave(elements, new ArrayList<>());
 
-                    Line tempLine = new Line(new ArrayList<>() {{ add(stave); }}, lineLengths.get(i), lineOffsets.get(i));
+                    Line tempLine = new Line(new ArrayList<>() {{ add(stave); }}, lineLengths.get(i), lineOffsets.get(i), i);
                     finalLines.get(part.getKey()).add(new LineTuple(newlinesList.get(i), tempLine));
 
                     for (RestTuple restTuple : partRests.get(part.getKey()).get(i)) {
                         tempLine.getStaves().get(0).addWhiteSpace(restTupleToRest(restTuple, tempLine));
+                    }
+
+                    for (InstantiatedBeamTuple beamTuple : partLines.get(part.getKey()).get(i)) {
+                        tempLine.getStaves().get(0).addStaveElement(instantiatedBeamTupleToBeamGroup(beamTuple, tempLine));
                     }
                 }
             }
@@ -299,7 +335,9 @@ public class Parser {
             for (Map.Entry<String, List<TreeMap<Float, Line>>> part : partSections.entrySet()) {
                 List<Section> sections = new ArrayList<>();
                 for (TreeMap<Float, Line> lines : part.getValue()) {
-                    sections.add(new Section(lines.values().stream().toList()));
+                    sections.add(new Section(lines.values().stream().toList(), new
+                            uk.ac.cam.optimisingmusicnotation.representation.properties.Clef(
+                                    uk.ac.cam.optimisingmusicnotation.representation.properties.ClefSign.G)));
                 }
                 finalSections.put(part.getKey(), sections);
             }
@@ -325,10 +363,31 @@ public class Parser {
         return (tuple.chords.get(0).notes.get(0).getRest() != null);
     }
 
-    static BeamGroup beamTupleToBeamGroup(BeamTuple tuple, float lineTime, int lineNum) {
-        List<Chord> chords = new ArrayList<>();
+    static InstantiatedBeamTuple beamTupleToInstantiatedBeamTuple(BeamTuple tuple, float lineTime, int lineNum) {
+        InstantiatedBeamTuple beamTuple = new InstantiatedBeamTuple();
         for (ChordTuple chordTuple : tuple.chords) {
-            chords.add(chordTupleToChord(chordTuple, lineTime, lineNum));
+            beamTuple.chords.add(chordTupleToInstantiatedChordTuple(chordTuple, lineTime, lineNum));
+        }
+        return beamTuple;
+    }
+
+    static boolean isBeamed(uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType noteType) {
+        switch (noteType) {
+            case MAXIMA, BREVE, SEMIBREVE, MINIM, CROTCHET -> { return false; }
+            case QUAVER, SQUAVER, DSQUAVER, HDSQUAVER -> { return true; }
+        }
+        return false;
+    }
+
+    static BeamGroup instantiatedBeamTupleToBeamGroup(InstantiatedBeamTuple beamTuple, Line line) {
+        if (beamTuple.chords.size() == 1) {
+            if (!isBeamed(beamTuple.chords.get(0).noteType)) {
+                return instantiatedChordTupleToChord(beamTuple.chords.get(0), line);
+            }
+        }
+        List<Chord> chords = new ArrayList<>();
+        for (InstantiatedChordTuple chordTuple : beamTuple.chords) {
+            chords.add(instantiatedChordTupleToChord(chordTuple, line));
         }
         return new BeamGroup(chords);
     }
@@ -337,8 +396,8 @@ public class Parser {
         float startTime = 0;
         float endTime = 0;
         for (ChordTuple chordTuple : tuple.chords) {
-            startTime = Math.min(chordTuple.crochets - lineTime, startTime);
-            endTime = Math.max(chordTuple.crochets + chordTuple.duration - lineTime, endTime);
+            startTime = Math.min(chordTuple.crotchets - lineTime, startTime);
+            endTime = Math.max(chordTuple.crotchets + chordTuple.duration - lineTime, endTime);
         }
         return new RestTuple(startTime, endTime);
     }
@@ -347,7 +406,7 @@ public class Parser {
         return new Rest(new MusicalPosition(line, tuple.startTime), new MusicalPosition(line, tuple.endTime));
     }
 
-    static Chord chordTupleToChord(ChordTuple chord, float lineTime, int lineNum) {
+    static InstantiatedChordTuple chordTupleToInstantiatedChordTuple(ChordTuple chord, float lineTime, int lineNum) {
         List<uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch> pitches = new ArrayList<>();
         List<uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental> accidentals = new ArrayList<>();
         for (Note note : chord.notes) {
@@ -358,7 +417,11 @@ public class Parser {
             }
             accidentals.add(uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.NONE);
         }
-        return new Chord(pitches, accidentals, chord.crochets - lineTime, chord.duration, convertNoteType(chord.notes.get(0).getType()));
+        return new InstantiatedChordTuple(pitches, accidentals, chord.crotchets - lineTime, chord.duration, convertNoteType(chord.notes.get(0).getType()));
+    }
+
+    static Chord instantiatedChordTupleToChord(InstantiatedChordTuple chordTuple, Line line) {
+        return new Chord(chordTuple.pitches, chordTuple.accidentals, new MusicalPosition(line, chordTuple.crotchetsIntoLine), chordTuple.duration, chordTuple.noteType);
     }
 
     static uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType convertNoteType(NoteType noteType) {
@@ -456,20 +519,20 @@ public class Parser {
         return null;
     }
 
-    static int clefToLowestLineGrandStaveLine(Clef clef) {
+    static int clefToLowestLineGrandStaveLine(uk.ac.cam.optimisingmusicnotation.representation.properties.Clef clef) {
         int lowestLineGrandStaveLine = 0;
-        switch (clef.getClefType()) {
+        switch (clef.getSign()) {
             case C -> { lowestLineGrandStaveLine = pitchToGrandStaveLine(Step.C, 4); }
             case F -> { lowestLineGrandStaveLine = pitchToGrandStaveLine(Step.F, 3); }
             case G -> { lowestLineGrandStaveLine = pitchToGrandStaveLine(Step.G, 4); }
             case PERCUSSION -> { lowestLineGrandStaveLine = 0; }
         }
-        lowestLineGrandStaveLine += 7 * clef.getOctaveOffset();
-        lowestLineGrandStaveLine -= clef.getStaveLine();
+        lowestLineGrandStaveLine += 7 * clef.getOctaveChange();
+        lowestLineGrandStaveLine -= clef.getSign().defaultLinesFromBottomOfStave;
         return lowestLineGrandStaveLine;
     }
 
-    static Clef parseClef(org.audiveris.proxymusic.Clef clef) {
+    static uk.ac.cam.optimisingmusicnotation.representation.properties.Clef parseClef(org.audiveris.proxymusic.Clef clef) {
         int octaveOffset = 0;
         if (clef.getClefOctaveChange() != null) {
             octaveOffset = clef.getClefOctaveChange().intValue();
@@ -480,16 +543,20 @@ public class Parser {
         }
         switch (clef.getSign()) {
             case C -> {
-                return new Clef(Clef.ClefType.C, staveLine, octaveOffset);
+                return new uk.ac.cam.optimisingmusicnotation.representation.properties.Clef(
+                        uk.ac.cam.optimisingmusicnotation.representation.properties.ClefSign.C, staveLine, octaveOffset);
             }
             case F -> {
-                return new Clef(Clef.ClefType.F, staveLine, octaveOffset);
+                return new uk.ac.cam.optimisingmusicnotation.representation.properties.Clef(
+                        uk.ac.cam.optimisingmusicnotation.representation.properties.ClefSign.F, staveLine, octaveOffset);
             }
             case G -> {
-                return new Clef(Clef.ClefType.G, staveLine, octaveOffset);
+                return new uk.ac.cam.optimisingmusicnotation.representation.properties.Clef(
+                        uk.ac.cam.optimisingmusicnotation.representation.properties.ClefSign.G, staveLine, octaveOffset);
             }
             case PERCUSSION -> {
-                return new Clef(Clef.ClefType.PERCUSSION, 0, 0);
+                return new uk.ac.cam.optimisingmusicnotation.representation.properties.Clef(
+                        uk.ac.cam.optimisingmusicnotation.representation.properties.ClefSign.PERCUSSION, staveLine, octaveOffset);
             }
         }
         throw new IllegalArgumentException("Unknown clef symbol");
@@ -514,8 +581,33 @@ public class Parser {
     private Parser() {}
 
     public static void main(String[] args) {
-        Object mxl = Parser.openMXL("Tuples.mxl");
+        Object mxl = Parser.openMXL("TestScore2.mxl");
         System.out.println(mxl.toString());
         Score score = Parser.parseToScore(mxl);
+        String outDir = "./out/"; // Output Directory
+        Path outDirPath = Paths.get(outDir);
+        if (!Files.exists(outDirPath)) {
+            try {
+                Files.createDirectory(outDirPath);
+            } catch (IOException e) {
+                System.err.println("Error while creating output directory path: ");
+                e.printStackTrace();
+            }
+        }
+
+        try (PdfWriter writer = new PdfWriter(outDir + "test.pdf")) {
+            PdfDocument pdf = new PdfDocument(writer);
+            PageSize ps = PageSize.A4;
+            pdf.addNewPage(ps);
+
+            PdfMusicCanvas canvas = new PdfMusicCanvas(pdf);
+            Piece testPiece = new Piece(score.parts.get(0).sections);
+            testPiece.draw(canvas,new RenderingConfiguration());
+            pdf.close();
+        }
+        catch (IOException e) {
+            System.err.println("Error while creating PDF: ");
+            e.printStackTrace();
+        }
     }
 }

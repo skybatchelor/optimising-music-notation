@@ -1,6 +1,8 @@
 package uk.ac.cam.optimisingmusicnotation.representation;
 
 import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
+import uk.ac.cam.optimisingmusicnotation.representation.beatlines.BeatLine;
+import uk.ac.cam.optimisingmusicnotation.representation.beatlines.PulseLine;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch;
@@ -19,12 +21,14 @@ public class Line {
     }
 
     private final List<Stave> staves;
-  
-    public Integer getLineNumber() {
+
+    private final List<PulseLine> pulseLines;
+
+    public int getLineNumber() {
         return lineNumber;
     }
 
-    private final Integer lineNumber;
+    private final int lineNumber;
   
     public float getLengthInCrotchets() {
         return lengthInCrotchets;
@@ -34,34 +38,43 @@ public class Line {
   
     private final float offsetInCrochets;
 
-    public Line(Integer lineNumber, int testType){
+
+    public Line(int lineNumber, int testType){
         staves = new ArrayList<>();
         lengthInCrotchets = 16;
         offsetInCrochets = 0;
         this.lineNumber = lineNumber;
         Stave stave = new Stave();
         if (testType == 1){
-                stave.addStaveElements(getTestChord(NoteType.CROTCHET, 1, 0, 1)); // test note
-                stave.addStaveElements(getTestChord(NoteType.CROTCHET, 1, 1, 2));
-                stave.addStaveElements(getTestChord(NoteType.CROTCHET, 1, 2, 3));
-                stave.addStaveElements(getTestChord(NoteType.CROTCHET, 1, 3, 4));
-                stave.addStaveElements(getTestChord(NoteType.CROTCHET, 1, 4, 5));
+                stave.addStaveElement(getTestChord(NoteType.CROTCHET, 1, 0, 1)); // test note
+                stave.addStaveElement(getTestChord(NoteType.CROTCHET, 1, 1, 2));
+                stave.addStaveElement(getTestChord(NoteType.CROTCHET, 1, 2, 3));
+                stave.addStaveElement(getTestChord(NoteType.CROTCHET, 1, 3, 4));
+                stave.addStaveElement(getTestChord(NoteType.CROTCHET, 1, 4, 5));
                 stave.addWhiteSpace(new Rest(new MusicalPosition(this, 4f), new MusicalPosition(this, 7f)));// test white space
-                stave.addStaveElements(getTestChord(NoteType.CROTCHET, 1, 8, 5)); // test note
-                stave.addStaveElements(getTestChord(NoteType.CROTCHET, 1, 9, 4));
-                stave.addStaveElements(getTestChord(NoteType.CROTCHET, 1, 10, 3));
-                stave.addStaveElements(getTestChord(NoteType.CROTCHET, 1, 11, 2));
-                stave.addStaveElements(getTestChord(NoteType.CROTCHET, 4, 12, 1));
+                stave.addStaveElement(getTestChord(NoteType.CROTCHET, 1, 8, 5)); // test note
+                stave.addStaveElement(getTestChord(NoteType.CROTCHET, 1, 9, 4));
+                stave.addStaveElement(getTestChord(NoteType.CROTCHET, 1, 10, 3));
+                stave.addStaveElement(getTestChord(NoteType.CROTCHET, 1, 11, 2));
+                stave.addStaveElement(getTestChord(NoteType.CROTCHET, 4, 12, 1));
             }
         staves.add(stave);
+        pulseLines = new ArrayList<>();
+        for (int i = 0; i < lengthInCrotchets + 1; i++) {
+            pulseLines.add(new BeatLine(new MusicalPosition(this, i)));
+        }
     }
   
-    public Line(List<Stave> staves, float lengthInCrochets, float offsetInCrochets) {
+    public Line(List<Stave> staves, float lengthInCrochets, float offsetInCrochets, int lineNumber) {
         this.staves = staves;
+        this.lineNumber = lineNumber;
         this.lengthInCrotchets = lengthInCrochets;
         this.offsetInCrochets = offsetInCrochets;
+        pulseLines = new ArrayList<>();
+        for (int i = 0; i < lengthInCrotchets + 1; i++) {
+            pulseLines.add(new BeatLine(new MusicalPosition(this, i)));
+        }
     }
-  
 
     /* A test function for getting chord */
     private Chord getTestChord() {
@@ -91,10 +104,13 @@ public class Line {
     /* A test function for getting chord */
 
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
-        for (int i = 0; i <= lengthInCrotchets; i++) {
-            MusicalPosition startPosition = new MusicalPosition(this, i);
-            Anchor startAnchor = canvas.getAnchor(startPosition);
-            canvas.drawLine(startAnchor,0f,2f,0f,0f,RenderingConfiguration.pulseLineWidth);
+        // for (int i = 0; i <= lengthInCrotchets; i++) {
+        //     MusicalPosition startPosition = new MusicalPosition(this, i);
+        //     Anchor startAnchor = canvas.getAnchor(startPosition);
+        //     canvas.drawLine(startAnchor,0f,2f,0f,0f,RenderingConfiguration.pulseLineWidth);
+        // }
+        for (PulseLine p: pulseLines) {
+            p.draw(canvas, config);
         }
         for (Stave s: staves){
             s.draw(canvas,this, config);

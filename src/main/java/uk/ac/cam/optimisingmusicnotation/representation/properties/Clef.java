@@ -4,8 +4,17 @@ import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.Line;
 
 public class Clef {
+    public ClefSign getSign() {
+        return sign;
+    }
+
     ClefSign sign;
     int line;
+
+    public int getOctaveChange() {
+        return octaveChange;
+    }
+
     int octaveChange;
 
     public Clef(ClefSign sign){

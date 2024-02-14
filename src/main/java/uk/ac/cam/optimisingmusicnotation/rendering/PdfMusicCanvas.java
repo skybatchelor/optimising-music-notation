@@ -47,7 +47,7 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
         lineAnchors = new ArrayList<>();
         images = new HashMap<>();
         // TODO: make method to add new lines instead of hardcoding it
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 100; i++) {
             lineAnchors.add(new Anchor(0, (page.getPageSize().getWidth() * (1f - LINE_WIDTH) * 0.5f) / STAVE_SPACING,
                     (page.getPageSize().getTop() - 40f) / STAVE_SPACING - i * 12f));
         }
