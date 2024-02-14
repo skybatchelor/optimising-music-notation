@@ -40,13 +40,24 @@ public class Chord extends BeamGroup {
         markings.add(marking);
     }
 
+    private boolean dotted(){
+        return durationInCrochets == noteType.defaultLengthInCrotchets * 1.5;
+    }
+
     @Override
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
         for (Note note: notes) {
             // int sign = config.noteStemDirection() ? 1 : -1; // decide to draw the not stem upwards or downwards
             int sign = 1;
-            canvas.drawCircle(canvas.getAnchor(musicalPosition, note.pitch), 0, 0, .5f); // draw note head [!need to adjust on noteType]
-            canvas.drawLine(canvas.getAnchor(musicalPosition, note.pitch), 0, sign * .5f, 0, sign * 3.5f, .15f);// draw stem
+            boolean fillInCircle = noteType.defaultLengthInCrotchets <= 1;
+            boolean drawStem = noteType.defaultLengthInCrotchets <= 2;
+            canvas.drawCircle(canvas.getAnchor(musicalPosition, note.pitch), 0, 0, .5f,fillInCircle); // draw note head [!need to adjust on noteType]
+            if (drawStem){
+                canvas.drawLine(canvas.getAnchor(musicalPosition, note.pitch), 0, sign * .5f, 0, sign * 3.5f, .15f);// draw stem
+            }
+            if(dotted()){
+                canvas.drawCircle(canvas.getAnchor(musicalPosition, note.pitch), 1f, 0, .2f);
+            }
         }
     }
 
