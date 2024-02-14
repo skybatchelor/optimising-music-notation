@@ -10,13 +10,23 @@ import java.util.List;
 
 public class Section {
     private final List<Line> lines;
+  
     private final Clef clef;
-    public Section(){
+    public Section() {
         lines = new ArrayList<>();
         clef = new Clef(ClefSign.G);
         lines.add(new Line(0,1));
         lines.add(new Line(1,0));
     }
+
+    public Section(Line line) {
+        lines = new ArrayList<>() {{ add(line); }};
+    }
+
+    public Section(List<Line> lines) {
+        this.lines = lines;
+    }
+
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
         drawClefKeyAndTimeSignature(canvas);
         for (Line l: lines){

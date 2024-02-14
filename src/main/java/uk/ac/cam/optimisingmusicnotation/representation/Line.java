@@ -13,18 +13,31 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Line {
+  
     public List<Stave> getStaves() {
         return staves;
     }
 
     private final List<Stave> staves;
+  
+    public Integer getLineNumber() {
+        return lineNumber;
+    }
 
     private final Integer lineNumber;
-    private final Integer lengthInCrotchets;
+  
+    public float getLengthInCrotchets() {
+        return lengthInCrotchets;
+    }
+  
+    private final float lengthInCrotchets;
+  
+    private final float offsetInCrochets;
 
     public Line(Integer lineNumber, int testType){
         staves = new ArrayList<>();
         lengthInCrotchets = 16;
+        offsetInCrochets = 0;
         this.lineNumber = lineNumber;
         Stave stave = new Stave();
         if (testType == 1){
@@ -42,6 +55,13 @@ public class Line {
             }
         staves.add(stave);
     }
+  
+    public Line(List<Stave> staves, float lengthInCrochets, float offsetInCrochets) {
+        this.staves = staves;
+        this.lengthInCrotchets = lengthInCrochets;
+        this.offsetInCrochets = offsetInCrochets;
+    }
+  
 
     /* A test function for getting chord */
     private Chord getTestChord() {
@@ -56,6 +76,7 @@ public class Line {
         NoteType noteType = NoteType.CROTCHET;
         return new Chord(pitches, accidentals, musicalPosition, durationInCrochets, noteType);
     }
+  
     private Chord getTestChord(NoteType type, float durationInCrochets, float crochetsIntoLine, int rootStaveLine) {
         List<Pitch> pitches = new ArrayList<>();
         List<Accidental> accidentals = new ArrayList<>();
@@ -68,14 +89,6 @@ public class Line {
         return new Chord(pitches, accidentals, musicalPosition, durationInCrochets, noteType);
     }
     /* A test function for getting chord */
-
-    public Integer getLineNumber() {
-        return lineNumber;
-    }
-
-    public Integer getLengthInCrotchets() {
-        return lengthInCrotchets;
-    }
 
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
         for (int i = 0; i <= lengthInCrotchets; i++) {

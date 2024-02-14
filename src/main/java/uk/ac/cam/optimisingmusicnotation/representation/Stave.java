@@ -13,16 +13,25 @@ import java.util.List;
 public class Stave {
     private final List<StaveElement> staveElements;
     private final List<Whitespace> whitespaces;
-    public Stave(){
+  
+    public Stave() {
         staveElements = new ArrayList<>();
         whitespaces = new ArrayList<>();
     }
-    public void addStaveElements(StaveElement staveElement) {
-        staveElements.add(staveElement);
+
+    public Stave(List<StaveElement> staveElements, List<Whitespace> whitespaces) {
+        this.staveElements = staveElements;
+        this.whitespaces = whitespaces;
     }
+  
     public void addWhiteSpace(Whitespace whitespace) {
         whitespaces.add(whitespace);
     }
+  
+    public void addStaveElement(StaveElement staveElement) {
+        staveElements.add(staveElement);
+    }
+  
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Line line, RenderingConfiguration config) {
         drawStaveLines(canvas, line);
         for (Whitespace w : whitespaces) {
