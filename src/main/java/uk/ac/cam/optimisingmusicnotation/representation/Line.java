@@ -21,6 +21,9 @@ public class Line {
     }
 
     private final List<Stave> staves;
+    public List<PulseLine> getPulseLines() {
+        return pulseLines;
+    }
 
     private final List<PulseLine> pulseLines;
 
@@ -54,9 +57,9 @@ public class Line {
                 stave.addWhiteSpace(new Rest(new MusicalPosition(this, 4f), new MusicalPosition(this, 7f)));// test white space
                 stave.addStaveElement(getTestChord(NoteType.CROTCHET, 1, 8, 5)); // test note
                 stave.addStaveElement(getTestChord(NoteType.CROTCHET, 1, 9, 4));
-                stave.addStaveElement(getTestChord(NoteType.CROTCHET, 1, 10, 3));
-                stave.addStaveElement(getTestChord(NoteType.CROTCHET, 1, 11, 2));
-                stave.addStaveElement(getTestChord(NoteType.CROTCHET, 4, 12, 1));
+                stave.addStaveElement(getTestChord(NoteType.CROTCHET, 1.5f, 10, 3));
+                stave.addStaveElement(getTestChord(NoteType.MINIM, 2, 12, 2));
+                stave.addStaveElement(getTestChord(NoteType.SEMIBREVE, 4, 14, 1));
             }
         staves.add(stave);
         pulseLines = new ArrayList<>();
@@ -110,7 +113,7 @@ public class Line {
         //     canvas.drawLine(startAnchor,0f,2f,0f,0f,RenderingConfiguration.pulseLineWidth);
         // }
         for (PulseLine p: pulseLines) {
-            p.draw(canvas, config);
+            p.drawAboveStave(canvas, config);
         }
         for (Stave s: staves){
             s.draw(canvas,this, config);
