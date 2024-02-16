@@ -25,6 +25,11 @@ public class Line {
         return pulseLines;
     }
 
+
+    public void addPulseLine(PulseLine pulseLine) {
+        pulseLines.add(pulseLine);
+    }
+
     private final List<PulseLine> pulseLines;
 
     public int getLineNumber() {
@@ -64,7 +69,7 @@ public class Line {
         staves.add(stave);
         pulseLines = new ArrayList<>();
         for (int i = 0; i < lengthInCrotchets + 1; i++) {
-            pulseLines.add(new BeatLine(new MusicalPosition(this, i)));
+            pulseLines.add(new BeatLine(new MusicalPosition(this, i), 1));
         }
     }
   
@@ -74,9 +79,6 @@ public class Line {
         this.lengthInCrotchets = lengthInCrochets;
         this.offsetInCrochets = offsetInCrochets;
         pulseLines = new ArrayList<>();
-        for (int i = 0; i < lengthInCrotchets + 1; i++) {
-            pulseLines.add(new BeatLine(new MusicalPosition(this, i)));
-        }
     }
 
     /* A test function for getting chord */
@@ -90,7 +92,7 @@ public class Line {
         MusicalPosition musicalPosition = new MusicalPosition(this, 0);
         float durationInCrochets = 1f;
         NoteType noteType = NoteType.CROTCHET;
-        return new Chord(pitches, accidentals, musicalPosition, durationInCrochets, noteType);
+        return new Chord(pitches, accidentals, musicalPosition, durationInCrochets, noteType, 0);
     }
   
     private Chord getTestChord(NoteType type, float durationInCrochets, float crochetsIntoLine, int rootStaveLine) {
@@ -102,7 +104,7 @@ public class Line {
 
         MusicalPosition musicalPosition = new MusicalPosition(this, crochetsIntoLine);
         NoteType noteType = type;
-        return new Chord(pitches, accidentals, musicalPosition, durationInCrochets, noteType);
+        return new Chord(pitches, accidentals, musicalPosition, durationInCrochets, noteType, 0);
     }
     /* A test function for getting chord */
 

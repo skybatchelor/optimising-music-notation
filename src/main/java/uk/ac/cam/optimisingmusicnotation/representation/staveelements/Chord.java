@@ -1,6 +1,7 @@
 package uk.ac.cam.optimisingmusicnotation.representation.staveelements;
 
 import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
+import uk.ac.cam.optimisingmusicnotation.rendering.PdfMusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch;
@@ -16,6 +17,7 @@ public class Chord extends BeamGroup {
     protected final MusicalPosition musicalPosition;
     protected final float durationInCrochets;
     protected final NoteType noteType;
+    protected final int dots;
 
     public Chord() {
         notes = new ArrayList<>();
@@ -23,9 +25,10 @@ public class Chord extends BeamGroup {
         musicalPosition = new MusicalPosition(null, 0);
         durationInCrochets = 0;
         noteType = NoteType.BREVE;
+        dots = 0;
     }
 
-    public Chord(List<Pitch> pitches, List<Accidental> accidentals, MusicalPosition musicalPosition, float durationInCrochets, NoteType noteType) {
+    public Chord(List<Pitch> pitches, List<Accidental> accidentals, MusicalPosition musicalPosition, float durationInCrochets, NoteType noteType, int dots) {
         notes = new ArrayList<>(pitches.size());
         for (int i = 0; i < pitches.size(); ++i) {
             notes.add(new Note(pitches.get(i), accidentals.get(i)));
@@ -34,6 +37,7 @@ public class Chord extends BeamGroup {
         this.musicalPosition = musicalPosition;
         this.durationInCrochets = durationInCrochets;
         this.noteType = noteType;
+        this.dots = dots;
     }
 
     public void addMarking(ChordMarking marking) {
@@ -41,7 +45,39 @@ public class Chord extends BeamGroup {
     }
 
     private boolean dotted(){
-        return durationInCrochets == noteType.defaultLengthInCrotchets * 1.5;
+        return dots > 0;
+    }
+
+    <Anchor> Anchor drawRetAnchor(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
+        int lowestLine = 1000000;
+        Anchor ret = null;
+        for (Note note: notes) {
+            // int sign = config.noteStemDirection() ? 1 : -1; // decide to draw the not stem upwards or downwards
+            int sign = 1;
+            boolean fillInCircle = noteType.defaultLengthInCrotchets <= 1;
+            boolean drawStem = noteType.defaultLengthInCrotchets <= 2;
+            canvas.drawCircle(canvas.getAnchor(musicalPosition, note.pitch), 0, 0, .5f, fillInCircle); // draw note head [!need to adjust on noteType]
+            if (note.pitch.rootStaveLine() < lowestLine) {
+                lowestLine = note.pitch.rootStaveLine();
+                ret = canvas.getAnchor(musicalPosition, note.pitch);
+            }
+            if (drawStem) {
+                canvas.drawLine(canvas.getAnchor(musicalPosition, note.pitch), 0, sign * .5f, 0, sign * 3.5f, .15f);// draw stem
+            }
+            if (dotted()) {
+                canvas.drawCircle(canvas.getAnchor(musicalPosition, note.pitch), 1f, 0, .2f);
+            }
+            if (note.accidental != Accidental.NONE) {
+                Anchor anchor = canvas.getAnchor(musicalPosition, note.pitch);
+                String accidentalPath = "img/accidentals/" + note.accidental.toString().toLowerCase() + ".svg";
+                try{
+                    canvas.drawImage(accidentalPath, anchor,-1.25f, 1f,0.75f, 2f);
+                } catch (java.io.IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+        return ret;
     }
 
     @Override
@@ -52,11 +88,20 @@ public class Chord extends BeamGroup {
             boolean fillInCircle = noteType.defaultLengthInCrotchets <= 1;
             boolean drawStem = noteType.defaultLengthInCrotchets <= 2;
             canvas.drawCircle(canvas.getAnchor(musicalPosition, note.pitch), 0, 0, .5f,fillInCircle); // draw note head [!need to adjust on noteType]
-            if (drawStem){
+            if (drawStem) {
                 canvas.drawLine(canvas.getAnchor(musicalPosition, note.pitch), 0, sign * .5f, 0, sign * 3.5f, .15f);// draw stem
             }
-            if(dotted()){
+            if (dotted()) {
                 canvas.drawCircle(canvas.getAnchor(musicalPosition, note.pitch), 1f, 0, .2f);
+            }
+            if (note.accidental != Accidental.NONE) {
+                Anchor anchor = canvas.getAnchor(musicalPosition, note.pitch);
+                String accidentalPath = "img/accidentals/" + note.accidental.toString().toLowerCase() + ".svg";
+                try{
+                    canvas.drawImage(accidentalPath, anchor,-1.25f, 1f,0.75f, 2f);
+                } catch (java.io.IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
     }

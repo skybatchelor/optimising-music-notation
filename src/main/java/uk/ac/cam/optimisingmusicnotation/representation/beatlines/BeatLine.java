@@ -12,9 +12,13 @@ public class BeatLine implements PulseLine {
 
     private MusicalPosition musicalPosition;
 
-    public BeatLine(MusicalPosition musicalPosition) {
+    private int beatWeight;
+
+    public BeatLine(MusicalPosition musicalPosition, int beatWeight) {
         this.musicalPosition = musicalPosition;
+        this.beatWeight = beatWeight;
     }
+
 
     public <Anchor> void drawAboveStave(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
         Anchor startAnchor = canvas.getAnchor(musicalPosition);

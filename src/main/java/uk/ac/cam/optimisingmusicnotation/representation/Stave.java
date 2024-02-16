@@ -31,7 +31,7 @@ public class Stave {
     public void addStaveElement(StaveElement staveElement) {
         staveElements.add(staveElement);
     }
-  
+
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Line line, RenderingConfiguration config) {
         drawStaveLines(canvas, line);
         for (Whitespace w : whitespaces) {

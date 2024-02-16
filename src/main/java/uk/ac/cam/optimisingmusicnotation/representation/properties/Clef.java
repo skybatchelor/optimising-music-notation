@@ -9,6 +9,11 @@ public class Clef {
     }
 
     ClefSign sign;
+
+    public int getLine() {
+        return line;
+    }
+
     int line;
 
     public int getOctaveChange() {
@@ -40,8 +45,8 @@ public class Clef {
         String clefPath = "img/clefs/" + this.toString().toLowerCase() + ".svg";
         int topLeftY = this.line - 1 + ((sign.height - sign.lineDistanceFromBottomOfClef)-4);
         try{
-            canvas.drawImage(clefPath,anchor,-6f,(float) topLeftY,0f,(float) this.sign.height);
-        }catch (java.io.IOException e) {
+            canvas.drawImage(clefPath, anchor,-6f,(float) topLeftY,0f,(float) this.sign.height);
+        } catch (java.io.IOException e) {
             throw new RuntimeException(e);
         }
     }

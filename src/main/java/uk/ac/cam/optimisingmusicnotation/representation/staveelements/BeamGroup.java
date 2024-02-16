@@ -35,12 +35,32 @@ public class BeamGroup extends MusicGroup {
         beams = new ArrayList<>();
     }
 
-    void addBeam(int startIndex, int endIndex, int number) {
+    public void addBeam(int startIndex, int endIndex, int number) {
         beams.add(new Beam(startIndex, endIndex, number));
     }
 
     @Override
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
-
+        if (contents.size() == 1) {
+            Anchor note = contents.get(0).drawRetAnchor(canvas, config);
+            canvas.drawLine(note, -1, 3, 0, 3, 0.2f);
+        } else {
+            List<Anchor> anchors = new ArrayList<Anchor>();
+            Anchor start = contents.get(0).drawRetAnchor(canvas, config);
+            Anchor end = contents.get(contents.size() - 1).drawRetAnchor(canvas, config);
+            anchors.add(start);
+            canvas.drawLine(start, 0, 3, end, 0, 3, 0.2f);
+            for (Chord chord : contents.subList(1, contents.size() - 1)) {
+                anchors.add(chord.drawRetAnchor(canvas, config));
+            }
+            anchors.add(end);
+            for (Beam beam : beams) {
+                if (beam.startIndex == beam.endIndex) {
+                    canvas.drawLine(anchors.get(beam.startIndex), -1, 3 - 0.5f * beam.number, anchors.get(beam.endIndex), 0, 3 - 0.5f * beam.number, 0.2f);
+                } else {
+                    canvas.drawLine(anchors.get(beam.startIndex), 0, 3 - 0.5f * beam.number, anchors.get(beam.endIndex), 0, 3 - 0.5f * beam.number, 0.2f);
+                }
+            }
+        }
     }
 }

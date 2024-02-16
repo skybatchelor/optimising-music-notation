@@ -14,8 +14,9 @@ public class BarLine implements PulseLine {
     private MusicalPosition musicalPosition;
     private String barName;
 
-    public BarLine(MusicalPosition musicalPosition) {
+    public BarLine(MusicalPosition musicalPosition, String barName) {
         this.musicalPosition = musicalPosition;
+        this.barName = barName;
     }
 
     public <Anchor> void drawAboveStave(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
