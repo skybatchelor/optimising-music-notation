@@ -64,7 +64,7 @@ public class Chord extends BeamGroup {
                 highestLine = note.pitch.rootStaveLine();
             }
             if (drawStem) {
-                canvas.drawLine(canvas.getAnchor(musicalPosition, note.pitch), 0, sign * .5f, 0, sign * 3.5f, .15f);// draw stem
+                canvas.drawLine(canvas.getAnchor(musicalPosition, note.pitch), 0, sign * .5f, 0, sign * 3.5f, RenderingConfiguration.stemWidth);// draw stem
             }
             if (dotted()) {
                 canvas.drawCircle(canvas.getAnchor(musicalPosition, note.pitch), 1f, 0, .2f);
