@@ -16,6 +16,7 @@ public class Chord extends BeamGroup {
     protected final MusicalPosition musicalPosition;
     protected final float durationInCrochets;
     protected final NoteType noteType;
+    protected final int dots;
 
     public Chord() {
         notes = new ArrayList<>();
@@ -23,9 +24,10 @@ public class Chord extends BeamGroup {
         musicalPosition = new MusicalPosition(null, 0);
         durationInCrochets = 0;
         noteType = NoteType.BREVE;
+        dots = 0;
     }
 
-    public Chord(List<Pitch> pitches, List<Accidental> accidentals, MusicalPosition musicalPosition, float durationInCrochets, NoteType noteType) {
+    public Chord(List<Pitch> pitches, List<Accidental> accidentals, MusicalPosition musicalPosition, float durationInCrochets, NoteType noteType, int dots) {
         notes = new ArrayList<>(pitches.size());
         for (int i = 0; i < pitches.size(); ++i) {
             notes.add(new Note(pitches.get(i), accidentals.get(i)));
@@ -34,20 +36,61 @@ public class Chord extends BeamGroup {
         this.musicalPosition = musicalPosition;
         this.durationInCrochets = durationInCrochets;
         this.noteType = noteType;
+        this.dots = dots;
     }
 
     public void addMarking(ChordMarking marking) {
         markings.add(marking);
     }
 
-    @Override
-    public <Anchor> void draw(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
+    private boolean dotted(){
+        return dots > 0;
+    }
+
+    <Anchor> Anchor drawRetAnchor(MusicCanvas<Anchor> canvas) {
+        int lowestLine = 10000000;
+        int highestLine = -10000000;
+        Anchor ret = null;
         for (Note note: notes) {
-            // int sign = config.noteStemDirection() ? 1 : -1; // decide to draw the not stem upwards or downwards
-            int sign = 1;
-            canvas.drawCircle(canvas.getAnchor(musicalPosition, note.pitch), 0, 0, .5f); // draw note head [!need to adjust on noteType]
-            canvas.drawLine(canvas.getAnchor(musicalPosition, note.pitch), 0, sign * .5f, 0, sign * 3.5f, .15f);// draw stem
+            int sign = RenderingConfiguration.upwardStems ? 1 : -1; // decide to draw the not stem upwards or downwards
+            boolean fillInCircle = noteType.defaultLengthInCrotchets <= 1;
+            boolean drawStem = noteType.defaultLengthInCrotchets <= 2;
+            canvas.drawCircle(canvas.getAnchor(musicalPosition, note.pitch), 0, 0, .5f, fillInCircle); // draw note head [!need to adjust on noteType]
+            if (note.pitch.rootStaveLine() < lowestLine) {
+                lowestLine = note.pitch.rootStaveLine();
+                ret = canvas.getAnchor(musicalPosition, note.pitch);
+            }
+            if (note.pitch.rootStaveLine() > highestLine) {
+                highestLine = note.pitch.rootStaveLine();
+            }
+            if (drawStem) {
+                canvas.drawLine(canvas.getAnchor(musicalPosition, note.pitch), 0, sign * .5f, 0, sign * 3.5f, RenderingConfiguration.stemWidth);// draw stem
+            }
+            if (dotted()) {
+                canvas.drawCircle(canvas.getAnchor(musicalPosition, note.pitch), 1f, 0, .2f);
+            }
+            if (note.accidental != Accidental.NONE) {
+                Anchor anchor = canvas.getAnchor(musicalPosition, note.pitch);
+                String accidentalPath = "img/accidentals/" + note.accidental.toString().toLowerCase() + ".svg";
+                try{
+                    canvas.drawImage(accidentalPath, anchor,-1.25f, 1f,0.75f, 2f);
+                } catch (java.io.IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            for (int i = lowestLine / 2; i < 0; i += 2) {
+                canvas.drawLine(canvas.getAnchor(musicalPosition, new Pitch(i, 0)), -1f, 0f, 1f, 0f, .2f);
+            }
+            for (int i = 10; i <= highestLine; i += 2) {
+                canvas.drawLine(canvas.getAnchor(musicalPosition, new Pitch(i, 0)), -1f, 0f, 1f, 0f, .2f);
+            }
         }
+        return ret;
+    }
+
+    @Override
+    public <Anchor> void draw(MusicCanvas<Anchor> canvas) {
+        drawRetAnchor(canvas);
     }
 
     private static class Note {

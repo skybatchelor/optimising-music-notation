@@ -6,5 +6,5 @@ public enum Accidental {
     DOUBLE_SHARP,
     DOUBLE_FLAT,
     NATURAL,
-    NONE;
+    NONE
 }

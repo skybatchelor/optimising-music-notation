@@ -1,9 +1,7 @@
 package uk.ac.cam.optimisingmusicnotation.representation;
 
 import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
-import uk.ac.cam.optimisingmusicnotation.representation.properties.Clef;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
-import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.StaveElement;
 import uk.ac.cam.optimisingmusicnotation.representation.whitespaces.Whitespace;
 
@@ -13,23 +11,32 @@ import java.util.List;
 public class Stave {
     private final List<StaveElement> staveElements;
     private final List<Whitespace> whitespaces;
-    public Stave(){
+  
+    public Stave() {
         staveElements = new ArrayList<>();
         whitespaces = new ArrayList<>();
     }
-    public void addStaveElements(StaveElement staveElement) {
-        staveElements.add(staveElement);
+
+    public Stave(List<StaveElement> staveElements, List<Whitespace> whitespaces) {
+        this.staveElements = staveElements;
+        this.whitespaces = whitespaces;
     }
+  
     public void addWhiteSpace(Whitespace whitespace) {
         whitespaces.add(whitespace);
     }
-    public <Anchor> void draw(MusicCanvas<Anchor> canvas, Line line, RenderingConfiguration config) {
+  
+    public void addStaveElement(StaveElement staveElement) {
+        staveElements.add(staveElement);
+    }
+
+    public <Anchor> void draw(MusicCanvas<Anchor> canvas, Line line) {
         drawStaveLines(canvas, line);
         for (Whitespace w : whitespaces) {
-            w.draw(canvas, line, config);
+            w.draw(canvas, line);
         }
         for (StaveElement s : staveElements) {
-            s.draw(canvas, config);
+            s.draw(canvas);
 
         }
     }
