@@ -630,8 +630,11 @@ public class Parser {
             for (var directionType : direction.getDirectionType()) {
                 if (directionType.getWordsOrSymbol() != null) {
                     for (var wordOrSymbol : directionType.getWordsOrSymbol()) {
-                        if (wordOrSymbol instanceof FormattedTextId) {
-                            if (((FormattedTextId) wordOrSymbol).getValue().equals("\\n")) {
+                        if (wordOrSymbol instanceof FormattedTextId formattedText) {
+                            if (formattedText.getValue().equals("n") && formattedText.getEnclosure() == EnclosureShape.RECTANGLE) {
+                                return true;
+                            }
+                            if (formattedText.getValue().equals("\\n")) {
                                 return true;
                             }
                         }
@@ -647,8 +650,11 @@ public class Parser {
             for (var directionType : direction.getDirectionType()) {
                 if (directionType.getWordsOrSymbol() != null) {
                     for (var wordOrSymbol : directionType.getWordsOrSymbol()) {
-                        if (wordOrSymbol instanceof FormattedTextId) {
-                            if (((FormattedTextId) wordOrSymbol).getValue().equals("\\s")) {
+                        if (wordOrSymbol instanceof FormattedTextId formattedText) {
+                            if (formattedText.getValue().equals("s") && formattedText.getEnclosure() == EnclosureShape.RECTANGLE) {
+                                return true;
+                            }
+                            if (formattedText.getValue().equals("\\s")) {
                                 return true;
                             }
                         }
@@ -799,17 +805,21 @@ public class Parser {
     }
 
     public static Object openMXL(String input) {
-        try (ZipInputStream xml = new ZipInputStream(new FileInputStream(input))) {
-            ZipEntry zipEntry = xml.getNextEntry();
-            while (zipEntry != null) {
-                if(zipEntry.getName().equals("score.xml")) {
-                    return Marshalling.unmarshal(xml);
+        try (FileInputStream xml = new FileInputStream(input)) {
+            return Marshalling.unmarshal(xml);
+        } catch (Exception e1) {
+            try (ZipInputStream xml = new ZipInputStream(new FileInputStream(input))) {
+                ZipEntry zipEntry = xml.getNextEntry();
+                while (zipEntry != null) {
+                    if(zipEntry.getName().equals("score.xml")) {
+                        return Marshalling.unmarshal(xml);
+                    }
+                    zipEntry = xml.getNextEntry();
                 }
-                zipEntry = xml.getNextEntry();
-            }
-            return null;
-        } catch (Exception e) {
+                return null;
+            } catch (Exception e2) {
 
+            }
         }
         return null;
     }
@@ -823,7 +833,6 @@ public class Parser {
         }
 
         Object mxl = Parser.openMXL(target);
-        System.out.println(mxl.toString());
         Score score = Parser.parseToScore(mxl);
         String outDir = "./out/"; // Output Directory
         Path outDirPath = Paths.get(outDir);
