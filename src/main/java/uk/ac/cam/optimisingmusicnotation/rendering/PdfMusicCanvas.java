@@ -82,7 +82,13 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
 
         // TODO: make variable stave line spacing more flexible
         float stavePos = STAVE_POS[(pitch.rootStaveLine() / 2) % 5];
-        float staveSpacing = STAVE_POS[(pitch.rootStaveLine() / 2 + 4) % 5] - stavePos;
+        float staveSpacing;
+        if ((pitch.rootStaveLine() / 2) % 5 == 4) {
+            staveSpacing = 1.33f;
+        }
+        else {
+            staveSpacing = STAVE_POS[(pitch.rootStaveLine() / 2 + 1) % 5] - stavePos;
+        }
 
         return new Anchor(lineAnchor.page,
                 lineAnchor.x + musicalPosition.crotchetsIntoLine()
