@@ -24,7 +24,8 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     // TODO: make these configurable
     private final float LINE_WIDTH = 0.8f;
     private final float STAVE_SPACING = 5f;
-    private final int LINES_PER_PAGE = 10;
+    private final int LINES_PER_PAGE = 8;
+    private final float[] STAVE_POS = { 0f, 1f, 2.33f, 3.33f, 4.67f };
 
     public static class Anchor {
 
@@ -62,7 +63,7 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
             y = (page.getPageSize().getTop() - 50f) / STAVE_SPACING;
         }
         else {
-            y = lineAnchors.get(lineAnchors.size() - 1).y - 15f;
+            y = lineAnchors.get(lineAnchors.size() - 1).y - 18f;
         }
 
         Anchor newAnchor = new Anchor(pageNum, x, y);
@@ -79,11 +80,16 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
         Anchor lineAnchor = lineAnchors.get(musicalPosition.line().getLineNumber());
         PdfPage page = pdf.getPage(lineAnchor.page + 1);
 
+        // TODO: make variable stave line spacing more flexible
+        float stavePos = STAVE_POS[(pitch.rootStaveLine() / 2) % 5];
+        float staveSpacing = STAVE_POS[(pitch.rootStaveLine() / 2 + 4) % 5] - stavePos;
+
         return new Anchor(lineAnchor.page,
                 lineAnchor.x + musicalPosition.crotchetsIntoLine()
                         * (LINE_WIDTH / musicalPosition.line().getLengthInCrotchets())
                         * page.getPageSize().getWidth() / STAVE_SPACING,
-                lineAnchor.y + 0.5f * (pitch.rootStaveLine() - 8));
+                lineAnchor.y - 6f + stavePos + staveSpacing * 0.5f * (pitch.rootStaveLine() % 2)
+                        + (float)(pitch.rootStaveLine() / 10) * 6f);
     }
 
     @Override

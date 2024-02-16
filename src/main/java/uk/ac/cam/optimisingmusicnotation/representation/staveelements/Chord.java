@@ -79,10 +79,10 @@ public class Chord extends BeamGroup {
                 }
             }
             for (int i = lowestLine / 2; i < 0; i += 2) {
-                canvas.drawLine(canvas.getAnchor(musicalPosition, new Pitch(i, 0)), -1f, 0f, 1f, 0f, .2f);
+                canvas.drawLine(canvas.getAnchor(musicalPosition, new Pitch(i, 0)), -0.8f, 0f, 0.8f, 0f, .2f);
             }
             for (int i = 10; i <= highestLine; i += 2) {
-                canvas.drawLine(canvas.getAnchor(musicalPosition, new Pitch(i, 0)), -1f, 0f, 1f, 0f, .2f);
+                canvas.drawLine(canvas.getAnchor(musicalPosition, new Pitch(i, 0)), -0.8f, 0f, 0.8f, 0f, .2f);
             }
         }
         return ret;
