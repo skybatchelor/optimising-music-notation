@@ -28,8 +28,11 @@ public class Section {
     }
 
     public <Anchor> void draw(MusicCanvas<Anchor> canvas) {
+        canvas.addLine();
         drawClefKeyAndTimeSignature(canvas);
-        for (Line l: lines){
+        lines.get(0).draw(canvas);
+        for (Line l: lines.subList(1, lines.size())){
+            canvas.addLine();
             l.draw(canvas);
         }
     }

@@ -45,18 +45,28 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     public PdfMusicCanvas(PdfDocument pdf) {
         lineAnchors = new ArrayList<>();
         images = new HashMap<>();
-        // TODO: make method to add new lines instead of hardcoding it
-        for (int i = 0; i < 20; i++) {
-            int pageNum = i / LINES_PER_PAGE;
-            if (pageNum + 1 > pdf.getNumberOfPages()) {
-                pdf.addNewPage();
-            }
-            int indexInPage = i % LINES_PER_PAGE;
-            PdfPage page = pdf.getPage(pageNum + 1);
-            lineAnchors.add(new Anchor(pageNum, (page.getPageSize().getWidth() * (1f - LINE_WIDTH) * 0.5f) / STAVE_SPACING,
-                    (page.getPageSize().getTop() - 50f) / STAVE_SPACING - indexInPage * 15f));
-        }
         this.pdf = pdf;
+    }
+
+    @Override
+    public void addLine() {
+        int pageNum = lineAnchors.size() / LINES_PER_PAGE;
+        while (pdf.getNumberOfPages() < pageNum + 1) {
+            pdf.addNewPage();
+        }
+        PdfPage page = pdf.getPage(pageNum + 1);
+
+        float x = (page.getPageSize().getWidth() * (1f - LINE_WIDTH) * 0.5f) / STAVE_SPACING;
+        float y;
+        if (lineAnchors.isEmpty() || lineAnchors.get(lineAnchors.size() - 1).page != pageNum) {
+            y = (page.getPageSize().getTop() - 50f) / STAVE_SPACING;
+        }
+        else {
+            y = lineAnchors.get(lineAnchors.size() - 1).y - 15f;
+        }
+
+        Anchor newAnchor = new Anchor(pageNum, x, y);
+        lineAnchors.add(newAnchor);
     }
 
     @Override
@@ -86,6 +96,7 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
         PdfCanvas canvas = new PdfCanvas(pdf.getPage(anchor.page + 1));
         canvas.setStrokeColor(ColorConstants.BLACK);
         canvas.setFillColor(ColorConstants.BLACK);
+        canvas.setLineWidth(0.15f * STAVE_SPACING);
         canvas.circle((anchor.x + x) * STAVE_SPACING, (anchor.y + y) * STAVE_SPACING, r * STAVE_SPACING);
         if (fill) {
             canvas.fill();
