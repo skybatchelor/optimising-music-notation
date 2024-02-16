@@ -73,11 +73,24 @@ public class Parser {
     }
 
     private static class BeamGroupTuple {
-        List<ChordTuple> chords;
-
+        private List<ChordTuple> chords;
+        float startTime;
+        float endTime;
 
         public BeamGroupTuple() {
             chords = new ArrayList<>();
+            startTime = -1;
+            endTime = -1;
+        }
+
+        public void addChord(ChordTuple chord) {
+            chords.add(chord);
+            if (startTime == -1 || chord.crotchets < startTime) {
+                startTime = chord.crotchets;
+            }
+            if (endTime == -1 || chord.crotchets + chord.duration > endTime) {
+                endTime = chord.crotchets + chord.duration;
+            }
         }
     }
 
@@ -260,27 +273,27 @@ public class Parser {
                                     if (beam.getNumber() == 1) {
                                         switch (beam.getValue()) {
                                             case BEGIN:
-                                                beamGroup.chords.add(currentChord);
+                                                beamGroup.addChord(currentChord);
                                                 addedToBeamGroup = true;
                                                 break;
                                             case END:
-                                                beamGroup.chords.add(currentChord);
+                                                beamGroup.addChord(currentChord);
                                                 currentPart.beamGroups.add(beamGroup);
                                                 beamGroup = new BeamGroupTuple();
                                                 addedToBeamGroup = true;
                                                 break;
                                             case CONTINUE:
-                                                beamGroup.chords.add(currentChord);
+                                                beamGroup.addChord(currentChord);
                                                 addedToBeamGroup = true;
                                                 break;
                                             case FORWARD_HOOK:
-                                                beamGroup.chords.add(currentChord);
+                                                beamGroup.addChord(currentChord);
                                                 currentPart.beamGroups.add(beamGroup);
                                                 beamGroup = new BeamGroupTuple();
                                                 addedToBeamGroup = true;
                                                 break;
                                             case BACKWARD_HOOK:
-                                                beamGroup.chords.add(currentChord);
+                                                beamGroup.addChord(currentChord);
                                                 currentPart.beamGroups.add(beamGroup);
                                                 beamGroup = new BeamGroupTuple();
                                                 addedToBeamGroup = true;
@@ -290,7 +303,7 @@ public class Parser {
                                 }
                             }
                             if (!addedToBeamGroup && note.getChord() == null) {
-                                beamGroup.chords.add(currentChord);
+                                beamGroup.addChord(currentChord);
                                 currentPart.beamGroups.add(beamGroup);
                                 beamGroup = new BeamGroupTuple();
                             }
@@ -353,7 +366,7 @@ public class Parser {
                     float lineStart = newlines.floorKey(beam.chords.get(0).crotchets);
                     int lineNum = lineIndices.get(lineStart);
                     if (isRest(beam)) {
-                        partLines.get(part.getKey()).get(lineNum).rests.add(beamTupleToRestTuple(beam, lineStart));
+                        splitToRestTuple(beam, newlines, lineIndices, partLines.get(part.getKey()));
                     } else {
                         partLines.get(part.getKey()).get(lineNum).notes.add(beamTupleToInstantiatedBeamTuple(beam, lineStart, lineNum));
                     }
@@ -514,6 +527,15 @@ public class Parser {
             group.addBeam(tuple.start, tuple.end, tuple.number);
         }
         return group;
+    }
+
+    static void splitToRestTuple(BeamGroupTuple tuple, TreeMap<Float, Float> newlines, Map<Float, Integer> lineIndices, List<LineTuple> target) {
+        float endTime = tuple.endTime;
+        while (endTime > tuple.startTime) {
+            float newEndTime = newlines.lowerKey(endTime);
+            target.get(lineIndices.get(newEndTime)).rests.add(new RestTuple(Math.max(newEndTime, tuple.startTime) - newEndTime, endTime - newEndTime));
+            endTime = newEndTime;
+        }
     }
 
     static RestTuple beamTupleToRestTuple(BeamGroupTuple tuple, float lineTime) {
