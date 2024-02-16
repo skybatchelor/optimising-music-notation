@@ -538,16 +538,6 @@ public class Parser {
         }
     }
 
-    static RestTuple beamTupleToRestTuple(BeamGroupTuple tuple, float lineTime) {
-        float startTime = 100000000;
-        float endTime = 0;
-        for (ChordTuple chordTuple : tuple.chords) {
-            startTime = Math.min(chordTuple.crotchets - lineTime, startTime);
-            endTime = Math.max(chordTuple.crotchets + chordTuple.duration - lineTime, endTime);
-        }
-        return new RestTuple(startTime, endTime);
-    }
-
     static Whitespace restTupleToRest(RestTuple tuple, Line line) {
         return new Rest(new MusicalPosition(line, tuple.startTime), new MusicalPosition(line, tuple.endTime));
     }
