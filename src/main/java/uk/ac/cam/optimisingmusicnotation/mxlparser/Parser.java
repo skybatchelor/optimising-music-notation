@@ -520,7 +520,7 @@ public class Parser {
     }
 
     static RestTuple beamTupleToRestTuple(BeamGroupTuple tuple, float lineTime) {
-        float startTime = 0;
+        float startTime = 100000000;
         float endTime = 0;
         for (ChordTuple chordTuple : tuple.chords) {
             startTime = Math.min(chordTuple.crotchets - lineTime, startTime);
