@@ -1,9 +1,7 @@
 package uk.ac.cam.optimisingmusicnotation.representation;
 
 import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
-import uk.ac.cam.optimisingmusicnotation.representation.properties.Clef;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
-import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.StaveElement;
 import uk.ac.cam.optimisingmusicnotation.representation.whitespaces.Whitespace;
 
@@ -32,13 +30,13 @@ public class Stave {
         staveElements.add(staveElement);
     }
 
-    public <Anchor> void draw(MusicCanvas<Anchor> canvas, Line line, RenderingConfiguration config) {
+    public <Anchor> void draw(MusicCanvas<Anchor> canvas, Line line) {
         drawStaveLines(canvas, line);
         for (Whitespace w : whitespaces) {
-            w.draw(canvas, line, config);
+            w.draw(canvas, line);
         }
         for (StaveElement s : staveElements) {
-            s.draw(canvas, config);
+            s.draw(canvas);
 
         }
     }

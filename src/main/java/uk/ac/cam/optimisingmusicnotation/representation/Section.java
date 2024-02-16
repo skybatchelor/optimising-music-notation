@@ -3,7 +3,6 @@ package uk.ac.cam.optimisingmusicnotation.representation;
 import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.Clef;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.ClefSign;
-import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,10 +27,10 @@ public class Section {
         this.clef = clef;
     }
 
-    public <Anchor> void draw(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
+    public <Anchor> void draw(MusicCanvas<Anchor> canvas) {
         drawClefKeyAndTimeSignature(canvas);
         for (Line l: lines){
-            l.draw(canvas,config);
+            l.draw(canvas);
         }
     }
 

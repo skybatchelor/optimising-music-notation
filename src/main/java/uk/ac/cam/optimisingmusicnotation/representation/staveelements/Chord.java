@@ -47,12 +47,12 @@ public class Chord extends BeamGroup {
         return dots > 0;
     }
 
-    <Anchor> Anchor drawRetAnchor(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
+    <Anchor> Anchor drawRetAnchor(MusicCanvas<Anchor> canvas) {
         int lowestLine = 10000000;
         int highestLine = -10000000;
         Anchor ret = null;
         for (Note note: notes) {
-            int sign = config.upwardStems() ? 1 : -1; // decide to draw the not stem upwards or downwards
+            int sign = RenderingConfiguration.upwardStems ? 1 : -1; // decide to draw the not stem upwards or downwards
             boolean fillInCircle = noteType.defaultLengthInCrotchets <= 1;
             boolean drawStem = noteType.defaultLengthInCrotchets <= 2;
             canvas.drawCircle(canvas.getAnchor(musicalPosition, note.pitch), 0, 0, .5f, fillInCircle); // draw note head [!need to adjust on noteType]
@@ -89,8 +89,8 @@ public class Chord extends BeamGroup {
     }
 
     @Override
-    public <Anchor> void draw(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
-        drawRetAnchor(canvas, config);
+    public <Anchor> void draw(MusicCanvas<Anchor> canvas) {
+        drawRetAnchor(canvas);
     }
 
     private static class Note {

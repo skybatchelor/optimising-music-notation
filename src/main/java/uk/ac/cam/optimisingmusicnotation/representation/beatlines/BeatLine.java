@@ -22,13 +22,13 @@ public class BeatLine implements PulseLine {
     }
 
 
-    public <Anchor> void drawAboveStave(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
+    public <Anchor> void drawAboveStave(MusicCanvas<Anchor> canvas) {
         Anchor startAnchor = canvas.getAnchor(musicalPosition);
-        canvas.drawLine(startAnchor,0f,2f,0f,0.25f,config.pulseLineWidth(), new Color(0xCCCCCC));
+        canvas.drawLine(startAnchor,0f,2f,0f,0.25f,RenderingConfiguration.pulseLineWidth, new Color(0xCCCCCC));
     }
 
-    public <Anchor> void drawFull(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
+    public <Anchor> void drawFull(MusicCanvas<Anchor> canvas) {
         Anchor startAnchor = canvas.getAnchor(musicalPosition);
-        canvas.drawLine(startAnchor,0f,0.5f,0f,-4f,config.pulseLineWidth(), new Color(0xCCCCCC));
+        canvas.drawLine(startAnchor,0f,0.5f,0f,-4f,RenderingConfiguration.pulseLineWidth, new Color(0xCCCCCC));
     }
 }

@@ -1,4 +1,6 @@
 package uk.ac.cam.optimisingmusicnotation.representation.properties;
 
-public record RenderingConfiguration(float pulseLineWidth, boolean upwardStems) {
+public class RenderingConfiguration {
+    public static float pulseLineWidth = 0.1f;
+    public static boolean upwardStems = true;
 }

@@ -14,7 +14,6 @@ import uk.ac.cam.optimisingmusicnotation.representation.beatlines.BarLine;
 import uk.ac.cam.optimisingmusicnotation.representation.beatlines.BeatLine;
 import uk.ac.cam.optimisingmusicnotation.representation.beatlines.PulseLine;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
-import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.BeamGroup;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.StaveElement;
@@ -820,7 +819,7 @@ public class Parser {
     private Parser() {}
 
     public static void main(String[] args) {
-        String target = "TestScore2.mxl";
+        String target = "test_scores/TestScore2.mxl";
         if (args.length > 0) {
             target = args[0];
         }
@@ -859,7 +858,7 @@ public class Parser {
 
                     PdfMusicCanvas canvas = new PdfMusicCanvas(pdf);
                     Piece testPiece = new Piece(part.sections);
-                    testPiece.draw(canvas, new RenderingConfiguration(0.1f, true));
+                    testPiece.draw(canvas);
                     pdf.close();
                 }
                 catch (Exception e) {
@@ -875,7 +874,7 @@ public class Parser {
 
                 PdfMusicCanvas canvas = new PdfMusicCanvas(pdf);
                 Piece testPiece = new Piece(score.parts.get(targetPart).sections);
-                testPiece.draw(canvas, new RenderingConfiguration(0.1f, true));
+                testPiece.draw(canvas);
                 pdf.close();
             }
             catch (IOException e) {

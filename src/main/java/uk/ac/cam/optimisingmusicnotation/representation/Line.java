@@ -6,7 +6,6 @@ import uk.ac.cam.optimisingmusicnotation.representation.beatlines.PulseLine;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch;
-import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType;
 import uk.ac.cam.optimisingmusicnotation.representation.whitespaces.Rest;
@@ -108,17 +107,17 @@ public class Line {
     }
     /* A test function for getting chord */
 
-    public <Anchor> void draw(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
+    public <Anchor> void draw(MusicCanvas<Anchor> canvas) {
         // for (int i = 0; i <= lengthInCrotchets; i++) {
         //     MusicalPosition startPosition = new MusicalPosition(this, i);
         //     Anchor startAnchor = canvas.getAnchor(startPosition);
         //     canvas.drawLine(startAnchor,0f,2f,0f,0f,RenderingConfiguration.pulseLineWidth);
         // }
         for (PulseLine p: pulseLines) {
-            p.drawAboveStave(canvas, config);
+            p.drawAboveStave(canvas);
         }
         for (Stave s: staves){
-            s.draw(canvas,this, config);
+            s.draw(canvas,this);
         }
     }
 }

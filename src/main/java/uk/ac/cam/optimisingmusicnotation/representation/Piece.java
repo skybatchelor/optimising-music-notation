@@ -1,7 +1,6 @@
 package uk.ac.cam.optimisingmusicnotation.representation;
 
 import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
-import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,9 +16,9 @@ public class Piece {
         this.sections = sections;
     }
 
-    public <Anchor> void draw(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
+    public <Anchor> void draw(MusicCanvas<Anchor> canvas) {
         for (Section s: sections) {
-            s.draw(canvas, config);
+            s.draw(canvas);
         }
     }
 }

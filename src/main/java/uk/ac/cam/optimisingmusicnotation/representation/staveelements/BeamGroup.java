@@ -1,7 +1,6 @@
 package uk.ac.cam.optimisingmusicnotation.representation.staveelements;
 
 import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
-import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.MusicGroup;
 
 import java.util.ArrayList;
@@ -40,18 +39,18 @@ public class BeamGroup extends MusicGroup {
     }
 
     @Override
-    public <Anchor> void draw(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
+    public <Anchor> void draw(MusicCanvas<Anchor> canvas) {
         if (contents.size() == 1) {
-            Anchor note = contents.get(0).drawRetAnchor(canvas, config);
+            Anchor note = contents.get(0).drawRetAnchor(canvas);
             canvas.drawLine(note, -1, 3, 0, 3, 0.2f);
         } else {
             List<Anchor> anchors = new ArrayList<Anchor>();
-            Anchor start = contents.get(0).drawRetAnchor(canvas, config);
-            Anchor end = contents.get(contents.size() - 1).drawRetAnchor(canvas, config);
+            Anchor start = contents.get(0).drawRetAnchor(canvas);
+            Anchor end = contents.get(contents.size() - 1).drawRetAnchor(canvas);
             anchors.add(start);
             canvas.drawLine(start, 0, 3, end, 0, 3, 0.2f);
             for (Chord chord : contents.subList(1, contents.size() - 1)) {
-                anchors.add(chord.drawRetAnchor(canvas, config));
+                anchors.add(chord.drawRetAnchor(canvas));
             }
             anchors.add(end);
             for (Beam beam : beams) {

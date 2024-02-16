@@ -5,7 +5,6 @@ import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import uk.ac.cam.optimisingmusicnotation.rendering.PdfMusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.Piece;
-import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -33,7 +32,7 @@ public class Main {
 
             PdfMusicCanvas canvas = new PdfMusicCanvas(pdf);
             Piece testPiece = new Piece();
-            testPiece.draw(canvas,new RenderingConfiguration(0.1f, true));
+            testPiece.draw(canvas);
 //
 //            PdfMusicCanvas.Anchor anchor1 = canvas.getAnchor(new MusicalPosition(null, 0));
 //            PdfMusicCanvas.Anchor anchor2 = canvas.getAnchor(new MusicalPosition(null, 16));

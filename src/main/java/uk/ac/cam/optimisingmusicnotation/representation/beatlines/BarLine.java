@@ -18,13 +18,13 @@ public class BarLine implements PulseLine {
         this.barName = barName;
     }
 
-    public <Anchor> void drawAboveStave(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
+    public <Anchor> void drawAboveStave(MusicCanvas<Anchor> canvas) {
         Anchor startAnchor = canvas.getAnchor(musicalPosition);
-        canvas.drawLine(startAnchor,0f,2f,0f,0f,config.pulseLineWidth());
+        canvas.drawLine(startAnchor,0f,2f,0f,0f,RenderingConfiguration.pulseLineWidth);
     }
 
-    public <Anchor> void drawFull(MusicCanvas<Anchor> canvas, RenderingConfiguration config) {
+    public <Anchor> void drawFull(MusicCanvas<Anchor> canvas) {
         Anchor startAnchor = canvas.getAnchor(musicalPosition);
-        canvas.drawLine(startAnchor,0f,2f,0f,-4f,config.pulseLineWidth());
+        canvas.drawLine(startAnchor,0f,2f,0f,-4f,RenderingConfiguration.pulseLineWidth);
     }
 }

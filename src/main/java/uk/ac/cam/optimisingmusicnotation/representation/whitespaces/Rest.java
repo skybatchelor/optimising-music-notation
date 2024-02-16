@@ -4,7 +4,6 @@ import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.Line;
 import uk.ac.cam.optimisingmusicnotation.representation.beatlines.PulseLine;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
-import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 
 public class Rest implements Whitespace {
 
@@ -17,14 +16,14 @@ public class Rest implements Whitespace {
     }
 
     @Override
-    public <Anchor> void draw(MusicCanvas<Anchor> canvas, Line line, RenderingConfiguration config) {
+    public <Anchor> void draw(MusicCanvas<Anchor> canvas, Line line) {
         canvas.drawWhitespace(canvas.getAnchor(startMusicalPosition), 0, 0.5f,
                 canvas.getAnchor(endMusicalPosition), 0, -4.5f);
         MusicalPosition pulsePosition;
         for (PulseLine p: line.getPulseLines()) {
             pulsePosition = p.getMusicalPosition();
             if(pulsePosition.compareTo(startMusicalPosition)>=0 && pulsePosition.compareTo(endMusicalPosition)<=0){
-                p.drawFull(canvas,config);
+                p.drawFull(canvas);
             }
         }
 

@@ -24,6 +24,7 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     // TODO: make these configurable
     private final float LINE_WIDTH = 0.8f;
     private final float STAVE_SPACING = 5f;
+    private final int LINES_PER_PAGE = 10;
 
     public static class Anchor {
 
@@ -42,14 +43,18 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     private final PdfDocument pdf;
 
     public PdfMusicCanvas(PdfDocument pdf) {
-        PdfPage page = pdf.getPage(1);
-
         lineAnchors = new ArrayList<>();
         images = new HashMap<>();
         // TODO: make method to add new lines instead of hardcoding it
-        for (int i = 0; i < 100; i++) {
-            lineAnchors.add(new Anchor(0, (page.getPageSize().getWidth() * (1f - LINE_WIDTH) * 0.5f) / STAVE_SPACING,
-                    (page.getPageSize().getTop() - 40f) / STAVE_SPACING - i * 12f));
+        for (int i = 0; i < 20; i++) {
+            int pageNum = i / LINES_PER_PAGE;
+            if (pageNum + 1 > pdf.getNumberOfPages()) {
+                pdf.addNewPage();
+            }
+            int indexInPage = i % LINES_PER_PAGE;
+            PdfPage page = pdf.getPage(pageNum + 1);
+            lineAnchors.add(new Anchor(pageNum, (page.getPageSize().getWidth() * (1f - LINE_WIDTH) * 0.5f) / STAVE_SPACING,
+                    (page.getPageSize().getTop() - 50f) / STAVE_SPACING - indexInPage * 15f));
         }
         this.pdf = pdf;
     }
