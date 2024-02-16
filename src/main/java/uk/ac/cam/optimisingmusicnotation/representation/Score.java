@@ -1,13 +1,15 @@
-package uk.ac.cam.optimisingmusicnotation.mxlparser;
-
-import uk.ac.cam.optimisingmusicnotation.representation.Section;
+package uk.ac.cam.optimisingmusicnotation.representation;
 
 import java.util.List;
 
 public class Score {
-    String workTitle;
+    private String workTitle;
 
-    List<Part> parts;
+    public List<Part> getParts() {
+        return parts;
+    }
+
+    private List<Part> parts;
 
     public Score(String workTitle, List<Part> parts) {
         this.workTitle = workTitle;

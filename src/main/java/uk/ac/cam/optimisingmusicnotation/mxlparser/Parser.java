@@ -6,10 +6,7 @@ import com.itextpdf.kernel.pdf.PdfWriter;
 import org.audiveris.proxymusic.*;
 import org.audiveris.proxymusic.util.Marshalling;
 import uk.ac.cam.optimisingmusicnotation.rendering.PdfMusicCanvas;
-import uk.ac.cam.optimisingmusicnotation.representation.Line;
-import uk.ac.cam.optimisingmusicnotation.representation.Piece;
-import uk.ac.cam.optimisingmusicnotation.representation.Section;
-import uk.ac.cam.optimisingmusicnotation.representation.Stave;
+import uk.ac.cam.optimisingmusicnotation.representation.*;
 import uk.ac.cam.optimisingmusicnotation.representation.beatlines.BarLine;
 import uk.ac.cam.optimisingmusicnotation.representation.beatlines.BeatLine;
 import uk.ac.cam.optimisingmusicnotation.representation.beatlines.PulseLine;
@@ -17,6 +14,7 @@ import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPositi
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.BeamGroup;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.StaveElement;
+import uk.ac.cam.optimisingmusicnotation.representation.properties.TimeSignature;
 import uk.ac.cam.optimisingmusicnotation.representation.whitespaces.Rest;
 import uk.ac.cam.optimisingmusicnotation.representation.whitespaces.Whitespace;
 
@@ -215,7 +213,7 @@ public class Parser {
 
                 for (ScorePartwise.Part.Measure measure : measures) {
                     float measureTime = 0;
-                    float measureLength = currentTimeSignature.beatNum * 4f / (currentTimeSignature.beatType);
+                    float measureLength = currentTimeSignature.getBeatNum() * 4f / (currentTimeSignature.getBeatType());
 
                     for(Object component : measure.getNoteOrBackupOrForward()) {
                         if (component instanceof Attributes attributes) {
@@ -238,7 +236,7 @@ public class Parser {
                             if (attributes.getDivisions() != null) {
                                 divisions = attributes.getDivisions().intValue();
                             }
-                            measureLength = currentTimeSignature.beatNum * 4f / (currentTimeSignature.beatType);
+                            measureLength = currentTimeSignature.getBeatNum() * 4f / (currentTimeSignature.getBeatType());
                         } else if (component instanceof Note note) {
                             if (note.getDuration() != null) {
                                 prevChange = note.getDuration().intValue() / (float)divisions;
@@ -417,7 +415,7 @@ public class Parser {
             }
 
             for (Map.Entry<String, List<Section>> part : finalSections.entrySet()) {
-                parts.get(part.getKey()).sections = part.getValue();
+                parts.get(part.getKey()).setSections(part.getValue());
             }
 
             return new Score(getWorkTitle(partwise), parts.values().stream().toList());
@@ -575,7 +573,7 @@ public class Parser {
     static PulseLine instantiatedPulseLineTupleToPulseLine(InstantiatedPulseLineTuple pulseTuple, Line line) {
         switch (pulseTuple.beatWeight) {
             case 0:
-                return new BarLine(new MusicalPosition(line, pulseTuple.timeInLine), pulseTuple.name);
+                return new BarLine(new MusicalPosition(line, pulseTuple.timeInLine), pulseTuple.name, null);
             default:
                 return new BeatLine(new MusicalPosition(line, pulseTuple.timeInLine), pulseTuple.beatWeight);
         }
@@ -721,61 +719,61 @@ public class Parser {
     }
 
     static void addPulseLines(TimeSignature time, float measureStartTime, List<PulseLineTuple> pulseLines, String measureName) {
-        switch (time.beatNum) {
+        switch (time.getBeatNum()) {
             case 1:
                 pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0));
                 break;
             case 2:
                 pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 1 * 4f / time.beatType, measureName, 1));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 1 * 4f / time.getBeatType(), measureName, 1));
                 break;
             case 3:
                 pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 1 * 4f / time.beatType, measureName, 1));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 2 * 4f / time.beatType, measureName, 1));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 1 * 4f / time.getBeatType(), measureName, 1));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 2 * 4f / time.getBeatType(), measureName, 1));
                 break;
             case 4:
                 pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 1 * 4f / time.beatType, measureName, 1));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 2 * 4f / time.beatType, measureName, 1));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 3 * 4f / time.beatType, measureName, 1));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 1 * 4f / time.getBeatType(), measureName, 1));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 2 * 4f / time.getBeatType(), measureName, 1));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 3 * 4f / time.getBeatType(), measureName, 1));
                 break;
             case 5:
                 pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 1 * 4f / time.beatType, measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 2 * 4f / time.beatType, measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 3 * 4f / time.beatType, measureName, 1));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 4 * 4f / time.beatType, measureName, 2));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 1 * 4f / time.getBeatType(), measureName, 2));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 2 * 4f / time.getBeatType(), measureName, 2));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 3 * 4f / time.getBeatType(), measureName, 1));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 4 * 4f / time.getBeatType(), measureName, 2));
                 break;
             case 6:
                 pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 1f * 4f / time.beatType, measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 2f * 4f / time.beatType, measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 3f * 4f / time.beatType, measureName, 1));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 4f * 4f / time.beatType, measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 5f * 4f / time.beatType, measureName, 2));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 1f * 4f / time.getBeatType(), measureName, 2));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 2f * 4f / time.getBeatType(), measureName, 2));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 3f * 4f / time.getBeatType(), measureName, 1));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 4f * 4f / time.getBeatType(), measureName, 2));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 5f * 4f / time.getBeatType(), measureName, 2));
                 break;
             case 7:
                 pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 1 * 4f / time.beatType, measureName, 1));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 2 * 4f / time.beatType, measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 3 * 4f / time.beatType, measureName, 1));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 4 * 4f / time.beatType, measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 5 * 4f / time.beatType, measureName, 1));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 6 * 4f / time.beatType, measureName, 1));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 1 * 4f / time.getBeatType(), measureName, 1));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 2 * 4f / time.getBeatType(), measureName, 2));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 3 * 4f / time.getBeatType(), measureName, 1));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 4 * 4f / time.getBeatType(), measureName, 2));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 5 * 4f / time.getBeatType(), measureName, 1));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 6 * 4f / time.getBeatType(), measureName, 1));
                 break;
             case 8:
                 break;
             case 9:
                 pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 1f * 4f / time.beatType, measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 2f * 4f / time.beatType, measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 3f * 4f / time.beatType, measureName, 1));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 4f * 4f / time.beatType, measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 5f * 4f / time.beatType, measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 6f * 4f / time.beatType, measureName, 1));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 7f * 4f / time.beatType, measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 8f * 4f / time.beatType, measureName, 2));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 1f * 4f / time.getBeatType(), measureName, 2));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 2f * 4f / time.getBeatType(), measureName, 2));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 3f * 4f / time.getBeatType(), measureName, 1));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 4f * 4f / time.getBeatType(), measureName, 2));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 5f * 4f / time.getBeatType(), measureName, 2));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 6f * 4f / time.getBeatType(), measureName, 1));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 7f * 4f / time.getBeatType(), measureName, 2));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 8f * 4f / time.getBeatType(), measureName, 2));
                 break;
             case 10:
                 break;
@@ -783,17 +781,17 @@ public class Parser {
                 break;
             case 12:
                 pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 1f * 4f / time.beatType, measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 2f * 4f / time.beatType, measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 3f * 4f / time.beatType, measureName, 1));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 4f * 4f / time.beatType, measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 5f * 4f / time.beatType, measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 6f * 4f / time.beatType, measureName, 1));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 7f * 4f / time.beatType, measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 8f * 4f / time.beatType, measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 9f * 4f / time.beatType, measureName, 1));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 10f * 4f / time.beatType, measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 11f * 4f / time.beatType, measureName, 2));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 1f * 4f / time.getBeatType(), measureName, 2));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 2f * 4f / time.getBeatType(), measureName, 2));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 3f * 4f / time.getBeatType(), measureName, 1));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 4f * 4f / time.getBeatType(), measureName, 2));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 5f * 4f / time.getBeatType(), measureName, 2));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 6f * 4f / time.getBeatType(), measureName, 1));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 7f * 4f / time.getBeatType(), measureName, 2));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 8f * 4f / time.getBeatType(), measureName, 2));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 9f * 4f / time.getBeatType(), measureName, 1));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 10f * 4f / time.getBeatType(), measureName, 2));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 11f * 4f / time.getBeatType(), measureName, 2));
                 break;
             case 13:
                 break;
@@ -850,15 +848,14 @@ public class Parser {
         }
 
         if (targetPart == -1) {
-            for (Part part : score.parts) {
-                try (PdfWriter writer = new PdfWriter(outDir + outTarget + "_" + part.name + ".pdf")) {
+            for (Part part : score.getParts()) {
+                try (PdfWriter writer = new PdfWriter(outDir + outTarget + "_" + part.getName() + ".pdf")) {
                     PdfDocument pdf = new PdfDocument(writer);
                     PageSize ps = PageSize.A4;
                     pdf.addNewPage(ps);
 
                     PdfMusicCanvas canvas = new PdfMusicCanvas(pdf);
-                    Piece testPiece = new Piece(part.sections);
-                    testPiece.draw(canvas);
+                    part.draw(canvas);
                     pdf.close();
                 }
                 catch (Exception e) {
@@ -873,8 +870,8 @@ public class Parser {
                 pdf.addNewPage(ps);
 
                 PdfMusicCanvas canvas = new PdfMusicCanvas(pdf);
-                Piece testPiece = new Piece(score.parts.get(targetPart).sections);
-                testPiece.draw(canvas);
+                Part testPart = score.getParts().get(targetPart);
+                testPart.draw(canvas);
                 pdf.close();
             }
             catch (IOException e) {
