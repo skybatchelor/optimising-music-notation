@@ -859,7 +859,7 @@ public class Parser {
 
                     PdfMusicCanvas canvas = new PdfMusicCanvas(pdf);
                     Piece testPiece = new Piece(part.sections);
-                    testPiece.draw(canvas, new RenderingConfiguration());
+                    testPiece.draw(canvas, new RenderingConfiguration(0.1f, true));
                     pdf.close();
                 }
                 catch (Exception e) {
@@ -875,7 +875,7 @@ public class Parser {
 
                 PdfMusicCanvas canvas = new PdfMusicCanvas(pdf);
                 Piece testPiece = new Piece(score.parts.get(targetPart).sections);
-                testPiece.draw(canvas, new RenderingConfiguration());
+                testPiece.draw(canvas, new RenderingConfiguration(0.1f, true));
                 pdf.close();
             }
             catch (IOException e) {

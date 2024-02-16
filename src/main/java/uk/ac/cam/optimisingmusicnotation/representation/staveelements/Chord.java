@@ -1,7 +1,6 @@
 package uk.ac.cam.optimisingmusicnotation.representation.staveelements;
 
 import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
-import uk.ac.cam.optimisingmusicnotation.rendering.PdfMusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch;
@@ -53,8 +52,7 @@ public class Chord extends BeamGroup {
         int highestLine = -10000000;
         Anchor ret = null;
         for (Note note: notes) {
-            // int sign = config.noteStemDirection() ? 1 : -1; // decide to draw the not stem upwards or downwards
-            int sign = 1;
+            int sign = config.upwardStems() ? 1 : -1; // decide to draw the not stem upwards or downwards
             boolean fillInCircle = noteType.defaultLengthInCrotchets <= 1;
             boolean drawStem = noteType.defaultLengthInCrotchets <= 2;
             canvas.drawCircle(canvas.getAnchor(musicalPosition, note.pitch), 0, 0, .5f, fillInCircle); // draw note head [!need to adjust on noteType]
