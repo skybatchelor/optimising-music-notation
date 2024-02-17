@@ -31,9 +31,10 @@ public interface MusicCanvas<Anchor> {
                    Anchor bottomRightAnchor, float bottomRightX, float bottomRightY)
             throws IOException;
 
-    void drawEllipse(Anchor centre, float x, float y, float width, float height, boolean fill);
+    void drawEllipse(Anchor centre, float x, float y, float rx, float ry, boolean fill);
 
     void drawBeam(Anchor left, float leftX, float leftY, Anchor right, float rightX, float rightY, float height);
+    void drawBeam(Anchor anchor, float x1, float y1, float x2, float y2, float height);
 
-    void drawArc(Anchor left, float leftX, float leftY, Anchor right, float rightX, float rightY, float angle, float lineWidth);
+    void drawArc(Anchor left, float leftX, float leftY, Anchor right, float rightX, float rightY, float height, float lineWidth);
 }

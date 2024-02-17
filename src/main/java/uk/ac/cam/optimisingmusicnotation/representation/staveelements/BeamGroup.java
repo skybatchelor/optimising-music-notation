@@ -42,22 +42,24 @@ public class BeamGroup extends MusicGroup {
     public <Anchor> void draw(MusicCanvas<Anchor> canvas) {
         if (contents.size() == 1) {
             Anchor note = contents.get(0).drawRetAnchor(canvas);
-            canvas.drawLine(note, -1, 3, 0, 3, 0.75f);
+            canvas.drawBeam(note, -1, 3, 0, 3, 0.75f);
         } else {
             List<Anchor> anchors = new ArrayList<Anchor>();
             Anchor start = contents.get(0).drawRetAnchor(canvas);
             Anchor end = contents.get(contents.size() - 1).drawRetAnchor(canvas);
             anchors.add(start);
-            canvas.drawLine(start, 0, 3, end, 0, 3, 0.75f);
+            canvas.drawBeam(start, 0, 3.125f, end, 0, 3.125f, 0.75f);
             for (Chord chord : contents.subList(1, contents.size() - 1)) {
                 anchors.add(chord.drawRetAnchor(canvas));
             }
             anchors.add(end);
             for (Beam beam : beams) {
                 if (beam.startIndex == beam.endIndex) {
-                    canvas.drawLine(anchors.get(beam.startIndex), -1, 3 - 0.5f * beam.number, anchors.get(beam.endIndex), 0, 3 - 0.5f * beam.number, 0.75f);
+                    canvas.drawBeam(anchors.get(beam.startIndex), -1, 3.125f - 1f * beam.number,
+                            anchors.get(beam.endIndex), 0, 3.125f - 0.8f * beam.number, 0.75f);
                 } else {
-                    canvas.drawLine(anchors.get(beam.startIndex), 0, 3 - 0.5f * beam.number, anchors.get(beam.endIndex), 0, 3 - 0.5f * beam.number, 0.75f);
+                    canvas.drawBeam(anchors.get(beam.startIndex), 0, 3.125f - 1f * beam.number,
+                            anchors.get(beam.endIndex), 0, 3.125f - 1f * beam.number, 0.75f);
                 }
             }
         }

@@ -188,17 +188,59 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     }
 
     @Override
-    public void drawEllipse(Anchor centre, float x, float y, float width, float height, boolean fill) {
+    public void drawEllipse(Anchor centre, float x, float y, float rx, float ry, boolean fill) {
+        PdfCanvas canvas = new PdfCanvas(pdf.getPage(centre.page + 1));
+        canvas.setStrokeColor(ColorConstants.BLACK);
+        canvas.setFillColor(ColorConstants.BLACK);
+        canvas.setLineWidth(0.15f * STAVE_SPACING);
 
+        canvas.ellipse(
+                (centre.x + x - rx) * STAVE_SPACING,
+                (centre.y + y - ry) * STAVE_SPACING,
+                (centre.x + x + rx) * STAVE_SPACING,
+                (centre.y + y + ry) * STAVE_SPACING
+        );
+
+        if (fill) {
+            canvas.fill();
+        }
+        else {
+            canvas.stroke();
+        }
     }
 
     @Override
     public void drawBeam(Anchor left, float leftX, float leftY, Anchor right, float rightX, float rightY, float height) {
-
+        drawBeam(left, leftX, leftY, right.x + rightX - left.x, right.y + rightY - left.y, height);
     }
 
     @Override
-    public void drawArc(Anchor left, float leftX, float leftY, Anchor right, float rightX, float rightY, float angle, float lineWidth) {
+    public void drawBeam(Anchor anchor, float x1, float y1, float x2, float y2, float height) {
+        PdfCanvas canvas = new PdfCanvas(pdf.getPage(anchor.page + 1));
+        canvas.setFillColor(ColorConstants.BLACK);
 
+        float leftXPos = (anchor.x + x1) * STAVE_SPACING;
+        float rightXPos = (anchor.x + x2) * STAVE_SPACING;
+
+        canvas.moveTo(leftXPos, (anchor.y + y1 - height / 2f) * STAVE_SPACING)
+                .lineTo(leftXPos, (anchor.y + y1 + height / 2f) * STAVE_SPACING)
+                .lineTo(rightXPos, (anchor.y + y2 + height / 2f) * STAVE_SPACING)
+                .lineTo(rightXPos, (anchor.y + y2 - height / 2f) * STAVE_SPACING)
+                .closePath().fill();
+    }
+
+    @Override
+    public void drawArc(Anchor left, float leftX, float leftY, Anchor right, float rightX, float rightY, float height, float lineWidth) {
+        PdfCanvas canvas = new PdfCanvas(pdf.getPage(left.page + 1));
+        canvas.setLineWidth(lineWidth * STAVE_SPACING);
+        canvas.setStrokeColor(ColorConstants.BLACK);
+
+        canvas.arc(
+                (left.x + leftX) * STAVE_SPACING,
+                (left.y + leftY) * STAVE_SPACING,
+                (right.x + rightX) * STAVE_SPACING,
+                (right.y + rightY - height) * STAVE_SPACING,
+                50f, 80f
+        ).stroke();
     }
 }
