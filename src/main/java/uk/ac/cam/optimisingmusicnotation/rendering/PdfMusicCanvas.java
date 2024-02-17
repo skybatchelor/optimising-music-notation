@@ -186,4 +186,19 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
                 (bottomRightAnchor.x + bottomRightX) - (topLeftAnchor.x + topLeftX),
                 (topLeftAnchor.y + topLeftY) - (bottomRightAnchor.y + bottomRightY));
     }
+
+    @Override
+    public void drawEllipse(Anchor centre, float x, float y, float width, float height, boolean fill) {
+
+    }
+
+    @Override
+    public void drawBeam(Anchor left, float leftX, float leftY, Anchor right, float rightX, float rightY, float height) {
+
+    }
+
+    @Override
+    public void drawArc(Anchor left, float leftX, float leftY, Anchor right, float rightX, float rightY, float angle, float lineWidth) {
+
+    }
 }
