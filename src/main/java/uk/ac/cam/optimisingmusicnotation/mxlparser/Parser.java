@@ -10,7 +10,9 @@ import uk.ac.cam.optimisingmusicnotation.representation.*;
 import uk.ac.cam.optimisingmusicnotation.representation.beatlines.BarLine;
 import uk.ac.cam.optimisingmusicnotation.representation.beatlines.BeatLine;
 import uk.ac.cam.optimisingmusicnotation.representation.beatlines.PulseLine;
+import uk.ac.cam.optimisingmusicnotation.representation.properties.KeySignature;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
+import uk.ac.cam.optimisingmusicnotation.representation.properties.PitchName;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.BeamGroup;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.StaveElement;
@@ -35,6 +37,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class Parser {
+    public static final boolean NEW_SECTION_FOR_KEY_SIGNATURE = true;
+
     private static class SplitChordTuple {
         List<InstantiatedChordTuple> pre;
         List<InstantiatedChordTuple> post;
@@ -159,12 +163,16 @@ public class Parser {
     private static class ParsingPartTuple {
         List<BeamGroupTuple> beamGroups;
         List<PulseLineTuple> pulseLines;
+
+        TreeMap<Float, Direction> directions;
         TreeMap<Float, uk.ac.cam.optimisingmusicnotation.representation.properties.Clef> clefs;
+        TreeMap<Float, KeySignature> keySignatures;
 
         public ParsingPartTuple() {
             beamGroups = new ArrayList<>();
             pulseLines = new ArrayList<>();
             clefs = new TreeMap<>();
+            keySignatures = new TreeMap<>();
         }
     }
 
@@ -194,7 +202,6 @@ public class Parser {
 
     public static Score parseToScore(Object mxl) {
         if (mxl instanceof ScorePartwise partwise) {
-            TreeMap<Float, Direction> directions = new TreeMap<>();
             TreeMap<Float, Float> newlines = new TreeMap<>() {{ put(0f, 0f); }};
             TreeSet<Float> newSections = new TreeSet<>() {{ add(0f); }};
             TreeMap<String, Part> parts = new TreeMap<>();
@@ -220,6 +227,7 @@ public class Parser {
 
             TreeMap<String, List<TreeMap<Float, Line>>> partSections = new TreeMap<>();
             List<ScorePartwise.Part> musicParts = partwise.getPart();
+
             for (ScorePartwise.Part part : musicParts) {
                 String partId = "";
                 if (part.getId() instanceof ScorePart scorePart) {
@@ -231,6 +239,7 @@ public class Parser {
                 partSections.put(partId, new ArrayList<>());
                 float measureStartTime = 0;
                 TimeSignature currentTimeSignature = new TimeSignature();
+                KeySignature currentKeySignature = new KeySignature();
                 int divisions = 0;
                 float prevChange;
                 int lowestLineGrandStaveLine = 0;
@@ -251,6 +260,19 @@ public class Parser {
                                     if (timeSignature != null) {
                                         currentTimeSignature = timeSignature;
                                         newTimeSignature = true;
+                                    }
+                                }
+                            }
+                            if (attributes.getKey() != null) {
+                                for(Key key : attributes.getKey()) {
+                                    var keySignature = parseKeySignature(key, currentKeySignature);
+                                    if (keySignature != null) {
+                                        currentKeySignature = keySignature;
+                                        currentPart.keySignatures.put(measureStartTime + measureTime, currentKeySignature);
+                                        if (NEW_SECTION_FOR_KEY_SIGNATURE) {
+                                            newSections.add(measureStartTime + measureTime);
+                                            newlines.put(measureStartTime + measureTime, measureTime - measureLength);
+                                        }
                                     }
                                 }
                             }
@@ -318,7 +340,7 @@ public class Parser {
                                 newSections.add(measureStartTime + measureTime + offset);
                                 newlines.put(measureStartTime + measureTime + offset, measureTime + offset - measureLength);
                             }
-                            directions.put(measureStartTime + measureTime + offset, direction);
+                            currentPart.directions.put(measureStartTime + measureTime + offset, direction);
                         }
                     }
 
@@ -421,9 +443,11 @@ public class Parser {
             for (Map.Entry<String, List<TreeMap<Float, Line>>> part : partSections.entrySet()) {
                 List<Section> sections = new ArrayList<>();
                 for (TreeMap<Float, Line> lines : part.getValue()) {
-                    sections.add(new Section(lines.values().stream().toList(),
-                            parsingParts.get(part.getKey()).clefs.floorEntry(lines.firstKey()).getValue()
-                            ));
+                    if (lines.size() != 0) {
+                        sections.add(new Section(lines.values().stream().toList(),
+                                parsingParts.get(part.getKey()).clefs.floorEntry(lines.firstKey()).getValue(),
+                                parsingParts.get(part.getKey()).keySignatures.floorEntry(lines.firstKey()).getValue()));
+                    }
                 }
                 finalSections.put(part.getKey(), sections);
             }
@@ -711,6 +735,55 @@ public class Parser {
                     ret.setBeatNum(Integer.parseInt(timeElement.getValue()));
                 } else if (timeElement.getName().getLocalPart().equals("beat-type")) {
                     ret.setBeatType(Integer.parseInt(timeElement.getValue()));
+                }
+            }
+            return ret;
+        }
+        return null;
+    }
+
+    static KeySignature parseKeySignature(Key keySignature, KeySignature currentKeySignature) {
+        if (keySignature != null) {
+            KeySignature ret = new KeySignature();
+            if (keySignature.getFifths() != null) {
+                switch (keySignature.getFifths().intValue()) {
+                    case -7:
+                        ret.addAlteration(0, PitchName.F, uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.FLAT);
+                    case -6:
+                        ret.addAlteration(0, PitchName.C, uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.FLAT);
+                    case -5:
+                        ret.addAlteration(0, PitchName.G, uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.FLAT);
+                    case -4:
+                        ret.addAlteration(0, PitchName.D, uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.FLAT);
+                    case -3:
+                        ret.addAlteration(0, PitchName.A, uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.FLAT);
+                    case -2:
+                        ret.addAlteration(0, PitchName.E, uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.FLAT);
+                    case -1:
+                        ret.addAlteration(0, PitchName.B, uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.FLAT);
+                        break;
+                    case 7:
+                        ret.addAlteration(0, PitchName.B, uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.SHARP);
+                    case 6:
+                        ret.addAlteration(0, PitchName.E, uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.SHARP);
+                    case 5:
+                        ret.addAlteration(0, PitchName.A, uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.SHARP);
+                    case 4:
+                        ret.addAlteration(0, PitchName.D, uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.SHARP);
+                    case 3:
+                        ret.addAlteration(0, PitchName.G, uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.SHARP);
+                    case 2:
+                        ret.addAlteration(0, PitchName.C, uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.SHARP);
+                    case 1:
+                        ret.addAlteration(0, PitchName.F, uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.SHARP);
+                        break;
+                    case 0:
+                        for (KeySignature.Alteration alteration : currentKeySignature.getAlterations()) {
+                            if (alteration.getAccidental() != uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.NATURAL) {
+                                ret.addAlteration(alteration.getAlteredPitch(), uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.NATURAL);
+                            }
+                        }
+                        break;
                 }
             }
             return ret;
