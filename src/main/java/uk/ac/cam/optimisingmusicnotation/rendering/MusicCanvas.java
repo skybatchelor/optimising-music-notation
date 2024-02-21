@@ -10,6 +10,7 @@ public interface MusicCanvas<Anchor> {
 
     Anchor getAnchor(MusicalPosition musicalPosition);
     Anchor getAnchor(MusicalPosition musicalPosition, Pitch pitch);
+    Anchor offsetAnchor(Anchor anchor, float x, float y);
 
     void addLine();
 
@@ -37,4 +38,6 @@ public interface MusicCanvas<Anchor> {
     void drawBeam(Anchor anchor, float x1, float y1, float x2, float y2, float height);
 
     void drawArc(Anchor left, float leftX, float leftY, Anchor right, float rightX, float rightY, float height, float lineWidth);
+
+    void drawText(String fileName, String text, Anchor topLeftAnchor, float topLeftX, float topRight, float width, float height);
 }

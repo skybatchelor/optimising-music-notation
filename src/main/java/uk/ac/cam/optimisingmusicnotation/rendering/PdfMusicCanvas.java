@@ -87,6 +87,11 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     }
 
     @Override
+    public Anchor offsetAnchor(Anchor anchor, float x, float y) {
+        return new Anchor(anchor.page, anchor.x + x, anchor.y + y);
+    }
+
+    @Override
     public void drawCircle(Anchor anchor, float x, float y, float r) {
         drawCircle(anchor, x, y, r, true);
     }
@@ -242,5 +247,10 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
                 (right.y + rightY - height) * STAVE_SPACING,
                 50f, 80f
         ).stroke();
+    }
+
+    @Override
+    public void drawText(String fileName, String text, Anchor topLeftAnchor, float topLeftX, float topRight, float width, float height) {
+
     }
 }
