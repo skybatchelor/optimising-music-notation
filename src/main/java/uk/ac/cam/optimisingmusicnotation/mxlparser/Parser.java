@@ -224,7 +224,6 @@ public class Parser {
                 partSections.put(partId, new ArrayList<>());
                 float measureStartTime = 0;
                 TimeSignature currentTimeSignature = new TimeSignature();
-                boolean newTimeSignature = false;
                 int divisions = 0;
                 float prevChange;
                 int lowestLineGrandStaveLine = 0;
@@ -233,6 +232,7 @@ public class Parser {
                 List<ScorePartwise.Part.Measure> measures = part.getMeasure();
 
                 for (ScorePartwise.Part.Measure measure : measures) {
+                    boolean newTimeSignature = false;
                     float measureTime = 0;
                     float measureLength = currentTimeSignature.getBeatNum() * 4f / (currentTimeSignature.getBeatType());
 
