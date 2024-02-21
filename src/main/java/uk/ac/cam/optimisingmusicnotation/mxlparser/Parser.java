@@ -15,6 +15,11 @@ import uk.ac.cam.optimisingmusicnotation.representation.staveelements.BeamGroup;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.StaveElement;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.TimeSignature;
+import uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmarkings.Accent;
+import uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmarkings.ChordMarking;
+import uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmarkings.Staccato;
+import uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmarkings.StrongAccent;
+import uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmarkings.Tenuto;
 import uk.ac.cam.optimisingmusicnotation.representation.whitespaces.Rest;
 import uk.ac.cam.optimisingmusicnotation.representation.whitespaces.Whitespace;
 
@@ -60,15 +65,17 @@ public class Parser {
         float duration;
         uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType noteType;
         int dots;
+        List<ChordMarking> markings;
 
         public InstantiatedChordTuple(List<uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch> pitches, List<uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental> accidentals,
-                                      float crotchetsIntoLine, float duration, uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType noteType, int dots) {
+                                      float crotchetsIntoLine, float duration, uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType noteType, int dots, List<ChordMarking> markings) {
             this.pitches = pitches;
             this.accidentals = accidentals;
             this.crotchetsIntoLine = crotchetsIntoLine;
             this.duration = duration;
             this.noteType = noteType;
             this.dots = dots;
+            this.markings = markings;
         }
     }
 
@@ -549,6 +556,7 @@ public class Parser {
     static InstantiatedChordTuple chordTupleToInstantiatedChordTuple(ChordTuple chord, float lineTime, int lineNum) {
         List<uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch> pitches = new ArrayList<>();
         List<uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental> accidentals = new ArrayList<>();
+        List<ChordMarking> markings = new ArrayList<>();
         for (Note note : chord.notes) {
             if (note.getPitch() != null) {
                 pitches.add(new uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch(pitchToGrandStaveLine(note.getPitch()) - chord.lowestLine, 0));
@@ -567,8 +575,30 @@ public class Parser {
             } else {
                 accidentals.add(uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.NONE);
             }
+            addMarkings(note, markings);
         }
-        return new InstantiatedChordTuple(pitches, accidentals, chord.crotchets - lineTime, chord.duration, convertNoteType(chord.notes.get(0).getType()), getDotNumber(chord.notes.get(0)));
+        return new InstantiatedChordTuple(pitches, accidentals, chord.crotchets - lineTime, chord.duration, convertNoteType(chord.notes.get(0).getType()), getDotNumber(chord.notes.get(0)), markings);
+    }
+
+    static void addMarkings(Note note, List<ChordMarking> target) {
+        if (note.getNotations() != null) {
+            for (Notations notations : note.getNotations()) {
+                if (notations.getTiedOrSlurOrTuplet() != null) {
+                    for (Object object : notations.getTiedOrSlurOrTuplet()) {
+                        if (object instanceof Articulations articulations) {
+                            for (JAXBElement element : articulations.getAccentOrStrongAccentOrStaccato()) {
+                                switch (element.getName().getLocalPart()) {
+                                    case "staccato" -> target.add(new Staccato());
+                                    case "tenuto" -> target.add(new Tenuto());
+                                    case "accent" -> target.add(new Accent());
+                                    case "strong-accent" -> target.add(new StrongAccent());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     static int getDotNumber(Note note) {
@@ -579,7 +609,7 @@ public class Parser {
     }
 
     static Chord instantiatedChordTupleToChord(InstantiatedChordTuple chordTuple, Line line) {
-        return new Chord(chordTuple.pitches, chordTuple.accidentals, new MusicalPosition(line, chordTuple.crotchetsIntoLine), chordTuple.duration, chordTuple.noteType, chordTuple.dots);
+        return new Chord(chordTuple.pitches, chordTuple.accidentals, new MusicalPosition(line, chordTuple.crotchetsIntoLine), chordTuple.duration, chordTuple.noteType, chordTuple.dots, chordTuple.markings);
     }
 
     static InstantiatedPulseLineTuple pulseTupleToInstantiatedPulseTuple(PulseLineTuple tuple, float lineTime, int lineNum) {

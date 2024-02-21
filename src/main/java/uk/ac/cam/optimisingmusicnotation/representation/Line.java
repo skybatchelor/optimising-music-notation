@@ -91,7 +91,7 @@ public class Line {
         MusicalPosition musicalPosition = new MusicalPosition(this, 0);
         float durationInCrochets = 1f;
         NoteType noteType = NoteType.CROTCHET;
-        return new Chord(pitches, accidentals, musicalPosition, durationInCrochets, noteType, 0);
+        return new Chord(pitches, accidentals, musicalPosition, durationInCrochets, noteType, 0, new ArrayList<>());
     }
   
     private Chord getTestChord(NoteType type, float durationInCrochets, float crochetsIntoLine, int rootStaveLine) {
@@ -103,7 +103,7 @@ public class Line {
 
         MusicalPosition musicalPosition = new MusicalPosition(this, crochetsIntoLine);
         NoteType noteType = type;
-        return new Chord(pitches, accidentals, musicalPosition, durationInCrochets, noteType, 0);
+        return new Chord(pitches, accidentals, musicalPosition, durationInCrochets, noteType, 0, new ArrayList<>());
     }
     /* A test function for getting chord */
 

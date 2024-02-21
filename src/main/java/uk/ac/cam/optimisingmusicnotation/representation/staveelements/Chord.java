@@ -27,16 +27,16 @@ public class Chord extends BeamGroup {
         dots = 0;
     }
 
-    public Chord(List<Pitch> pitches, List<Accidental> accidentals, MusicalPosition musicalPosition, float durationInCrochets, NoteType noteType, int dots) {
+    public Chord(List<Pitch> pitches, List<Accidental> accidentals, MusicalPosition musicalPosition, float durationInCrochets, NoteType noteType, int dots, List<ChordMarking> markings) {
         notes = new ArrayList<>(pitches.size());
         for (int i = 0; i < pitches.size(); ++i) {
             notes.add(new Note(pitches.get(i), accidentals.get(i)));
         }
-        markings = new ArrayList<>();
         this.musicalPosition = musicalPosition;
         this.durationInCrochets = durationInCrochets;
         this.noteType = noteType;
         this.dots = dots;
+        this.markings = markings;
     }
 
     public void addMarking(ChordMarking marking) {
