@@ -108,15 +108,10 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     public void drawCircle(Anchor anchor, float x, float y, float r, boolean fill) {
         PdfCanvas canvas = new PdfCanvas(pdf.getPage(anchor.page + 1));
         canvas.setStrokeColor(ColorConstants.BLACK);
-        canvas.setFillColor(ColorConstants.BLACK);
+        canvas.setFillColor(fill ? ColorConstants.BLACK : ColorConstants.WHITE);
         canvas.setLineWidth(0.15f * STAVE_SPACING);
         canvas.circle((anchor.x + x) * STAVE_SPACING, (anchor.y + y) * STAVE_SPACING, r * STAVE_SPACING);
-        if (fill) {
-            canvas.fill();
-        }
-        else {
-            canvas.stroke();
-        }
+        canvas.fillStroke();
     }
 
     @Override

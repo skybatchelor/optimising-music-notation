@@ -1,12 +1,15 @@
 package uk.ac.cam.optimisingmusicnotation.representation.staveelements;
 
 import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
-import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.MusicGroup;
+import uk.ac.cam.optimisingmusicnotation.representation.properties.ChordAnchors;
+import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
+import uk.ac.cam.optimisingmusicnotation.representation.staveelements.StaveElement;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-public class BeamGroup extends MusicGroup {
+public class BeamGroup implements StaveElement {
     private static class Beam {
         int startIndex;
         int endIndex;
@@ -20,17 +23,17 @@ public class BeamGroup extends MusicGroup {
         }
     }
 
-    private final List<Chord> contents;
+    private final List<Chord> chords;
     // The list of secondary beams. Note that beam groups always have an implicit first level beam.
     private final List<Beam> beams;
 
     public BeamGroup() {
-        contents = new ArrayList<>();
+        chords = new ArrayList<>();
         beams = new ArrayList<>();
     }
 
-    public BeamGroup(List<Chord> contents) {
-        this.contents = contents;
+    public BeamGroup(List<Chord> chords) {
+        this.chords = chords;
         beams = new ArrayList<>();
     }
 
@@ -39,29 +42,29 @@ public class BeamGroup extends MusicGroup {
     }
 
     @Override
-    public <Anchor> void draw(MusicCanvas<Anchor> canvas) {
-        if (contents.size() == 1) {
-            Anchor note = contents.get(0).drawRetAnchor(canvas);
-            canvas.drawBeam(note, -1, 3, 0, 3, 0.75f);
-        } else {
-            List<Anchor> anchors = new ArrayList<Anchor>();
-            Anchor start = contents.get(0).drawRetAnchor(canvas);
-            Anchor end = contents.get(contents.size() - 1).drawRetAnchor(canvas);
-            anchors.add(start);
-            canvas.drawBeam(start, 0, 3.125f, end, 0, 3.125f, 0.75f);
-            for (Chord chord : contents.subList(1, contents.size() - 1)) {
-                anchors.add(chord.drawRetAnchor(canvas));
-            }
-            anchors.add(end);
-            for (Beam beam : beams) {
-                if (beam.startIndex == beam.endIndex) {
-                    canvas.drawBeam(anchors.get(beam.startIndex), -1, 3.125f - 1f * beam.number,
-                            anchors.get(beam.endIndex), 0, 3.125f - 0.8f * beam.number, 0.75f);
-                } else {
-                    canvas.drawBeam(anchors.get(beam.startIndex), 0, 3.125f - 1f * beam.number,
-                            anchors.get(beam.endIndex), 0, 3.125f - 1f * beam.number, 0.75f);
-                }
-            }
-        }
+    public <Anchor> void draw(MusicCanvas<Anchor> canvas, Map<Chord, ChordAnchors<Anchor>> chordAnchorsMap) {
+//        if (chords.size() == 1) {
+//            Anchor note = chords.get(0).drawRetAnchor(canvas);
+//            canvas.drawBeam(note, -1, 3, 0, 3, 0.75f);
+//        } else {
+//            List<Anchor> anchors = new ArrayList<Anchor>();
+//            Anchor start = chords.get(0).drawRetAnchor(canvas);
+//            Anchor end = chords.get(chords.size() - 1).drawRetAnchor(canvas);
+//            anchors.add(start);
+//            canvas.drawBeam(start, 0, 3.125f, end, 0, 3.125f, 0.75f);
+//            for (Chord chord : chords.subList(1, chords.size() - 1)) {
+//                anchors.add(chord.drawRetAnchor(canvas));
+//            }
+//            anchors.add(end);
+//            for (Beam beam : beams) {
+//                if (beam.startIndex == beam.endIndex) {
+//                    canvas.drawBeam(anchors.get(beam.startIndex), -1, 3.125f - 1f * beam.number,
+//                            anchors.get(beam.endIndex), 0, 3.125f - 0.8f * beam.number, 0.75f);
+//                } else {
+//                    canvas.drawBeam(anchors.get(beam.startIndex), 0, 3.125f - 1f * beam.number,
+//                            anchors.get(beam.endIndex), 0, 3.125f - 1f * beam.number, 0.75f);
+//                }
+//            }
+//        }
     }
 }

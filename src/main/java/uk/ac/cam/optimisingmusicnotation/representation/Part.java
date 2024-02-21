@@ -48,7 +48,7 @@ public class Part {
         sections.add(s);
     }
 
-    public <Anchor> void draw(MusicCanvas<Anchor> canvas) {
+    public <Anchor> void draw(MusicCanvas<Anchor> canvas, String workTitle) {
         for (Section s: sections) {
             s.draw(canvas);
         }

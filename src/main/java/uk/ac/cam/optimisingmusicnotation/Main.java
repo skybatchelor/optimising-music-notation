@@ -32,7 +32,7 @@ public class Main {
 
             PdfMusicCanvas canvas = new PdfMusicCanvas(pdf);
             Part testPart = new Part();
-            testPart.draw(canvas);
+            testPart.draw(canvas, "Piece title");
 //
 //            PdfMusicCanvas.Anchor anchor1 = canvas.getAnchor(new MusicalPosition(null, 0));
 //            PdfMusicCanvas.Anchor anchor2 = canvas.getAnchor(new MusicalPosition(null, 16));

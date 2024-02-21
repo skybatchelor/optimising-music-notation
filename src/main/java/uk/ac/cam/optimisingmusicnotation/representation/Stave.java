@@ -1,25 +1,33 @@
 package uk.ac.cam.optimisingmusicnotation.representation;
 
 import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
+import uk.ac.cam.optimisingmusicnotation.representation.properties.ChordAnchors;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
+import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.StaveElement;
+import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.MusicGroup;
 import uk.ac.cam.optimisingmusicnotation.representation.whitespaces.Whitespace;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Stave {
     private final List<StaveElement> staveElements;
     private final List<Whitespace> whitespaces;
+    private final List<MusicGroup> musicGroups;
   
     public Stave() {
         staveElements = new ArrayList<>();
         whitespaces = new ArrayList<>();
+        musicGroups = new ArrayList<>();
     }
 
-    public Stave(List<StaveElement> staveElements, List<Whitespace> whitespaces) {
+    public Stave(List<StaveElement> staveElements, List<Whitespace> whitespaces, List<MusicGroup> musicGroups) {
         this.staveElements = staveElements;
         this.whitespaces = whitespaces;
+        this.musicGroups = musicGroups;
     }
   
     public void addWhiteSpace(Whitespace whitespace) {
@@ -31,14 +39,18 @@ public class Stave {
     }
 
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Line line) {
+        Map<Chord, ChordAnchors<Anchor>> chordAnchorsMap = new HashMap<>();
+        for (StaveElement s : staveElements) {
+            s.draw(canvas, chordAnchorsMap);
+        }
+        for (MusicGroup m : musicGroups) {
+            m.draw(canvas, chordAnchorsMap);
+        }
         drawStaveLines(canvas, line);
         for (Whitespace w : whitespaces) {
             w.draw(canvas, line);
         }
-        for (StaveElement s : staveElements) {
-            s.draw(canvas);
 
-        }
     }
 
     private <Anchor> void drawStaveLines(MusicCanvas<Anchor> canvas, Line line){

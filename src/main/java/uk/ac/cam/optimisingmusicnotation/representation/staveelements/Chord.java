@@ -1,14 +1,12 @@
 package uk.ac.cam.optimisingmusicnotation.representation.staveelements;
 
 import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
-import uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental;
-import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
-import uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch;
-import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
+import uk.ac.cam.optimisingmusicnotation.representation.properties.*;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmarkings.ChordMarking;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class Chord extends BeamGroup {
     protected final List<Note> notes;
@@ -47,10 +45,11 @@ public class Chord extends BeamGroup {
         return dots > 0;
     }
 
-    <Anchor> Anchor drawRetAnchor(MusicCanvas<Anchor> canvas) {
+    @Override
+    public <Anchor> void draw(MusicCanvas<Anchor> canvas, Map<Chord, ChordAnchors<Anchor>> chordAnchorsMap) {
         int lowestLine = 10000000;
         int highestLine = -10000000;
-        Anchor ret = null;
+        ChordAnchors<Anchor> chordAnchors = null;
         for (Note note: notes) {
             int sign = RenderingConfiguration.upwardStems ? 1 : -1; // decide to draw the not stem upwards or downwards
             boolean fillInCircle = noteType.defaultLengthInCrotchets <= 1;
@@ -58,7 +57,7 @@ public class Chord extends BeamGroup {
             canvas.drawCircle(canvas.getAnchor(musicalPosition, note.pitch), 0, 0, .5f, fillInCircle); // draw note head [!need to adjust on noteType]
             if (note.pitch.rootStaveLine() < lowestLine) {
                 lowestLine = note.pitch.rootStaveLine();
-                ret = canvas.getAnchor(musicalPosition, note.pitch);
+                //ret = canvas.getAnchor(musicalPosition, note.pitch);
             }
             if (note.pitch.rootStaveLine() > highestLine) {
                 highestLine = note.pitch.rootStaveLine();
@@ -92,12 +91,7 @@ public class Chord extends BeamGroup {
                 canvas.drawLine(canvas.getAnchor(musicalPosition, new Pitch(i, 0)), -1f, 0f, 1f, 0f, .2f);
             }
         }
-        return ret;
-    }
-
-    @Override
-    public <Anchor> void draw(MusicCanvas<Anchor> canvas) {
-        drawRetAnchor(canvas);
+        chordAnchorsMap.put(this,chordAnchors);
     }
 
     private static class Note {

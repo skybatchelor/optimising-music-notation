@@ -3,6 +3,10 @@ package uk.ac.cam.optimisingmusicnotation.representation;
 import java.util.List;
 
 public class Score {
+    public String getWorkTitle() {
+        return workTitle;
+    }
+
     private String workTitle;
 
     public List<Part> getParts() {

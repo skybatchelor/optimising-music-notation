@@ -412,7 +412,7 @@ public class Parser {
                 finalLines.put(part.getKey(), new ArrayList<>());
                 for (int i = 0; i < part.getValue().size(); ++i) {
                     List<StaveElement> elements = new ArrayList<>();
-                    Stave stave = new Stave(elements, new ArrayList<>());
+                    Stave stave = new Stave(elements, new ArrayList<>(),new ArrayList<>());
 
                     Line tempLine = new Line(new ArrayList<>() {{ add(stave); }}, lineLengths.get(i), lineOffsets.get(i), i);
                     finalLines.get(part.getKey()).add(new InstantiatedLineTuple(newlinesList.get(i), tempLine));
@@ -961,7 +961,7 @@ public class Parser {
                     pdf.addNewPage(ps);
 
                     PdfMusicCanvas canvas = new PdfMusicCanvas(pdf);
-                    part.draw(canvas);
+                    part.draw(canvas, score.getWorkTitle());
                     pdf.close();
                 }
                 catch (Exception e) {
@@ -977,7 +977,7 @@ public class Parser {
 
                 PdfMusicCanvas canvas = new PdfMusicCanvas(pdf);
                 Part testPart = score.getParts().get(targetPart);
-                testPart.draw(canvas);
+                testPart.draw(canvas, score.getWorkTitle());
                 pdf.close();
             }
             catch (IOException e) {
