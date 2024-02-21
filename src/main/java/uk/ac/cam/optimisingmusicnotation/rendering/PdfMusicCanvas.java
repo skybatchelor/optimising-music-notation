@@ -1,17 +1,23 @@
 package uk.ac.cam.optimisingmusicnotation.rendering;
 
+import com.itextpdf.io.font.FontProgram;
+import com.itextpdf.io.font.FontProgramFactory;
 import com.itextpdf.kernel.colors.ColorConstants;
 import com.itextpdf.kernel.colors.DeviceRgb;
+import com.itextpdf.kernel.font.PdfFont;
+import com.itextpdf.kernel.font.PdfFontFactory;
 import com.itextpdf.kernel.geom.Rectangle;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfPage;
 import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
 import com.itextpdf.kernel.pdf.xobject.PdfXObject;
+import com.itextpdf.layout.Canvas;
+import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.svg.converter.SvgConverter;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch;
 
-import java.awt.*;
+import java.awt.Color;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -40,11 +46,13 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
 
     private final List<Anchor> lineAnchors;
     private final Map<String, PdfXObject> images;
+    private final Map<String, PdfFont> fonts;
     private final PdfDocument pdf;
 
     public PdfMusicCanvas(PdfDocument pdf) {
         lineAnchors = new ArrayList<>();
         images = new HashMap<>();
+        fonts = new HashMap<>();
         this.pdf = pdf;
     }
 
@@ -250,7 +258,33 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     }
 
     @Override
-    public void drawText(String fileName, String text, Anchor topLeftAnchor, float topLeftX, float topRight, float width, float height) {
+    public void drawText(String fileName, String text, float fontSize,
+                         Anchor topLeftAnchor, float topLeftX, float topLeftY, float width, float height)
+            throws IOException {
+        PdfFont font;
 
+        // cache font if it's the first time loading it, since fonts are usually reused
+        if (!fonts.containsKey(fileName)) {
+            FontProgram program = FontProgramFactory.createFont(fileName);
+            font = PdfFontFactory.createFont(program);
+            fonts.put(fileName, font);
+        }
+        else {
+            font = fonts.get(fileName);
+        }
+
+        PdfCanvas pdfCanvas = new PdfCanvas(pdf.getPage(topLeftAnchor.page + 1));
+        Paragraph paragraph = new Paragraph(text);
+
+        try (Canvas canvas = new Canvas(pdfCanvas, new Rectangle(
+                (topLeftAnchor.x + topLeftX) * STAVE_SPACING,
+                (topLeftAnchor.y + topLeftY - height) * STAVE_SPACING,
+                width * STAVE_SPACING,
+                height * STAVE_SPACING
+        ))) {
+            canvas.setFont(font);
+            canvas.setFontSize(fontSize);
+            canvas.add(paragraph);
+        }
     }
 }

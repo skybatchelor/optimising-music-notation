@@ -39,5 +39,7 @@ public interface MusicCanvas<Anchor> {
 
     void drawArc(Anchor left, float leftX, float leftY, Anchor right, float rightX, float rightY, float height, float lineWidth);
 
-    void drawText(String fileName, String text, Anchor topLeftAnchor, float topLeftX, float topRight, float width, float height);
+    void drawText(String fileName, String text, float fontSize,
+                  Anchor topLeftAnchor, float topLeftX, float topLeftY, float width, float height)
+            throws IOException;
 }
