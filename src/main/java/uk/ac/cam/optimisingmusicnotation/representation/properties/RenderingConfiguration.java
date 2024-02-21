@@ -5,4 +5,5 @@ public class RenderingConfiguration {
     public static float barLineWidth = 0.4f;
     public static float stemWidth = 0.15f;
     public static boolean upwardStems = true;
+    public static float gapHeight = 0.125f;
 }
