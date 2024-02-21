@@ -23,6 +23,11 @@ public class KeySignature {
         this.alterations = new ArrayList<>();
     }
 
+    // Key signature has a list of alterations for each pitch type
+    // They are added in the order they are expected to be drawn in
+    // For example, D major would have the following alterations:
+    // [(PitchName.F, Accidental.SHARP), (PitchName.C, Accidental.SHARP)]
+    // Note that when C major/A minor is parsed, it does add all the relevant naturals so please do draw them
     public KeySignature (List<PitchName> pitches, List<Accidental> accidentals) {
         this.alterations = new ArrayList<>();
         for (int i = 0; i < pitches.size() && i < accidentals.size(); ++i) {

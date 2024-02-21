@@ -171,6 +171,7 @@ public class Parser {
         public ParsingPartTuple() {
             beamGroups = new ArrayList<>();
             pulseLines = new ArrayList<>();
+            directions = new TreeMap<>();
             clefs = new TreeMap<>();
             keySignatures = new TreeMap<>();
         }
