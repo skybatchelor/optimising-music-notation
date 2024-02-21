@@ -30,6 +30,16 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class Parser {
+    private static class SplitChordTuple {
+        List<InstantiatedChordTuple> pre;
+        List<InstantiatedChordTuple> post;
+
+        public SplitChordTuple() {
+            pre = new ArrayList<>();
+            post = new ArrayList<>();
+        }
+    }
+
     private static class ChordTuple {
         List<Note> notes;
         float crotchets;
@@ -115,11 +125,13 @@ public class Parser {
         float time;
         String name;
         int beatWeight;
+        TimeSignature timeSig;
 
-        PulseLineTuple(float time, String name, int beatWeight) {
+        PulseLineTuple(float time, String name, int beatWeight, TimeSignature timeSig) {
             this.time = time;
             this.name = name;
             this.beatWeight = beatWeight;
+            this.timeSig = timeSig;
         }
     }
 
@@ -127,11 +139,13 @@ public class Parser {
         float timeInLine;
         String name;
         int beatWeight;
+        TimeSignature timeSig;
 
-        InstantiatedPulseLineTuple(float timeInLine, String name, int beatWeight) {
+        InstantiatedPulseLineTuple(float timeInLine, String name, int beatWeight, TimeSignature timeSig) {
             this.timeInLine = timeInLine;
             this.name = name;
             this.beatWeight = beatWeight;
+            this.timeSig = timeSig;
         }
     }
 
@@ -173,25 +187,20 @@ public class Parser {
 
     public static Score parseToScore(Object mxl) {
         if (mxl instanceof ScorePartwise partwise) {
-            TreeMap<Float, ChordTuple> chords = new TreeMap<>();
             TreeMap<Float, Direction> directions = new TreeMap<>();
             TreeMap<Float, Float> newlines = new TreeMap<>() {{ put(0f, 0f); }};
             TreeSet<Float> newSections = new TreeSet<>() {{ add(0f); }};
             TreeMap<String, Part> parts = new TreeMap<>();
 
-            TreeMap<String, TreeMap<Float, uk.ac.cam.optimisingmusicnotation.representation.properties.Clef>> clefs =
-                    new TreeMap<>();
-
             List<Object> scoreParts = partwise.getPartList().getPartGroupOrScorePart();
             for (Object part : scoreParts) {
-                if (part instanceof ScorePart) {
-                    ScorePart scorePart = (ScorePart) part;
+                if (part instanceof ScorePart scorePart) {
                     Part ret = new Part();
                     parts.put(scorePart.getId(), ret);
                     ret.setName(scorePart.getPartName().getValue());
                     ret.setAbbreviation(scorePart.getPartAbbreviation().getValue());
-                } else if (part instanceof PartGroup) {
-                    PartGroup partGroup = (PartGroup) part;
+                } else if (part instanceof PartGroup partGroup) {
+
                 } else {
 
                 }
@@ -215,11 +224,10 @@ public class Parser {
                 partSections.put(partId, new ArrayList<>());
                 float measureStartTime = 0;
                 TimeSignature currentTimeSignature = new TimeSignature();
+                boolean newTimeSignature = false;
                 int divisions = 0;
-                float prevChange = 0;
+                float prevChange;
                 int lowestLineGrandStaveLine = 0;
-                List<uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch> currentChordPitches = new ArrayList<>();
-                List<uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental> currentChordAccidentals = new ArrayList<>();
                 ChordTuple currentChord = new ChordTuple(0, 0);
                 BeamGroupTuple beamGroup = new BeamGroupTuple();
                 List<ScorePartwise.Part.Measure> measures = part.getMeasure();
@@ -235,6 +243,7 @@ public class Parser {
                                     var timeSignature = parseTimeSignature(time.getTimeSignature());
                                     if (timeSignature != null) {
                                         currentTimeSignature = timeSignature;
+                                        newTimeSignature = true;
                                     }
                                 }
                             }
@@ -257,9 +266,6 @@ public class Parser {
                                 prevChange = 0;
                             }
                             if (note.getChord() == null) {
-                                if (currentChord.notes.size() != 0) {
-                                    chords.put(currentChord.crotchets, currentChord);
-                                }
                                 currentChord = new ChordTuple(measureStartTime + measureTime, lowestLineGrandStaveLine);
                                 measureTime += prevChange;
                             }
@@ -272,32 +278,16 @@ public class Parser {
                                 for(Beam beam : note.getBeam()) {
                                     if (beam.getNumber() == 1) {
                                         switch (beam.getValue()) {
-                                            case BEGIN:
+                                            case BEGIN, CONTINUE -> {
                                                 beamGroup.addChord(currentChord);
                                                 addedToBeamGroup = true;
-                                                break;
-                                            case END:
-                                                beamGroup.addChord(currentChord);
-                                                currentPart.beamGroups.add(beamGroup);
-                                                beamGroup = new BeamGroupTuple();
-                                                addedToBeamGroup = true;
-                                                break;
-                                            case CONTINUE:
-                                                beamGroup.addChord(currentChord);
-                                                addedToBeamGroup = true;
-                                                break;
-                                            case FORWARD_HOOK:
+                                            }
+                                            case END, FORWARD_HOOK, BACKWARD_HOOK -> {
                                                 beamGroup.addChord(currentChord);
                                                 currentPart.beamGroups.add(beamGroup);
                                                 beamGroup = new BeamGroupTuple();
                                                 addedToBeamGroup = true;
-                                                break;
-                                            case BACKWARD_HOOK:
-                                                beamGroup.addChord(currentChord);
-                                                currentPart.beamGroups.add(beamGroup);
-                                                beamGroup = new BeamGroupTuple();
-                                                addedToBeamGroup = true;
-                                                break;
+                                            }
                                         }
                                     }
                                 }
@@ -325,7 +315,11 @@ public class Parser {
                         }
                     }
 
-                    addPulseLines(currentTimeSignature, measureStartTime, currentPart.pulseLines, measure.getText());
+                    if (newTimeSignature) {
+                        addPulseLines(currentTimeSignature, measureStartTime, currentPart.pulseLines, measure.getText(), currentTimeSignature);
+                    } else {
+                        addPulseLines(currentTimeSignature, measureStartTime, currentPart.pulseLines, measure.getText(), null);
+                    }
 
                     measureStartTime += measureLength;
                 }
@@ -448,6 +442,16 @@ public class Parser {
         return (tuple.chords.get(0).notes.get(0).getRest() != null);
     }
 
+    static SplitChordTuple splitInstantiatedChordTuple(InstantiatedChordTuple tuple, float newLine) {
+        SplitChordTuple res = new SplitChordTuple();
+        res.pre.add(tuple);
+        return res;
+    }
+
+    static List<InstantiatedBeamGroupTuple> splitInstantiatedBeamTuple(InstantiatedBeamGroupTuple tuple, TreeMap<Float, Float> newlines, TreeMap<Float, Integer> lineIndices) {
+        return null;
+    }
+
     static InstantiatedBeamGroupTuple beamTupleToInstantiatedBeamTuple(BeamGroupTuple tuple, float lineTime, int lineNum) {
         InstantiatedBeamGroupTuple beamTuple = new InstantiatedBeamGroupTuple();
         for (ChordTuple chordTuple : tuple.chords) {
@@ -553,12 +557,12 @@ public class Parser {
             }
             if (note.getAccidental() != null) {
                 switch (note.getAccidental().getValue()) {
-                    case FLAT -> { accidentals.add(uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.FLAT); }
-                    case SHARP -> { accidentals.add(uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.SHARP); }
-                    case FLAT_FLAT -> { accidentals.add(uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.DOUBLE_FLAT); }
-                    case DOUBLE_SHARP -> { accidentals.add(uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.DOUBLE_SHARP); }
-                    case NATURAL -> { accidentals.add(uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.NATURAL); }
-                    default -> { accidentals.add(uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.NONE); }
+                    case FLAT -> accidentals.add(uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.FLAT);
+                    case SHARP -> accidentals.add(uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.SHARP);
+                    case FLAT_FLAT -> accidentals.add(uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.DOUBLE_FLAT);
+                    case DOUBLE_SHARP -> accidentals.add(uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.DOUBLE_SHARP);
+                    case NATURAL -> accidentals.add(uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.NATURAL);
+                    default -> accidentals.add(uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.NONE);
                 }
             } else {
                 accidentals.add(uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.NONE);
@@ -579,62 +583,54 @@ public class Parser {
     }
 
     static InstantiatedPulseLineTuple pulseTupleToInstantiatedPulseTuple(PulseLineTuple tuple, float lineTime, int lineNum) {
-        return new InstantiatedPulseLineTuple(tuple.time - lineTime, tuple.name, tuple.beatWeight);
+        return new InstantiatedPulseLineTuple(tuple.time - lineTime, tuple.name, tuple.beatWeight, tuple.timeSig);
     }
 
     static PulseLine instantiatedPulseLineTupleToPulseLine(InstantiatedPulseLineTuple pulseTuple, Line line) {
-        switch (pulseTuple.beatWeight) {
-            case 0:
-                return new BarLine(new MusicalPosition(line, pulseTuple.timeInLine), pulseTuple.name, null);
-            default:
-                return new BeatLine(new MusicalPosition(line, pulseTuple.timeInLine), pulseTuple.beatWeight);
-        }
+        return switch (pulseTuple.beatWeight) {
+            case 0 -> new BarLine(new MusicalPosition(line, pulseTuple.timeInLine), pulseTuple.name, pulseTuple.timeSig);
+            default -> new BeatLine(new MusicalPosition(line, pulseTuple.timeInLine), pulseTuple.beatWeight);
+        };
     }
 
     static uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType convertNoteType(NoteType noteType) {
-        switch (noteType.getValue()) {
-            case "maxima" -> { return uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.MAXIMA; }
-            case "long" -> { return uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.BREVE; }
-            case "whole" -> { return uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.SEMIBREVE; }
-            case "half" -> { return uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.MINIM; }
-            case "quarter" -> { return uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.CROTCHET; }
-            case "eighth" -> { return uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.QUAVER; }
-            case "16th" -> { return uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.SQUAVER; }
-            case "32nd" -> { return uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.DSQUAVER; }
-            case "64th" -> { return uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.HDSQUAVER; }
-            default -> { throw new IllegalArgumentException(); }
-        }
+        return switch (noteType.getValue()) {
+            case "maxima" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.MAXIMA;
+            case "long" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.BREVE;
+            case "whole" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.SEMIBREVE;
+            case "half" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.MINIM;
+            case "quarter" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.CROTCHET;
+            case "eighth" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.QUAVER;
+            case "16th" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.SQUAVER;
+            case "32nd" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.DSQUAVER;
+            case "64th" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.HDSQUAVER;
+            default -> throw new IllegalArgumentException();
+        };
     }
 
     // translates a pitch into the number of lines above the root of C0.
     static int pitchToGrandStaveLine(Pitch pitch) {
-        int line = 0;
-        switch (pitch.getStep()) {
-            case C -> { line += 0; }
-            case D -> { line += 1; }
-            case E -> { line += 2; }
-            case F -> { line += 3; }
-            case G -> { line += 4; }
-            case A -> { line += 5; }
-            case B -> { line += 6; }
-        }
-        line += 7 * pitch.getOctave();
-        return line;
+        return switch (pitch.getStep()) {
+            case C -> 0;
+            case D -> 1;
+            case E -> 2;
+            case F -> 3;
+            case G -> 4;
+            case A -> 5;
+            case B -> 6;
+        } + 7 * pitch.getOctave();
     }
 
     static int pitchToGrandStaveLine(Step step, int octave) {
-        int line = 0;
-        switch (step) {
-            case C -> { line += 0; }
-            case D -> { line += 1; }
-            case E -> { line += 2; }
-            case F -> { line += 3; }
-            case G -> { line += 4; }
-            case A -> { line += 5; }
-            case B -> { line += 6; }
-        }
-        line += 7 * octave;
-        return line;
+        return switch (step) {
+            case C -> 0;
+            case D -> 1;
+            case E -> 2;
+            case F -> 3;
+            case G -> 4;
+            case A -> 5;
+            case B -> 6;
+        } + 7 * octave;
     }
 
     static boolean isNewline(Direction direction) {
@@ -693,17 +689,12 @@ public class Parser {
     }
 
     static int clefToLowestLineGrandStaveLine(uk.ac.cam.optimisingmusicnotation.representation.properties.Clef clef) {
-        int lowestLineGrandStaveLine = 0;
-        switch (clef.getSign()) {
-            case C -> { lowestLineGrandStaveLine = pitchToGrandStaveLine(Step.C, 4); }
-            case F -> { lowestLineGrandStaveLine = pitchToGrandStaveLine(Step.F, 3); }
-            case G -> { lowestLineGrandStaveLine = pitchToGrandStaveLine(Step.G, 4); }
-            case PERCUSSION -> { lowestLineGrandStaveLine = 0; }
-        }
-        lowestLineGrandStaveLine += 7 * clef.getOctaveChange();
-        lowestLineGrandStaveLine -= clef.getLine();
-
-        return lowestLineGrandStaveLine;
+        return switch (clef.getSign()) {
+            case C -> pitchToGrandStaveLine(Step.C, 4);
+            case F -> pitchToGrandStaveLine(Step.F, 3);
+            case G -> pitchToGrandStaveLine(Step.G, 4);
+            case PERCUSSION, TAB -> 0;
+        } + 7 * clef.getOctaveChange() - clef.getLine();
     }
 
     static uk.ac.cam.optimisingmusicnotation.representation.properties.Clef parseClef(org.audiveris.proxymusic.Clef clef) {
@@ -736,83 +727,73 @@ public class Parser {
         throw new IllegalArgumentException("Unknown clef symbol");
     }
 
-    static void addPulseLines(TimeSignature time, float measureStartTime, List<PulseLineTuple> pulseLines, String measureName) {
+    static void addPulseLines(TimeSignature time, float measureStartTime, List<PulseLineTuple> pulseLines, String measureName, TimeSignature timeSig) {
         switch (time.getBeatNum()) {
-            case 1:
-                pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0));
-                break;
-            case 2:
-                pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 1 * 4f / time.getBeatType(), measureName, 1));
-                break;
-            case 3:
-                pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 1 * 4f / time.getBeatType(), measureName, 1));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 2 * 4f / time.getBeatType(), measureName, 1));
-                break;
-            case 4:
-                pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 1 * 4f / time.getBeatType(), measureName, 1));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 2 * 4f / time.getBeatType(), measureName, 1));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 3 * 4f / time.getBeatType(), measureName, 1));
-                break;
-            case 5:
-                pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 1 * 4f / time.getBeatType(), measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 2 * 4f / time.getBeatType(), measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 3 * 4f / time.getBeatType(), measureName, 1));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 4 * 4f / time.getBeatType(), measureName, 2));
-                break;
-            case 6:
-                pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 1f * 4f / time.getBeatType(), measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 2f * 4f / time.getBeatType(), measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 3f * 4f / time.getBeatType(), measureName, 1));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 4f * 4f / time.getBeatType(), measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 5f * 4f / time.getBeatType(), measureName, 2));
-                break;
-            case 7:
-                pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 1 * 4f / time.getBeatType(), measureName, 1));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 2 * 4f / time.getBeatType(), measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 3 * 4f / time.getBeatType(), measureName, 1));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 4 * 4f / time.getBeatType(), measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 5 * 4f / time.getBeatType(), measureName, 1));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 6 * 4f / time.getBeatType(), measureName, 1));
-                break;
-            case 8:
-                break;
-            case 9:
-                pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 1f * 4f / time.getBeatType(), measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 2f * 4f / time.getBeatType(), measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 3f * 4f / time.getBeatType(), measureName, 1));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 4f * 4f / time.getBeatType(), measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 5f * 4f / time.getBeatType(), measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 6f * 4f / time.getBeatType(), measureName, 1));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 7f * 4f / time.getBeatType(), measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 8f * 4f / time.getBeatType(), measureName, 2));
-                break;
-            case 10:
-                break;
-            case 11:
-                break;
-            case 12:
-                pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 1f * 4f / time.getBeatType(), measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 2f * 4f / time.getBeatType(), measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 3f * 4f / time.getBeatType(), measureName, 1));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 4f * 4f / time.getBeatType(), measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 5f * 4f / time.getBeatType(), measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 6f * 4f / time.getBeatType(), measureName, 1));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 7f * 4f / time.getBeatType(), measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 8f * 4f / time.getBeatType(), measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 9f * 4f / time.getBeatType(), measureName, 1));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 10f * 4f / time.getBeatType(), measureName, 2));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 11f * 4f / time.getBeatType(), measureName, 2));
-                break;
-            case 13:
-                break;
+            case 2 -> {
+                pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 4f / time.getBeatType(), measureName, 1, timeSig));
+            }
+            case 3 -> {
+                pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 4f / time.getBeatType(), measureName, 1, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 2 * 4f / time.getBeatType(), measureName, 1, timeSig));
+            }
+            case 4 -> {
+                pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 4f / time.getBeatType(), measureName, 1, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 2 * 4f / time.getBeatType(), measureName, 1, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 3 * 4f / time.getBeatType(), measureName, 1, timeSig));
+            }
+            case 5 -> {
+                pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 4f / time.getBeatType(), measureName, 2, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 2 * 4f / time.getBeatType(), measureName, 2, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 3 * 4f / time.getBeatType(), measureName, 1, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 4 * 4f / time.getBeatType(), measureName, 2, timeSig));
+            }
+            case 6 -> {
+                pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 4f / time.getBeatType(), measureName, 2, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 2 * 4f / time.getBeatType(), measureName, 2, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 3 * 4f / time.getBeatType(), measureName, 1, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 4 * 4f / time.getBeatType(), measureName, 2, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 5 * 4f / time.getBeatType(), measureName, 2, timeSig));
+            }
+            case 7 -> {
+                pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 4f / time.getBeatType(), measureName, 1, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 2 * 4f / time.getBeatType(), measureName, 2, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 3 * 4f / time.getBeatType(), measureName, 1, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 4 * 4f / time.getBeatType(), measureName, 2, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 5 * 4f / time.getBeatType(), measureName, 1, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 6 * 4f / time.getBeatType(), measureName, 1, timeSig));
+            }
+            case 9 -> {
+                pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 4f / time.getBeatType(), measureName, 2, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 2 * 4f / time.getBeatType(), measureName, 2, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 3 * 4f / time.getBeatType(), measureName, 1, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 4 * 4f / time.getBeatType(), measureName, 2, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 5 * 4f / time.getBeatType(), measureName, 2, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 6 * 4f / time.getBeatType(), measureName, 1, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 7 * 4f / time.getBeatType(), measureName, 2, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 8 * 4f / time.getBeatType(), measureName, 2, timeSig));
+            }
+            case 12 -> {
+                pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 4f / time.getBeatType(), measureName, 2, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 2 * 4f / time.getBeatType(), measureName, 2, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 3 * 4f / time.getBeatType(), measureName, 1, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 4 * 4f / time.getBeatType(), measureName, 2, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 5 * 4f / time.getBeatType(), measureName, 2, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 6 * 4f / time.getBeatType(), measureName, 1, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 7 * 4f / time.getBeatType(), measureName, 2, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 8 * 4f / time.getBeatType(), measureName, 2, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 9 * 4f / time.getBeatType(), measureName, 1, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 10 * 4f / time.getBeatType(), measureName, 2, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 11 * 4f / time.getBeatType(), measureName, 2, timeSig));
+            }
+            default -> pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0, timeSig));
         }
     }
 
@@ -865,7 +846,7 @@ public class Parser {
 
         int targetPart = 0;
         if (args.length > 1) {
-            targetPart = Integer.valueOf(args[1]);
+            targetPart = Integer.parseInt(args[1]);
         }
 
         if (targetPart == -1) {
