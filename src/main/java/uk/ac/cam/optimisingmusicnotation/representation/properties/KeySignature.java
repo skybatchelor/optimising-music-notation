@@ -1,5 +1,9 @@
 package uk.ac.cam.optimisingmusicnotation.representation.properties;
 
+import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
+import uk.ac.cam.optimisingmusicnotation.representation.Line;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,6 +39,13 @@ public class KeySignature {
         }
     }
 
+    public <Anchor> void draw(MusicCanvas<Anchor> canvas, Line line, Clef clef){
+        int numAlterations = alterations.size();
+        for (int i = 0; i < numAlterations; i++) {
+            alterations.get(i).draw(canvas, new MusicalPosition(line,-0.5f), clef,i);
+        }
+    }
+
     public static class Alteration {
         public PitchName getAlteredPitch() {
             return alteredPitch;
@@ -51,6 +62,22 @@ public class KeySignature {
         public Alteration(PitchName alteredPitch, Accidental accidental) {
             this.alteredPitch = alteredPitch;
             this.accidental = accidental;
+        }
+
+        public <Anchor> void draw(MusicCanvas<Anchor> canvas, MusicalPosition position, Clef clef, int numAcross){
+            List<Pitch> pitches;
+            try {
+                pitches = clef.pitchNameToPitches(alteredPitch);
+                Pitch firstPitch = pitches.get(0);
+                Pitch lastPitch = pitches.get(pitches.size()-1);
+                System.out.println(alteredPitch.toString() + " " + accidental.toString());
+                System.out.println(lastPitch.rootStaveLine());
+                canvas.drawImage("img/accidentals/" + accidental.toString().toLowerCase() + ".svg", canvas.getAnchor(position,lastPitch),numAcross * 1f, accidental == Accidental.SHARP ? 1.3f: 1.9f,0,2.6f);
+                //canvas.drawCircle(canvas.getAnchor(position,clef.pitchNameToPitches(alteredPitch).get(0)),numAcross * 1f,0,0.5f);
+
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }

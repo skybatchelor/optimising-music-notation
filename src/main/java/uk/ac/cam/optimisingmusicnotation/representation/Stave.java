@@ -3,6 +3,7 @@ package uk.ac.cam.optimisingmusicnotation.representation;
 import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.ChordAnchors;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
+import uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.StaveElement;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.MusicGroup;
@@ -54,11 +55,13 @@ public class Stave {
     }
 
     private <Anchor> void drawStaveLines(MusicCanvas<Anchor> canvas, Line line){
-        Anchor anchor1 = canvas.getAnchor(new MusicalPosition(line, 0));
-        Anchor anchor2 = canvas.getAnchor(new MusicalPosition(line, line.getLengthInCrotchets()));
+        Anchor anchor1;
+        Anchor anchor2;
 
-        for (int i = 0; i < 5; i++) {
-            canvas.drawLine(anchor1, -1f, -i, anchor2, 2f, -i, 0.1f);
+        for (int i = 0; i < 10; i=i+2) {
+            anchor1 = canvas.getAnchor(new MusicalPosition(line, 0),new Pitch(i,0));
+            anchor2 = canvas.getAnchor(new MusicalPosition(line, line.getLengthInCrotchets()),new Pitch(i,0));
+            canvas.drawLine(anchor1, -1f, 0, anchor2, 2f, 0, 0.1f);
         }
     }
 

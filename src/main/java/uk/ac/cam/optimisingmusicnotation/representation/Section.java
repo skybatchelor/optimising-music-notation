@@ -47,6 +47,7 @@ public class Section {
         for (Stave s: firstLine.getStaves()){
             s.drawPreStaveLines(canvas,firstLine);
             clef.draw(canvas,firstLine);
+            keySignature.draw(canvas,firstLine,clef);
         }
     }
 }
