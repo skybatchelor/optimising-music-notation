@@ -11,8 +11,12 @@ public interface MusicCanvas<Anchor> {
     Anchor getAnchor(MusicalPosition musicalPosition);
     Anchor getAnchor(MusicalPosition musicalPosition, Pitch pitch);
     Anchor offsetAnchor(Anchor anchor, float x, float y);
+    Anchor topLeftAnchor();
+    Anchor topCentreAnchor();
+    Anchor topRightAnchor();
 
     void addLine();
+    void reserveHeight(float height);
 
     void drawCircle(Anchor anchor, float x, float y, float r);
     void drawCircle(Anchor anchor, float x, float y, float r, boolean fill);

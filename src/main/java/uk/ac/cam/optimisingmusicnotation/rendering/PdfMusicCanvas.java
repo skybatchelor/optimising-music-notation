@@ -30,7 +30,9 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     // TODO: make these configurable
     private final float LINE_WIDTH = 0.8f;
     private final float STAVE_SPACING = 5f;
-    private final int LINES_PER_PAGE = 10;
+    private final float MARGIN = 10f;
+
+    private float reservedHeight = 0f;
 
     public static class Anchor {
 
@@ -58,23 +60,40 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
 
     @Override
     public void addLine() {
-        int pageNum = lineAnchors.size() / LINES_PER_PAGE;
+        if (lineAnchors.isEmpty()) {
+            addFirstLineOnPage(0);
+        }
+        else {
+            int pageNum = lineAnchors.get(lineAnchors.size() - 1).page;
+            PdfPage page = pdf.getPage(pageNum + 1);
+
+            float y = lineAnchors.get(lineAnchors.size() - 1).y - 15f - reservedHeight;
+            if (y < page.getPageSize().getBottom() + MARGIN) {
+                addFirstLineOnPage(pageNum + 1);
+            }
+            else {
+                float x = (page.getPageSize().getWidth() * (1f - LINE_WIDTH) * 0.5f) / STAVE_SPACING;
+                lineAnchors.add(new Anchor(pageNum, x, y));
+            }
+        }
+
+        reservedHeight = 0f;
+    }
+
+    private void addFirstLineOnPage(int pageNum) {
         while (pdf.getNumberOfPages() < pageNum + 1) {
             pdf.addNewPage();
         }
+
         PdfPage page = pdf.getPage(pageNum + 1);
-
         float x = (page.getPageSize().getWidth() * (1f - LINE_WIDTH) * 0.5f) / STAVE_SPACING;
-        float y;
-        if (lineAnchors.isEmpty() || lineAnchors.get(lineAnchors.size() - 1).page != pageNum) {
-            y = (page.getPageSize().getTop() - 50f) / STAVE_SPACING;
-        }
-        else {
-            y = lineAnchors.get(lineAnchors.size() - 1).y - 15f;
-        }
+        float y = page.getPageSize().getTop() / STAVE_SPACING - MARGIN - reservedHeight;
+        lineAnchors.add(new Anchor(pageNum, x, y));
+    }
 
-        Anchor newAnchor = new Anchor(pageNum, x, y);
-        lineAnchors.add(newAnchor);
+    @Override
+    public void reserveHeight(float height) {
+        reservedHeight += height;
     }
 
     @Override
@@ -97,6 +116,27 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     @Override
     public Anchor offsetAnchor(Anchor anchor, float x, float y) {
         return new Anchor(anchor.page, anchor.x + x, anchor.y + y);
+    }
+
+    @Override
+    public Anchor topLeftAnchor() {
+        Rectangle pageSize = pdf.getPage(1).getPageSize();
+        return new Anchor(0, pageSize.getLeft() / STAVE_SPACING,
+                pageSize.getTop() / STAVE_SPACING);
+    }
+
+    @Override
+    public Anchor topCentreAnchor() {
+        Rectangle pageSize = pdf.getPage(1).getPageSize();
+        return new Anchor(0, (pageSize.getLeft() + pageSize.getRight()) / (2f * STAVE_SPACING),
+                pageSize.getTop() / STAVE_SPACING);
+    }
+
+    @Override
+    public Anchor topRightAnchor() {
+        Rectangle pageSize = pdf.getPage(1).getPageSize();
+        return new Anchor(0, pageSize.getRight() / STAVE_SPACING,
+                pageSize.getTop() / STAVE_SPACING);
     }
 
     @Override
