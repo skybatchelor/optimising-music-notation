@@ -320,12 +320,9 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
             canvas.setFont(font);
             canvas.setFontSize(fontSize);
             switch (alignment) {
-                case LEFT:
-                    canvas.setTextAlignment(com.itextpdf.layout.properties.TextAlignment.LEFT);
-                case CENTRE:
-                    canvas.setTextAlignment(com.itextpdf.layout.properties.TextAlignment.CENTER);
-                case RIGHT:
-                    canvas.setTextAlignment(com.itextpdf.layout.properties.TextAlignment.RIGHT);
+                case LEFT -> canvas.setTextAlignment(com.itextpdf.layout.properties.TextAlignment.LEFT);
+                case CENTRE -> canvas.setTextAlignment(com.itextpdf.layout.properties.TextAlignment.CENTER);
+                case RIGHT -> canvas.setTextAlignment(com.itextpdf.layout.properties.TextAlignment.RIGHT);
             }
             canvas.add(paragraph);
         }
