@@ -293,7 +293,7 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     }
 
     @Override
-    public void drawText(String fileName, String text, float fontSize,
+    public void drawText(String fileName, String text, float fontSize, TextAlignment alignment,
                          Anchor topLeftAnchor, float topLeftX, float topLeftY, float width, float height)
             throws IOException {
         PdfFont font;
@@ -319,6 +319,14 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
         ))) {
             canvas.setFont(font);
             canvas.setFontSize(fontSize);
+            switch (alignment) {
+                case LEFT:
+                    canvas.setTextAlignment(com.itextpdf.layout.properties.TextAlignment.LEFT);
+                case CENTRE:
+                    canvas.setTextAlignment(com.itextpdf.layout.properties.TextAlignment.CENTER);
+                case RIGHT:
+                    canvas.setTextAlignment(com.itextpdf.layout.properties.TextAlignment.RIGHT);
+            }
             canvas.add(paragraph);
         }
     }
