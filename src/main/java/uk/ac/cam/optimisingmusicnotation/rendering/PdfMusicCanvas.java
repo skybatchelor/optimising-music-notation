@@ -278,18 +278,22 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     }
 
     @Override
-    public void drawArc(Anchor left, float leftX, float leftY, Anchor right, float rightX, float rightY, float height, float lineWidth) {
-        PdfCanvas canvas = new PdfCanvas(pdf.getPage(left.page + 1));
+    public void drawCurve(Anchor start, float startX, float startY, Anchor end, float endX, float endY, float lineWidth, boolean up) {
+        PdfCanvas canvas = new PdfCanvas(pdf.getPage(start.page + 1));
         canvas.setLineWidth(lineWidth * STAVE_SPACING);
         canvas.setStrokeColor(ColorConstants.BLACK);
 
-        canvas.arc(
-                (left.x + leftX) * STAVE_SPACING,
-                (left.y + leftY) * STAVE_SPACING,
-                (right.x + rightX) * STAVE_SPACING,
-                (right.y + rightY - height) * STAVE_SPACING,
-                50f, 80f
-        ).stroke();
+        float startXPos = (start.x + startX) * STAVE_SPACING;
+        float startYPos = (start.y + startY) * STAVE_SPACING;
+        float endXPos = (end.x + endX) * STAVE_SPACING;
+        float endYPos = (end.y + endY) * STAVE_SPACING;
+
+        float width = Math.abs(startXPos - endXPos);
+        float height = 0.6f * (float)Math.sqrt(width) * (up ? 1f : -1f);
+
+        canvas.moveTo(startXPos, startYPos)
+                .curveTo(startXPos, startYPos + height, endXPos, endYPos + height, endXPos, endYPos)
+                .stroke();
     }
 
     @Override

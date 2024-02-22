@@ -41,7 +41,7 @@ public interface MusicCanvas<Anchor> {
     void drawBeam(Anchor left, float leftX, float leftY, Anchor right, float rightX, float rightY, float height);
     void drawBeam(Anchor anchor, float x1, float y1, float x2, float y2, float height);
 
-    void drawArc(Anchor left, float leftX, float leftY, Anchor right, float rightX, float rightY, float height, float lineWidth);
+    void drawCurve(Anchor start, float startX, float startY, Anchor end, float endX, float endY, float lineWidth, boolean up);
 
     void drawText(String fileName, String text, float fontSize, TextAlignment alignment,
                   Anchor topLeftAnchor, float topLeftX, float topLeftY, float width, float height)
