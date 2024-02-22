@@ -45,8 +45,8 @@ public class Section {
     private <Anchor> void drawClefKeyAndTimeSignature(MusicCanvas<Anchor> canvas){
         Line firstLine = lines.get(0);
         for (Stave s: firstLine.getStaves()){
-            s.drawPreStaveLines(canvas,firstLine);
-            clef.draw(canvas,firstLine);
+            s.drawPreStaveLines(canvas,firstLine,keySignature.getAlterations().size());
+            clef.draw(canvas,firstLine,keySignature.getAlterations().size());
             keySignature.draw(canvas,firstLine,clef);
         }
     }

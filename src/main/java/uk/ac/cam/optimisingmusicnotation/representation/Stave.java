@@ -40,6 +40,9 @@ public class Stave {
     }
 
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Line line) {
+        for (Whitespace w : whitespaces) {
+            w.draw(canvas, line);
+        }
         Map<Chord, ChordAnchors<Anchor>> chordAnchorsMap = new HashMap<>();
         for (StaveElement s : staveElements) {
             s.draw(canvas, chordAnchorsMap);
@@ -48,27 +51,38 @@ public class Stave {
             m.draw(canvas, chordAnchorsMap);
         }
         drawStaveLines(canvas, line);
-        for (Whitespace w : whitespaces) {
-            w.draw(canvas, line);
+    }
+    private <Anchor> void drawStaveLines(MusicCanvas<Anchor> canvas, Line line){
+        //PRECONDTITIONS: all whitespaces are grouped, and in order, with no overlapping
+        MusicalPosition endOfLastWhitespace = new MusicalPosition(line,0);
+        MusicalPosition startOfNextWhitespace;
+        for (Whitespace w: whitespaces) {
+            startOfNextWhitespace = w.getStartMusicalPosition();
+            drawStaveLines(canvas, endOfLastWhitespace, startOfNextWhitespace);
+            endOfLastWhitespace = w.getEndMusicalPosition();
         }
-
+        if (endOfLastWhitespace.crotchetsIntoLine() < line.getLengthInCrotchets()){
+            drawStaveLines(canvas,endOfLastWhitespace,new MusicalPosition(line,line.getLengthInCrotchets()));
+        }
     }
 
-    private <Anchor> void drawStaveLines(MusicCanvas<Anchor> canvas, Line line){
+    private <Anchor> void drawStaveLines(MusicCanvas<Anchor> canvas, MusicalPosition start, MusicalPosition end){
         Anchor anchor1;
         Anchor anchor2;
 
         for (int i = 0; i < 10; i=i+2) {
-            anchor1 = canvas.getAnchor(new MusicalPosition(line, 0),new Pitch(i,0));
-            anchor2 = canvas.getAnchor(new MusicalPosition(line, line.getLengthInCrotchets()),new Pitch(i,0));
+            anchor1 = canvas.getAnchor(start, new Pitch(i,0));
+            anchor2 = canvas.getAnchor(end, new Pitch(i,0));
             canvas.drawLine(anchor1, -1f, 0, anchor2, 2f, 0, 0.1f);
         }
     }
 
-    public <Anchor> void drawPreStaveLines(MusicCanvas<Anchor> canvas, Line line){
-        Anchor anchor1 = canvas.getAnchor(new MusicalPosition(line, 0));
-        for (int i = 0; i < 5; i++) {
-            canvas.drawLine(anchor1, -8f, -i, -2f, -i, 0.1f);
+    public <Anchor> void drawPreStaveLines(MusicCanvas<Anchor> canvas, Line line, int numAlterations){
+        Anchor anchor1;
+
+        for (int i = 0; i < 10; i=i+2) {
+            anchor1 = canvas.getAnchor(new MusicalPosition(line, 0),new Pitch(i,0));
+            canvas.drawLine(anchor1, -(5f+numAlterations), 0, -2f, 0, 0.1f);
         }
     }
 }

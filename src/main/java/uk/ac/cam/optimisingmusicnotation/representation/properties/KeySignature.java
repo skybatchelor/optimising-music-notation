@@ -42,7 +42,7 @@ public class KeySignature {
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Line line, Clef clef){
         int numAlterations = alterations.size();
         for (int i = 0; i < numAlterations; i++) {
-            alterations.get(i).draw(canvas, new MusicalPosition(line,-0.5f), clef,i);
+            alterations.get(i).draw(canvas, new MusicalPosition(line,0), clef,i, alterations.size());
         }
     }
 
@@ -64,17 +64,14 @@ public class KeySignature {
             this.accidental = accidental;
         }
 
-        public <Anchor> void draw(MusicCanvas<Anchor> canvas, MusicalPosition position, Clef clef, int numAcross){
+        public <Anchor> void draw(MusicCanvas<Anchor> canvas, MusicalPosition position, Clef clef, int numAcross, int numAlterations){
             List<Pitch> pitches;
             try {
                 pitches = clef.pitchNameToPitches(alteredPitch);
                 Pitch firstPitch = pitches.get(0);
                 Pitch lastPitch = pitches.get(pitches.size()-1);
-                System.out.println(alteredPitch.toString() + " " + accidental.toString());
-                System.out.println(lastPitch.rootStaveLine());
-                canvas.drawImage("img/accidentals/" + accidental.toString().toLowerCase() + ".svg", canvas.getAnchor(position,lastPitch),numAcross * 1f, accidental == Accidental.SHARP ? 1.3f: 1.9f,0,2.6f);
-                //canvas.drawCircle(canvas.getAnchor(position,clef.pitchNameToPitches(alteredPitch).get(0)),numAcross * 1f,0,0.5f);
-
+                String path = "img/accidentals/" + accidental.toString().toLowerCase() + ".svg";
+                canvas.drawImage(path, canvas.getAnchor(position,lastPitch),1f-(numAlterations+numAcross), accidental == Accidental.SHARP ? 1.3f: 1.9f,0,2.6f);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
