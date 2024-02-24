@@ -11,6 +11,7 @@ public interface MusicCanvas<Anchor> {
     Anchor getAnchor(MusicalPosition musicalPosition);
     Anchor getAnchor(MusicalPosition musicalPosition, Pitch pitch);
     Anchor offsetAnchor(Anchor anchor, float x, float y);
+    Anchor interpolateAnchors(Anchor anchor1, Anchor anchor2, float t);
     Anchor topLeftAnchor();
     Anchor topCentreAnchor();
     Anchor topRightAnchor();
