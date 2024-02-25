@@ -365,6 +365,7 @@ public class Parser {
                     measureStartTime += measureLength;
                 }
                 totalLength = Math.max(measureStartTime, totalLength);
+                currentPart.pulseLines.add(new PulseLineTuple(measureStartTime, "", 0, null));
             }
 
             Map<Float, Integer> lineIndices = new HashMap<>();
@@ -413,6 +414,13 @@ public class Parser {
                     float lineStart = newlines.floorKey(pulseLine.time);
                     int lineNum = lineIndices.get(lineStart);
                     partLines.get(part.getKey()).get(lineNum).pulses.add(pulseTupleToInstantiatedPulseTuple(pulseLine, lineStart, lineNum));
+                    Float lowerLineStart = newlines.lowerKey(pulseLine.time);
+                    if (lowerLineStart != null) {
+                        int lowerLineNum = lineIndices.get(lowerLineStart);
+                        if (lowerLineNum != lineNum) {
+                            partLines.get(part.getKey()).get(lowerLineNum).pulses.add(pulseTupleToInstantiatedPulseTuple(pulseLine, lowerLineStart, lowerLineNum));
+                        }
+                    }
                 }
             }
             TreeMap<String, List<InstantiatedLineTuple>> finalLines = new TreeMap<>();
