@@ -417,7 +417,8 @@ public class Parser {
                     Line tempLine = new Line(new ArrayList<>() {{ add(stave); }}, lineLengths.get(i), lineOffsets.get(i), i);
                     finalLines.get(part.getKey()).add(new InstantiatedLineTuple(newlinesList.get(i), tempLine));
 
-                    for (RestTuple restTuple : part.getValue().get(i).rests) {
+                    var fusedRests = fuseRestTuples(part.getValue().get(i).rests);
+                    for (RestTuple restTuple : fusedRests) {
                         tempLine.getStaves().get(0).addWhiteSpace(restTupleToRest(restTuple, tempLine));
                     }
 
@@ -576,6 +577,38 @@ public class Parser {
 
     static Whitespace restTupleToRest(RestTuple tuple, Line line) {
         return new Rest(new MusicalPosition(line, tuple.startTime), new MusicalPosition(line, tuple.endTime));
+    }
+
+    static List<RestTuple> fuseRestTuples(List<RestTuple> rests) {
+        TreeMap<Float, RestTuple> fusedRests = new TreeMap<>();
+
+        for (RestTuple rest : rests) {
+            if (fusedRests.size() == 0) {
+                fusedRests.put(rest.startTime, rest);
+            } else {
+                var currentRest = rest;
+                boolean changed = true;
+                while (changed) {
+                    changed = false;
+                    var entry = fusedRests.floorEntry(currentRest.startTime);
+                    if (entry != null && entry.getValue().endTime >= currentRest.startTime) {
+                        currentRest = new RestTuple(entry.getKey(), Math.max(currentRest.endTime, entry.getValue().endTime));
+                        fusedRests.remove(entry.getKey());
+                        changed = true;
+                        continue;
+                    }
+                    entry = fusedRests.floorEntry(currentRest.endTime);
+                    if (entry != null && entry.getValue().startTime >= currentRest.startTime) {
+                        currentRest = new RestTuple(currentRest.startTime, Math.max(currentRest.endTime, entry.getValue().endTime));
+                        fusedRests.remove(entry.getKey());
+                        changed = true;
+                    }
+                }
+                fusedRests.put(currentRest.startTime, currentRest);
+            }
+        }
+
+        return fusedRests.values().stream().toList();
     }
 
     static InstantiatedChordTuple chordTupleToInstantiatedChordTuple(ChordTuple chord, float lineTime, int lineNum) {
