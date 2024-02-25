@@ -4,19 +4,18 @@ import com.itextpdf.kernel.geom.PageSize;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import org.audiveris.proxymusic.*;
+import org.audiveris.proxymusic.Clef;
+import org.audiveris.proxymusic.Pitch;
 import org.audiveris.proxymusic.util.Marshalling;
 import uk.ac.cam.optimisingmusicnotation.rendering.PdfMusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.*;
 import uk.ac.cam.optimisingmusicnotation.representation.beatlines.BarLine;
 import uk.ac.cam.optimisingmusicnotation.representation.beatlines.BeatLine;
 import uk.ac.cam.optimisingmusicnotation.representation.beatlines.PulseLine;
-import uk.ac.cam.optimisingmusicnotation.representation.properties.KeySignature;
-import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
-import uk.ac.cam.optimisingmusicnotation.representation.properties.PitchName;
+import uk.ac.cam.optimisingmusicnotation.representation.properties.*;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.BeamGroup;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.StaveElement;
-import uk.ac.cam.optimisingmusicnotation.representation.properties.TimeSignature;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmarkings.Accent;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmarkings.ChordMarking;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmarkings.Staccato;
@@ -340,6 +339,18 @@ public class Parser {
                             if (isNewSection(direction)) {
                                 newSections.add(measureStartTime + measureTime + offset);
                                 newlines.put(measureStartTime + measureTime + offset, measureTime + offset - measureLength);
+                            }
+                            if (isArtisticWhitespace(direction)) {
+                                var whitespace = new BeamGroupTuple();
+                                whitespace.startTime = (measureStartTime + measureTime + offset) - RenderingConfiguration.artisticWhitespaceWidth;
+                                whitespace.endTime = (measureStartTime + measureTime + offset);
+                                var restChord = new ChordTuple(whitespace.startTime, 0);
+                                restChord.duration = RenderingConfiguration.artisticWhitespaceWidth;
+                                var restNote = new Note();
+                                restNote.setRest(new org.audiveris.proxymusic.Rest());
+                                restChord.notes.add(restNote);
+                                whitespace.addChord(restChord);
+                                currentPart.beamGroups.add(whitespace);
                             }
                             currentPart.directions.put(measureStartTime + measureTime + offset, direction);
                         }
@@ -751,6 +762,26 @@ public class Parser {
                                 return true;
                             }
                             if (formattedText.getValue().equals("\\s")) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    static boolean isArtisticWhitespace(Direction direction) {
+        if (direction.getDirectionType() != null) {
+            for (var directionType : direction.getDirectionType()) {
+                if (directionType.getWordsOrSymbol() != null) {
+                    for (var wordOrSymbol : directionType.getWordsOrSymbol()) {
+                        if (wordOrSymbol instanceof FormattedTextId formattedText) {
+                            if (formattedText.getValue().equals("w") && formattedText.getEnclosure() == EnclosureShape.RECTANGLE) {
+                                return true;
+                            }
+                            if (formattedText.getValue().equals("\\w")) {
                                 return true;
                             }
                         }
