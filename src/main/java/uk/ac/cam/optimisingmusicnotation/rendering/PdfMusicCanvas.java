@@ -274,13 +274,11 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
 
         float leftXPos = (anchor.x + x1) * STAVE_SPACING;
         float rightXPos = (anchor.x + x2) * STAVE_SPACING;
-        float leftYPos = (anchor.y + y1) * STAVE_SPACING;
-        float rightYPos = (anchor.y + y2) * STAVE_SPACING;
 
-        canvas.moveTo(leftXPos, leftYPos - height * STAVE_SPACING)
-                .lineTo(leftXPos, leftYPos)
-                .lineTo(rightXPos, rightYPos)
-                .lineTo(rightXPos, rightYPos - height * STAVE_SPACING)
+        canvas.moveTo(leftXPos, (anchor.y + y1 - height / 2f) * STAVE_SPACING)
+                .lineTo(leftXPos, (anchor.y + y1 + height / 2f) * STAVE_SPACING)
+                .lineTo(rightXPos, (anchor.y + y2 + height / 2f) * STAVE_SPACING)
+                .lineTo(rightXPos, (anchor.y + y2 - height / 2f) * STAVE_SPACING)
                 .closePath().fill();
     }
 
