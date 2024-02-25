@@ -6,4 +6,5 @@ public class RenderingConfiguration {
     public static float stemWidth = 0.15f;
     public static boolean upwardStems = true;
     public static float gapHeight = 0.125f;
+    public static float artisticWhitespaceWidth = 1f; // A crochet of whitespace + dead space
 }
