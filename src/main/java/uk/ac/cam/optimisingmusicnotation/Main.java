@@ -3,63 +3,58 @@ package uk.ac.cam.optimisingmusicnotation;
 import com.itextpdf.kernel.geom.PageSize;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
+import uk.ac.cam.optimisingmusicnotation.mxlparser.Parser;
 import uk.ac.cam.optimisingmusicnotation.rendering.PdfMusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.Part;
+import uk.ac.cam.optimisingmusicnotation.representation.Score;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 public class Main {
 
     public static void main(String[] args) {
-        String outDir = "./out/"; // Output Directory
-        Path outDirPath = Paths.get(outDir);
-        if (!Files.exists(outDirPath)) {
-            try {
-                Files.createDirectory(outDirPath);
-            } catch (IOException e) {
-                System.err.println("Error while creating output directory path: ");
-                e.printStackTrace();
+        //arg 0: path of source mxl
+        //arg 1: path of target (pdf)
+        if (args.length != 2){
+            System.err.println("Needs 2 arguments");
+            throw new RuntimeException();
+        }
+        String target = args[0];
+        Object mxl;
+        try {
+            mxl = Parser.openMXL(target);
+        } catch (IOException e) {
+            System.err.println("Source file not found");
+            throw new RuntimeException();
+        }
+        Score score = Parser.parseToScore(mxl);
+        if (score == null){
+            System.err.println("xml parsing failed");
+        }else{
+            String outTarget = !args[1].equals("") ? args[1] : score.getWorkTitle();
+            for (Part part : score.getParts()) {
+                drawPartToPDF(outTarget, part, score);
             }
         }
+    }
 
-        try (PdfWriter writer = new PdfWriter(outDir + "test.pdf")) {
+    private static void drawPartToPDF(String outTarget, Part part, Score score){
+        try (PdfWriter writer = new PdfWriter(outTarget + "_" + part.getName() + ".pdf")) {
             PdfDocument pdf = new PdfDocument(writer);
             PageSize ps = PageSize.A4;
             pdf.addNewPage(ps);
-
             PdfMusicCanvas canvas = new PdfMusicCanvas(pdf);
-            Part testPart = new Part();
-            testPart.draw(canvas, "Piece title");
-//
-//            PdfMusicCanvas.Anchor anchor1 = canvas.getAnchor(new MusicalPosition(null, 0));
-//            PdfMusicCanvas.Anchor anchor2 = canvas.getAnchor(new MusicalPosition(null, 16));
-//
-//            for (int i = 0; i < 5; i++) {
-//                canvas.drawLine(anchor1, -2f, -i, anchor2, 2f, -i, 0.1f);
-//            }
-//
-//            PdfMusicCanvas.Anchor anchor = canvas.getAnchor(new MusicalPosition(null, 0), new Pitch(0, 1));
-//            canvas.drawCircle(anchor, 0f, 0f, 0.5f);
-//            anchor = canvas.getAnchor(new MusicalPosition(null, 1), new Pitch(1, 1));
-//            canvas.drawCircle(anchor, 0f, 0f, 0.5f);
-//            anchor = canvas.getAnchor(new MusicalPosition(null, 1.5f), new Pitch(3, 1));
-//            canvas.drawCircle(anchor, 0f, 0f, 0.5f);
-//            anchor = canvas.getAnchor(new MusicalPosition(null, 2), new Pitch(4, 1));
-//            canvas.drawCircle(anchor, 0f, 0f, 0.5f);
-//
-//            anchor1 = canvas.getAnchor(new MusicalPosition(null, 2.5f), new Pitch(10, 0));
-//            anchor2 = canvas.getAnchor(new MusicalPosition(null, 4.0f), new Pitch(-1, 0));
-//            canvas.drawWhitespace(anchor1, 0f, 0f, anchor2, 0f, 0f);
-
+            part.draw(canvas, score.getWorkTitle());
             pdf.close();
         }
-        catch (IOException e) {
-            System.err.println("Error while creating PDF: ");
-            e.printStackTrace();
-        }
+        catch (FileNotFoundException e) {
+            System.err.println("Target directory does not exist");
+            throw new RuntimeException();
 
+        } catch (IOException e) {
+            System.err.println("Error while creating PDF for part \"" + part.getName() + "\". Close all output files before converting to PDF.");
+        }
     }
 }
+

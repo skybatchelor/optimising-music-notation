@@ -57,7 +57,7 @@ public class Stave {
         drawStaveLines(canvas, line);
     }
     private <Anchor> void drawStaveLines(MusicCanvas<Anchor> canvas, Line line){
-        //PRECONDTITIONS: all whitespaces are grouped, and in order, with no overlapping
+        //PRECONDITION: all whitespaces are grouped, and in order, with no overlapping
         MusicalPosition endOfLastWhitespace = new MusicalPosition(line,0);
         MusicalPosition startOfNextWhitespace;
         for (Whitespace w: whitespaces) {
@@ -71,13 +71,15 @@ public class Stave {
     }
 
     private <Anchor> void drawStaveLines(MusicCanvas<Anchor> canvas, MusicalPosition start, MusicalPosition end){
-        Anchor anchor1;
-        Anchor anchor2;
+        if (start.compareTo(end) != 0) {
+            Anchor anchor1;
+            Anchor anchor2;
 
-        for (int i = 0; i < 10; i=i+2) {
-            anchor1 = canvas.getAnchor(start, new Pitch(i,0));
-            anchor2 = canvas.getAnchor(end, new Pitch(i,0));
-            canvas.drawLine(anchor1, -1f, 0, anchor2, 2f, 0, 0.1f);
+            for (int i = 0; i < 10; i = i + 2) {
+                anchor1 = canvas.getAnchor(start, new Pitch(i, 0));
+                anchor2 = canvas.getAnchor(end, new Pitch(i, 0));
+                canvas.drawLine(anchor1, -1f, 0, anchor2, 2f, 0, 0.1f);
+            }
         }
     }
 
@@ -86,7 +88,7 @@ public class Stave {
 
         for (int i = 0; i < 10; i=i+2) {
             anchor1 = canvas.getAnchor(new MusicalPosition(line, 0),new Pitch(i,0));
-            canvas.drawLine(anchor1, -(5f+numAlterations), 0, -2f, 0, 0.1f);
+            canvas.drawLine(anchor1, -(6f+numAlterations), 0, -2f, 0, 0.1f);
         }
     }
 }

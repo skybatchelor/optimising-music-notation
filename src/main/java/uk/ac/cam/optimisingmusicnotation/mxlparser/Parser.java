@@ -13,6 +13,7 @@ import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
 
 import javax.xml.bind.JAXBElement;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.String;
 import java.nio.file.Files;
@@ -657,10 +658,10 @@ public class Parser {
         }
     }
 
-    public static Object openMXL(String input) {
+    public static Object openMXL(String input) throws IOException {
         try (FileInputStream xml = new FileInputStream(input)) {
             return Marshalling.unmarshal(xml);
-        } catch (Exception e1) {
+        } catch (Marshalling.UnmarshallingException e) {
             try (ZipInputStream xml = new ZipInputStream(new FileInputStream(input))) {
                 ZipEntry zipEntry = xml.getNextEntry();
                 while (zipEntry != null) {
@@ -670,11 +671,11 @@ public class Parser {
                     zipEntry = xml.getNextEntry();
                 }
                 return null;
-            } catch (Exception e2) {
-
+            } catch (Marshalling.UnmarshallingException ex) {
+                System.err.println("Problem with xml file.");
+                throw new RuntimeException(ex);
             }
         }
-        return null;
     }
 
     private Parser() {}
@@ -685,7 +686,12 @@ public class Parser {
             target = args[0];
         }
 
-        Object mxl = Parser.openMXL(target);
+        Object mxl = null;
+        try {
+            mxl = Parser.openMXL(target);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         Score score = Parser.parseToScore(mxl);
         String outDir = "./out/"; // Output Directory
         Path outDirPath = Paths.get(outDir);
