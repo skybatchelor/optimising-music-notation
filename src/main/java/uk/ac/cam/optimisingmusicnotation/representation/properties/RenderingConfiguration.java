@@ -23,4 +23,5 @@ public class RenderingConfiguration {
     }
 
     public static String imgFilePath;
+    public static float beamWidth = 0.5f;
 }

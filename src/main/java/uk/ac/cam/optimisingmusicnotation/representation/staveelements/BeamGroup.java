@@ -2,6 +2,7 @@ package uk.ac.cam.optimisingmusicnotation.representation.staveelements;
 
 import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.ChordAnchors;
+import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.StaveElement;
 
@@ -43,6 +44,23 @@ public class BeamGroup implements StaveElement {
 
     @Override
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Map<Chord, ChordAnchors<Anchor>> chordAnchorsMap) {
+        for (Chord chord : chords) {
+            chord.computeAnchors(canvas, chordAnchorsMap);
+        }
+        if (chords.size() == 2) {
+            // draw the implicit first level beam
+            Chord firstChord = chords.get(0);
+            ChordAnchors<Anchor> chordAnchors = chordAnchorsMap.get(firstChord);
+            Chord secondChord = chords.get(1);
+            ChordAnchors<Anchor> secondChordAnchors = chordAnchorsMap.get(secondChord);
+            canvas.drawBeam(chordAnchors.stemEnd(), 0, -RenderingConfiguration.beamWidth / 2,
+                    secondChordAnchors.stemEnd(), 0, -RenderingConfiguration.beamWidth / 2,
+                    RenderingConfiguration.beamWidth);
+        }
+        for (Chord chord : chords) {
+            chord.draw(canvas, chordAnchorsMap);
+        }
+
 //        if (chords.size() == 1) {
 //            Anchor note = chords.get(0).drawRetAnchor(canvas);
 //            canvas.drawBeam(note, -1, 3, 0, 3, 0.75f);
