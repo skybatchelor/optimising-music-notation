@@ -50,7 +50,6 @@ public class Chord extends BeamGroup {
     public MusicalPosition getMusicalPosition() {
         return musicalPosition;
     }
-
     public <Anchor> void computeAnchors(MusicCanvas<Anchor> canvas, Map<Chord, ChordAnchors<Anchor>> chordAnchorsMap) {
         int lowestLine = 10000000;
         int highestLine = -10000000;
@@ -104,9 +103,7 @@ public class Chord extends BeamGroup {
         }
         chordAnchors = chordAnchorsMap.get(this);
         for (Note note : notes) {
-            canvas.drawCircle(canvas.getAnchor(musicalPosition, note.pitch), 0, 0,
-                    RenderingConfiguration.noteheadRadius, fillInCircle); // draw note head [!need to adjust on
-                                                                          // noteType]
+            canvas.drawCircle(canvas.getAnchor(musicalPosition, note.pitch), 0, 0, .5f, fillInCircle); // draw note head [!need to adjust on noteType]
             if (note.pitch.rootStaveLine() < lowestLine) {
                 lowestLine = note.pitch.rootStaveLine();
                 //ret = canvas.getAnchor(musicalPosition, note.pitch);
@@ -119,8 +116,7 @@ public class Chord extends BeamGroup {
             }
             if (note.accidental != Accidental.NONE) {
                 Anchor anchor = canvas.getAnchor(musicalPosition, note.pitch);
-                String accidentalPath = RenderingConfiguration.imgFilePath + "/accidentals/"
-                        + note.accidental.toString().toLowerCase() + ".svg";
+                String accidentalPath = "img/accidentals/" + note.accidental.toString().toLowerCase() + ".svg";
                 try{
                     canvas.drawImage(accidentalPath, anchor,-1.25f, 1f,0.75f, 2f);
                 } catch (java.io.IOException e) {
@@ -138,8 +134,7 @@ public class Chord extends BeamGroup {
 
         if (drawStem) {
             Anchor stemEnd = chordAnchors.stemEnd();
-            Anchor stemBeginning = canvas.offsetAnchor(chordAnchors.notehead(), 0,
-                    sign * RenderingConfiguration.noteheadRadius);
+            Anchor stemBeginning = canvas.offsetAnchor(stemEnd, 0, -sign * 3f);
             canvas.drawLine(stemBeginning, 0, 0, stemEnd, 0, 0, RenderingConfiguration.stemWidth);// draw stem
             // draw bit of whitespace to separate from pulse line
             canvas.drawWhitespace(stemEnd, -RenderingConfiguration.stemWidth,
