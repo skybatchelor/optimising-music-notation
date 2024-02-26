@@ -67,13 +67,15 @@ public class Stave {
     }
 
     private <Anchor> void drawStaveLines(MusicCanvas<Anchor> canvas, MusicalPosition start, MusicalPosition end){
-        Anchor anchor1;
-        Anchor anchor2;
+        if (start.compareTo(end) != 0) {
+            Anchor anchor1;
+            Anchor anchor2;
 
-        for (int i = 0; i < 10; i=i+2) {
-            anchor1 = canvas.getAnchor(start, new Pitch(i,0));
-            anchor2 = canvas.getAnchor(end, new Pitch(i,0));
-            canvas.drawLine(anchor1, -1f, 0, anchor2, 2f, 0, 0.1f);
+            for (int i = 0; i < 10; i = i + 2) {
+                anchor1 = canvas.getAnchor(start, new Pitch(i, 0));
+                anchor2 = canvas.getAnchor(end, new Pitch(i, 0));
+                canvas.drawLine(anchor1, -1f, 0, anchor2, 2f, 0, 0.1f);
+            }
         }
     }
 

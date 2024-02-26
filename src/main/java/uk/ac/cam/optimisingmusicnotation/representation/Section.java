@@ -17,8 +17,7 @@ public class Section {
         lines = new ArrayList<>();
         clef = new Clef(ClefSign.G);
         keySignature = new KeySignature();
-        lines.add(new Line(0,1));
-        lines.add(new Line(1,0));
+        
     }
     public Section(Line line, Clef clef, KeySignature keySignature) {
         lines = new ArrayList<>() {{ add(line); }};

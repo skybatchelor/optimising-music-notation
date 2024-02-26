@@ -52,14 +52,13 @@ public class Chord extends BeamGroup {
         boolean hasLedgerLines;
         for (Note note: notes) {
             anchor = canvas.getAnchor(musicalPosition, note.pitch);
-            drawNotehead(canvas,note);
-            drawStem(canvas,note,RenderingConfiguration.upwardStems ? 1 : -1);
-            drawDots(canvas,anchor);
-            hasLedgerLines = drawLedgerLines(canvas,note);
-            drawAccidental(canvas,note,anchor, hasLedgerLines);
-
+            drawNotehead(canvas, note);
+            drawStem(canvas, note, RenderingConfiguration.upwardStems ? 1 : -1);
+            drawDots(canvas, anchor);
+            hasLedgerLines = drawLedgerLines(canvas, note);
+            drawAccidental(canvas, note, anchor, hasLedgerLines);
         }
-        chordAnchorsMap.put(this,chordAnchors);
+        chordAnchorsMap.put(this, chordAnchors);
     }
 
     private <Anchor> void drawNotehead(MusicCanvas<Anchor> canvas, Note note){
