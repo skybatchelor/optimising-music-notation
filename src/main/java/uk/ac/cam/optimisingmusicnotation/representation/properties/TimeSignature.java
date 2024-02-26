@@ -21,7 +21,7 @@ public class TimeSignature {
         beatType = 0;
     }
 
-    public TimeSignature(int beatNum, int beatType, MusicalPosition musicalPosition) {
+    public TimeSignature(int beatNum, int beatType) {
         this.beatNum = beatNum;
         this.beatType = beatType;
     }
@@ -38,7 +38,7 @@ public class TimeSignature {
         Anchor anchor = canvas.getAnchor(musicalPosition);
         float width = maxDigits() * 1.5f;
         try {
-            canvas.drawWhitespace(anchor,-0.5f,7f,width,5f);
+            canvas.drawWhitespace(anchor,-0.5f,7f,width,4.5f);
             canvas.drawText(RenderingConfiguration.fontFilePath,Integer.toString(beatNum),10f, TextAlignment.LEFT,anchor,-0.5f,8f,width,5f);
             canvas.drawText(RenderingConfiguration.fontFilePath,Integer.toString(beatType),10f, TextAlignment.LEFT,anchor,-0.5f,6f,width,5f);
         } catch (IOException e) {
