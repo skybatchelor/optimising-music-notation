@@ -15,7 +15,9 @@ public class Diminuendo extends LineElement {
     @Override
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Map<Chord, ChordAnchors<Anchor>> chordAnchorsMap) {
         // TODO: range over the elements to have Anchor = argmin(x.verticalPos)
-        canvas.drawLine(canvas.getAnchor(startPosition), 0, -1, canvas.getAnchor(endPosition), 0, -1.5f, .1f);
-        canvas.drawLine(canvas.getAnchor(startPosition), 0, -2, canvas.getAnchor(endPosition), 0, -1.5f, .1f);
+        float YPos = -6;
+        float h = .75f;
+        canvas.drawLine(canvas.getAnchor(startPosition), 0, YPos - h, canvas.getAnchor(endPosition), 0, YPos, .1f);
+        canvas.drawLine(canvas.getAnchor(startPosition), 0, YPos + h, canvas.getAnchor(endPosition), 0, YPos, .1f);
     }
 }
