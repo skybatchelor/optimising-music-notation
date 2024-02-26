@@ -8,21 +8,8 @@ import org.audiveris.proxymusic.Pitch;
 import org.audiveris.proxymusic.util.Marshalling;
 import uk.ac.cam.optimisingmusicnotation.rendering.PdfMusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.*;
-import uk.ac.cam.optimisingmusicnotation.representation.beatlines.BarLine;
-import uk.ac.cam.optimisingmusicnotation.representation.beatlines.BeatLine;
-import uk.ac.cam.optimisingmusicnotation.representation.beatlines.PulseLine;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.*;
-import uk.ac.cam.optimisingmusicnotation.representation.staveelements.BeamGroup;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
-import uk.ac.cam.optimisingmusicnotation.representation.staveelements.StaveElement;
-import uk.ac.cam.optimisingmusicnotation.representation.properties.TimeSignature;
-import uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmarkings.Accent;
-import uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmarkings.ChordMarking;
-import uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmarkings.Staccato;
-import uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmarkings.StrongAccent;
-import uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmarkings.Tenuto;
-import uk.ac.cam.optimisingmusicnotation.representation.whitespaces.Rest;
-import uk.ac.cam.optimisingmusicnotation.representation.whitespaces.Whitespace;
 
 import javax.xml.bind.JAXBElement;
 import java.io.FileInputStream;
@@ -33,179 +20,21 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class Parser {
     public static final boolean NEW_SECTION_FOR_KEY_SIGNATURE = true;
 
-    private static class SplitChordTuple {
-        List<InstantiatedChordTuple> pre;
-        List<InstantiatedChordTuple> post;
-
-        public SplitChordTuple() {
-            pre = new ArrayList<>();
-            post = new ArrayList<>();
-        }
-    }
-
-    private static class ChordTuple {
-        List<Note> notes;
-        float crotchets;
-        float duration;
-        int lowestLine;
-
-        public ChordTuple(float crochets, int lowestLine) {
-            notes = new ArrayList<>();
-            this.crotchets = crochets;
-            this.lowestLine = lowestLine;
-        }
-    }
-
-    private static class InstantiatedChordTuple {
-        List<uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch> pitches;
-        List<uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental> accidentals;
-        float crotchetsIntoLine;
-        float duration;
-        uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType noteType;
-        int dots;
-        List<ChordMarking> markings;
-
-        public InstantiatedChordTuple(List<uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch> pitches, List<uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental> accidentals,
-                                      float crotchetsIntoLine, float duration, uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType noteType, int dots, List<ChordMarking> markings) {
-            this.pitches = pitches;
-            this.accidentals = accidentals;
-            this.crotchetsIntoLine = crotchetsIntoLine;
-            this.duration = duration;
-            this.noteType = noteType;
-            this.dots = dots;
-            this.markings = markings;
-        }
-    }
-
-    private static class BeamTuple {
-        int start;
-        int end;
-        int number;
-
-        public BeamTuple(int start, int end, int number) {
-            this.start = start; this.end = end; this.number = number;
-        }
-    }
-
-    private static class BeamGroupTuple {
-        private List<ChordTuple> chords;
-        float startTime;
-        float endTime;
-
-        public BeamGroupTuple() {
-            chords = new ArrayList<>();
-            startTime = -1;
-            endTime = -1;
-        }
-
-        public void addChord(ChordTuple chord) {
-            chords.add(chord);
-            if (startTime == -1 || chord.crotchets < startTime) {
-                startTime = chord.crotchets;
-            }
-            if (endTime == -1 || chord.crotchets + chord.duration > endTime) {
-                endTime = chord.crotchets + chord.duration;
-            }
-        }
-    }
-
-    private static class InstantiatedBeamGroupTuple {
-        List<InstantiatedChordTuple> chords;
-        List<BeamTuple> beams;
-
-        public InstantiatedBeamGroupTuple() { chords = new ArrayList<>(); beams = new ArrayList<>(); }
-    }
-
-    private static class RestTuple {
-        float startTime;
-        float endTime;
-
-        public RestTuple(float startTime, float endTime) {
-            this.startTime = startTime;
-            this.endTime = endTime;
-        }
-    }
-
-    private static class PulseLineTuple {
-        float time;
-        String name;
-        int beatWeight;
-        TimeSignature timeSig;
-
-        PulseLineTuple(float time, String name, int beatWeight, TimeSignature timeSig) {
-            this.time = time;
-            this.name = name;
-            this.beatWeight = beatWeight;
-            this.timeSig = timeSig;
-        }
-    }
-
-    private static class InstantiatedPulseLineTuple {
-        float timeInLine;
-        String name;
-        int beatWeight;
-        TimeSignature timeSig;
-
-        InstantiatedPulseLineTuple(float timeInLine, String name, int beatWeight, TimeSignature timeSig) {
-            this.timeInLine = timeInLine;
-            this.name = name;
-            this.beatWeight = beatWeight;
-            this.timeSig = timeSig;
-        }
-    }
-
-    private static class ParsingPartTuple {
-        List<BeamGroupTuple> beamGroups;
-        List<PulseLineTuple> pulseLines;
-
-        TreeMap<Float, Direction> directions;
-        TreeMap<Float, uk.ac.cam.optimisingmusicnotation.representation.properties.Clef> clefs;
-        TreeMap<Float, KeySignature> keySignatures;
-
-        public ParsingPartTuple() {
-            beamGroups = new ArrayList<>();
-            pulseLines = new ArrayList<>();
-            directions = new TreeMap<>();
-            clefs = new TreeMap<>();
-            keySignatures = new TreeMap<>();
-        }
-    }
-
-    private static class LineTuple {
-        float startTime;
-        List<RestTuple> rests;
-        List<InstantiatedPulseLineTuple> pulses;
-        List<InstantiatedBeamGroupTuple> notes;
-
-        LineTuple(float startTime) {
-            this.startTime = startTime;
-            rests = new ArrayList<>();
-            pulses = new ArrayList<>();
-            notes = new ArrayList<>();
-        }
-    }
-
-    private static class InstantiatedLineTuple {
-        float startTime;
-        Line line;
-
-        InstantiatedLineTuple(float startTime, Line line) {
-            this.startTime = startTime;
-            this.line = line;
-        }
-    }
-
     public static Score parseToScore(Object mxl) {
         if (mxl instanceof ScorePartwise partwise) {
             TreeMap<Float, Float> newlines = new TreeMap<>() {{ put(0f, 0f); }};
             TreeSet<Float> newSections = new TreeSet<>() {{ add(0f); }};
             TreeMap<String, Part> parts = new TreeMap<>();
+
+            BiConsumer<Float, Float> addNewSection = ((time, offset) -> { newSections.add(time); newlines.put(time, offset); });
+            BiConsumer<Float, Float> addNewline = newlines::put;
 
             List<Object> scoreParts = partwise.getPartList().getPartGroupOrScorePart();
             for (Object part : scoreParts) {
@@ -230,6 +59,11 @@ public class Parser {
             List<ScorePartwise.Part> musicParts = partwise.getPart();
 
             for (ScorePartwise.Part part : musicParts) {
+                TreeMap<MusicGroupType, TreeMap<Integer, MusicGroupTuple>> musicGroupTuples = new TreeMap<>();
+                for (MusicGroupType musicGroupType : MusicGroupType.values()) {
+                    musicGroupTuples.put(musicGroupType, new TreeMap<>());
+                }
+
                 String partId = "";
                 if (part.getId() instanceof ScorePart scorePart) {
                     partId = scorePart.getId();
@@ -271,8 +105,11 @@ public class Parser {
                                         currentKeySignature = keySignature;
                                         currentPart.keySignatures.put(measureStartTime + measureTime, currentKeySignature);
                                         if (NEW_SECTION_FOR_KEY_SIGNATURE) {
-                                            newSections.add(measureStartTime + measureTime);
-                                            newlines.put(measureStartTime + measureTime, measureTime - measureLength);
+                                            if (measureTime == 0) {
+                                                addNewSection.accept(measureStartTime + measureTime, 0f);
+                                            } else {
+                                                addNewSection.accept(measureStartTime + measureTime, measureTime - measureLength);
+                                            }
                                         }
                                     }
                                 }
@@ -290,6 +127,7 @@ public class Parser {
                             }
                             measureLength = currentTimeSignature.getBeatNum() * 4f / (currentTimeSignature.getBeatType());
                         } else if (component instanceof Note note) {
+                            parseSlurs(musicGroupTuples, currentPart, note, measureStartTime + measureTime);
                             if (note.getDuration() != null) {
                                 prevChange = note.getDuration().intValue() / (float)divisions;
                             } else {
@@ -335,11 +173,18 @@ public class Parser {
                                 offset = direction.getOffset().getValue().intValue() / (float) divisions;
                             }
                             if (isNewline(direction)) {
-                                newlines.put(measureStartTime + measureTime + offset, measureTime + offset - measureLength);
+                                if (measureStartTime + offset == 0) {
+                                    addNewline.accept(measureStartTime + measureTime + offset, 0f);
+                                } else {
+                                    addNewline.accept(measureStartTime + measureTime + offset, measureTime + offset - measureLength);
+                                }
                             }
                             if (isNewSection(direction)) {
-                                newSections.add(measureStartTime + measureTime + offset);
-                                newlines.put(measureStartTime + measureTime + offset, measureTime + offset - measureLength);
+                                if (measureStartTime + offset == 0) {
+                                    addNewSection.accept(measureStartTime + measureTime + offset, 0f);
+                                } else {
+                                    addNewSection.accept(measureStartTime + measureTime + offset, measureTime + offset - measureLength);
+                                }
                             }
                             if (isArtisticWhitespace(direction)) {
                                 var whitespace = new BeamGroupTuple();
@@ -353,6 +198,7 @@ public class Parser {
                                 whitespace.addChord(restChord);
                                 currentPart.beamGroups.add(whitespace);
                             }
+                            parseMusicDirective(musicGroupTuples, currentPart, direction, measureStartTime + measureTime + offset);
                             currentPart.directions.put(measureStartTime + measureTime + offset, direction);
                         }
                     }
@@ -402,52 +248,56 @@ public class Parser {
                 for (BeamGroupTuple beam : part.getValue().beamGroups) {
                     float lineStart = newlines.floorKey(beam.chords.get(0).crotchets);
                     int lineNum = lineIndices.get(lineStart);
-                    if (isRest(beam)) {
-                        splitToRestTuple(beam, newlines, lineIndices, partLines.get(part.getKey()));
+                    if (beam.isRest()) {
+                        beam.splitToRestTuple(newlines, lineIndices, partLines.get(part.getKey()));
                     } else {
-                        partLines.get(part.getKey()).get(lineNum).notes.add(beamTupleToInstantiatedBeamTuple(beam, lineStart, lineNum));
+                        partLines.get(part.getKey()).get(lineNum).notes.add(beam.toInstantiatedBeamTuple(lineStart, lineNum));
                     }
                 }
-            }
-
-            for (Map.Entry<String, ParsingPartTuple> part : parsingParts.entrySet()) {
+                for (MusicGroupTuple musicGroup : part.getValue().musicGroups) {
+                    musicGroup.splitToInstantiatedMusicGroupTuple(newlines, lineIndices, partLines.get(part.getKey()));
+                }
                 for (PulseLineTuple pulseLine : part.getValue().pulseLines) {
                     float lineStart = newlines.floorKey(pulseLine.time);
                     int lineNum = lineIndices.get(lineStart);
-                    partLines.get(part.getKey()).get(lineNum).pulses.add(pulseTupleToInstantiatedPulseTuple(pulseLine, lineStart, lineNum));
+                    partLines.get(part.getKey()).get(lineNum).pulses.add(pulseLine.toInstantiatedPulseTuple(lineStart, lineNum));
                     Float lowerLineStart = newlines.lowerKey(pulseLine.time);
                     if (lowerLineStart != null) {
                         int lowerLineNum = lineIndices.get(lowerLineStart);
                         if (lowerLineNum != lineNum) {
-                            partLines.get(part.getKey()).get(lowerLineNum).pulses.add(pulseTupleToInstantiatedPulseTuple(pulseLine, lowerLineStart, lowerLineNum));
+                            partLines.get(part.getKey()).get(lowerLineNum).pulses.add(pulseLine.toInstantiatedPulseTuple(lowerLineStart, lowerLineNum));
                         }
                     }
                 }
             }
+
             TreeMap<String, List<InstantiatedLineTuple>> finalLines = new TreeMap<>();
             List<Float> newlinesList = newlines.keySet().stream().toList();
-
 
             for (Map.Entry<String, List<LineTuple>> part : partLines.entrySet()) {
                 finalLines.put(part.getKey(), new ArrayList<>());
                 for (int i = 0; i < part.getValue().size(); ++i) {
-                    List<StaveElement> elements = new ArrayList<>();
-                    Stave stave = new Stave(elements, new ArrayList<>(),new ArrayList<>());
+                    var chords = new TreeMap<Float, Chord>();
+                    Stave stave = new Stave(new ArrayList<>(), new ArrayList<>(),new ArrayList<>());
 
                     Line tempLine = new Line(new ArrayList<>() {{ add(stave); }}, lineLengths.get(i), lineOffsets.get(i), i);
                     finalLines.get(part.getKey()).add(new InstantiatedLineTuple(newlinesList.get(i), tempLine));
 
-                    var fusedRests = fuseRestTuples(part.getValue().get(i).rests);
+                    var fusedRests = RestTuple.fuseRestTuples(part.getValue().get(i).rests);
                     for (RestTuple restTuple : fusedRests) {
-                        tempLine.getStaves().get(0).addWhiteSpace(restTupleToRest(restTuple, tempLine));
+                        tempLine.getStaves().get(0).addWhiteSpace(restTuple.toRest(tempLine));
                     }
 
                     for (InstantiatedBeamGroupTuple beamTuple : part.getValue().get(i).notes) {
-                        tempLine.getStaves().get(0).addStaveElement(instantiatedBeamTupleToBeamGroup(beamTuple, tempLine));
+                        tempLine.getStaves().get(0).addStaveElement(beamTuple.toBeamGroup(tempLine, chords));
                     }
 
                     for (InstantiatedPulseLineTuple pulseTuple : part.getValue().get(i).pulses) {
-                        tempLine.addPulseLine(instantiatedPulseLineTupleToPulseLine(pulseTuple, tempLine));
+                        tempLine.addPulseLine(pulseTuple.toPulseLine(tempLine));
+                    }
+
+                    for (InstantiatedMusicGroupTuple musicGroupTuple : part.getValue().get(i).musicGroups) {
+                        tempLine.getStaves().get(0).addMusicGroup(musicGroupTuple.toMusicGroup(tempLine, chords));
                     }
                 }
             }
@@ -491,9 +341,6 @@ public class Parser {
         }
     }
 
-    static boolean isRest(BeamGroupTuple tuple) {
-        return (tuple.chords.get(0).notes.get(0).getRest() != null);
-    }
 
     static SplitChordTuple splitInstantiatedChordTuple(InstantiatedChordTuple tuple, float newLine) {
         SplitChordTuple res = new SplitChordTuple();
@@ -503,217 +350,6 @@ public class Parser {
 
     static List<InstantiatedBeamGroupTuple> splitInstantiatedBeamTuple(InstantiatedBeamGroupTuple tuple, TreeMap<Float, Float> newlines, TreeMap<Float, Integer> lineIndices) {
         return null;
-    }
-
-    static InstantiatedBeamGroupTuple beamTupleToInstantiatedBeamTuple(BeamGroupTuple tuple, float lineTime, int lineNum) {
-        InstantiatedBeamGroupTuple beamTuple = new InstantiatedBeamGroupTuple();
-        for (ChordTuple chordTuple : tuple.chords) {
-            beamTuple.chords.add(chordTupleToInstantiatedChordTuple(chordTuple, lineTime, lineNum));
-        }
-
-        Integer[] beaming = new Integer[10];
-        Arrays.fill(beaming, -1);
-        Integer[] beamStarts = new Integer[10];
-        Arrays.fill(beamStarts, -1);
-        for (int i = 0; i < beamTuple.chords.size(); ++i) {
-            for (Note note : tuple.chords.get(i).notes) {
-                for (Beam beam : note.getBeam()) {
-                    if (beam.getNumber() != 1) {
-                        switch (beam.getValue()) {
-                            case FORWARD_HOOK:
-                            case BACKWARD_HOOK:
-                                if (beaming[beam.getNumber() - 2] == -1) {
-                                    beamTuple.beams.add(new BeamTuple(i, i, beam.getNumber() - 1));
-                                } else {
-                                    System.out.println("Started hook beaming when beam had already started");
-                                }
-                                break;
-                            case BEGIN:
-                                if (beaming[beam.getNumber() - 2] == -1) {
-                                    beamStarts[beam.getNumber() - 2] = i;
-                                    beaming[beam.getNumber() - 2] = i;
-                                } else {
-                                    System.out.println("Started beam when beam had already started");
-                                }
-                                break;
-                            case CONTINUE:
-                                if (beaming[beam.getNumber() - 2] == i - 1) {
-                                    beaming[beam.getNumber() - 2] = i;
-                                } else {
-                                    System.out.println("Continued invalid beam");
-                                }
-                                break;
-                            case END:
-                                if (beaming[beam.getNumber() - 2] == i - 1) {
-                                    beaming[beam.getNumber() - 2] = -1;
-                                    if (beamStarts[beam.getNumber() - 2] != -1) {
-                                        beamTuple.beams.add(new BeamTuple(beamStarts[beam.getNumber() - 2], i, beam.getNumber() - 1));
-                                    }
-                                } else {
-                                    System.out.println("Ended invalid beam");
-                                }
-                                break;
-                        }
-                    }
-                }
-            }
-        }
-        return beamTuple;
-    }
-
-    static boolean isBeamed(uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType noteType) {
-        switch (noteType) {
-            case MAXIMA, BREVE, SEMIBREVE, MINIM, CROTCHET -> { return false; }
-            case QUAVER, SQUAVER, DSQUAVER, HDSQUAVER -> { return true; }
-        }
-        return false;
-    }
-
-    static BeamGroup instantiatedBeamTupleToBeamGroup(InstantiatedBeamGroupTuple beamTuple, Line line) {
-        if (beamTuple.chords.size() == 1) {
-            if (!isBeamed(beamTuple.chords.get(0).noteType)) {
-                return instantiatedChordTupleToChord(beamTuple.chords.get(0), line);
-            }
-        }
-        List<Chord> chords = new ArrayList<>();
-        for (InstantiatedChordTuple chordTuple : beamTuple.chords) {
-            chords.add(instantiatedChordTupleToChord(chordTuple, line));
-        }
-        BeamGroup group = new BeamGroup(chords);
-        for (BeamTuple tuple : beamTuple.beams) {
-            group.addBeam(tuple.start, tuple.end, tuple.number);
-        }
-        return group;
-    }
-
-    static void splitToRestTuple(BeamGroupTuple tuple, TreeMap<Float, Float> newlines, Map<Float, Integer> lineIndices, List<LineTuple> target) {
-        float endTime = tuple.endTime;
-        while (endTime > tuple.startTime) {
-            float newEndTime = newlines.lowerKey(endTime);
-            target.get(lineIndices.get(newEndTime)).rests.add(new RestTuple(Math.max(newEndTime, tuple.startTime) - newEndTime, endTime - newEndTime));
-            endTime = newEndTime;
-        }
-    }
-
-    static Whitespace restTupleToRest(RestTuple tuple, Line line) {
-        return new Rest(new MusicalPosition(line, tuple.startTime), new MusicalPosition(line, tuple.endTime));
-    }
-
-    static List<RestTuple> fuseRestTuples(List<RestTuple> rests) {
-        TreeMap<Float, RestTuple> fusedRests = new TreeMap<>();
-
-        for (RestTuple rest : rests) {
-            if (fusedRests.size() == 0) {
-                fusedRests.put(rest.startTime, rest);
-            } else {
-                var currentRest = rest;
-                boolean changed = true;
-                while (changed) {
-                    changed = false;
-                    var entry = fusedRests.floorEntry(currentRest.startTime);
-                    if (entry != null && entry.getValue().endTime >= currentRest.startTime) {
-                        currentRest = new RestTuple(entry.getKey(), Math.max(currentRest.endTime, entry.getValue().endTime));
-                        fusedRests.remove(entry.getKey());
-                        changed = true;
-                        continue;
-                    }
-                    entry = fusedRests.floorEntry(currentRest.endTime);
-                    if (entry != null && entry.getValue().startTime >= currentRest.startTime) {
-                        currentRest = new RestTuple(currentRest.startTime, Math.max(currentRest.endTime, entry.getValue().endTime));
-                        fusedRests.remove(entry.getKey());
-                        changed = true;
-                    }
-                }
-                fusedRests.put(currentRest.startTime, currentRest);
-            }
-        }
-
-        return fusedRests.values().stream().toList();
-    }
-
-    static InstantiatedChordTuple chordTupleToInstantiatedChordTuple(ChordTuple chord, float lineTime, int lineNum) {
-        List<uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch> pitches = new ArrayList<>();
-        List<uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental> accidentals = new ArrayList<>();
-        List<ChordMarking> markings = new ArrayList<>();
-        for (Note note : chord.notes) {
-            if (note.getPitch() != null) {
-                pitches.add(new uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch(pitchToGrandStaveLine(note.getPitch()) - chord.lowestLine, 0));
-            } else {
-                pitches.add(new uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch(0, 0));
-            }
-            if (note.getAccidental() != null) {
-                switch (note.getAccidental().getValue()) {
-                    case FLAT -> accidentals.add(uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.FLAT);
-                    case SHARP -> accidentals.add(uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.SHARP);
-                    case FLAT_FLAT -> accidentals.add(uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.DOUBLE_FLAT);
-                    case DOUBLE_SHARP -> accidentals.add(uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.DOUBLE_SHARP);
-                    case NATURAL -> accidentals.add(uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.NATURAL);
-                    default -> accidentals.add(uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.NONE);
-                }
-            } else {
-                accidentals.add(uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.NONE);
-            }
-            addMarkings(note, markings);
-        }
-        return new InstantiatedChordTuple(pitches, accidentals, chord.crotchets - lineTime, chord.duration, convertNoteType(chord.notes.get(0).getType()), getDotNumber(chord.notes.get(0)), markings);
-    }
-
-    static void addMarkings(Note note, List<ChordMarking> target) {
-        if (note.getNotations() != null) {
-            for (Notations notations : note.getNotations()) {
-                if (notations.getTiedOrSlurOrTuplet() != null) {
-                    for (Object object : notations.getTiedOrSlurOrTuplet()) {
-                        if (object instanceof Articulations articulations) {
-                            for (JAXBElement element : articulations.getAccentOrStrongAccentOrStaccato()) {
-                                switch (element.getName().getLocalPart()) {
-                                    case "staccato" -> target.add(new Staccato());
-                                    case "tenuto" -> target.add(new Tenuto());
-                                    case "accent" -> target.add(new Accent());
-                                    case "strong-accent" -> target.add(new StrongAccent());
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    static int getDotNumber(Note note) {
-        if (note.getDot() == null) {
-            return 0;
-        }
-        return note.getDot().size();
-    }
-
-    static Chord instantiatedChordTupleToChord(InstantiatedChordTuple chordTuple, Line line) {
-        return new Chord(chordTuple.pitches, chordTuple.accidentals, new MusicalPosition(line, chordTuple.crotchetsIntoLine), chordTuple.duration, chordTuple.noteType, chordTuple.dots, chordTuple.markings);
-    }
-
-    static InstantiatedPulseLineTuple pulseTupleToInstantiatedPulseTuple(PulseLineTuple tuple, float lineTime, int lineNum) {
-        return new InstantiatedPulseLineTuple(tuple.time - lineTime, tuple.name, tuple.beatWeight, tuple.timeSig);
-    }
-
-    static PulseLine instantiatedPulseLineTupleToPulseLine(InstantiatedPulseLineTuple pulseTuple, Line line) {
-        return switch (pulseTuple.beatWeight) {
-            case 0 -> new BarLine(new MusicalPosition(line, pulseTuple.timeInLine), pulseTuple.name, pulseTuple.timeSig);
-            default -> new BeatLine(new MusicalPosition(line, pulseTuple.timeInLine), pulseTuple.beatWeight);
-        };
-    }
-
-    static uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType convertNoteType(NoteType noteType) {
-        return switch (noteType.getValue()) {
-            case "maxima" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.MAXIMA;
-            case "long" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.BREVE;
-            case "whole" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.SEMIBREVE;
-            case "half" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.MINIM;
-            case "quarter" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.CROTCHET;
-            case "eighth" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.QUAVER;
-            case "16th" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.SQUAVER;
-            case "32nd" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.DSQUAVER;
-            case "64th" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.HDSQUAVER;
-            default -> throw new IllegalArgumentException();
-        };
     }
 
     // translates a pitch into the number of lines above the root of C0.
@@ -799,6 +435,54 @@ public class Parser {
             }
         }
         return false;
+    }
+
+    static List<MusicGroupType> wedgeGroups = new ArrayList<>(2) {{ add(MusicGroupType.DIM); add(MusicGroupType.CRESC); }};
+    static void parseMusicDirective(TreeMap<MusicGroupType, TreeMap<Integer, MusicGroupTuple>> target, ParsingPartTuple currentPart, Direction direction, float time) {
+        if (direction.getDirectionType() != null) {
+            for (DirectionType directionType : direction.getDirectionType()) {
+                Wedge wedge = directionType.getWedge();
+                if (wedge != null) {
+                    switch (wedge.getType().name()) {
+                        case "DIMINUENDO" -> target.get(MusicGroupType.DIM).put(wedge.getNumber(), new MusicGroupTuple(time, MusicGroupType.DIM));
+                        case "CRESCENDO" -> target.get(MusicGroupType.CRESC).put(wedge.getNumber(), new MusicGroupTuple(time, MusicGroupType.CRESC));
+                        case "STOP" -> {
+                            for (var type : wedgeGroups) {
+                                if (target.get(type).containsKey(wedge.getNumber())) {
+                                    var tuple = target.get(type).remove(wedge.getNumber());
+                                    tuple.endTime = time;
+                                    currentPart.musicGroups.add(tuple);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    static void parseSlurs(TreeMap<MusicGroupType, TreeMap<Integer, MusicGroupTuple>> target, ParsingPartTuple currentPart, Note note, float time) {
+        if (note.getNotations() != null) {
+            for (var notation : note.getNotations()) {
+                for (var s : notation.getTiedOrSlurOrTuplet()) {
+                    if (s instanceof Slur slur) {
+                        switch (slur.getType()) {
+                            case STOP -> {
+                                if (target.get(MusicGroupType.SLUR).containsKey(slur.getNumber())) {
+                                    var tuple = target.get(MusicGroupType.SLUR).remove(slur.getNumber());
+                                    tuple.endTime = time;
+                                    currentPart.musicGroups.add(tuple);
+                                }
+                            }
+                            case START -> target.get(MusicGroupType.SLUR).put(slur.getNumber(), new MusicGroupTuple(time, MusicGroupType.SLUR));
+                        }
+                    } else if (s instanceof Tuplet tuple) {
+
+                    }
+                }
+            }
+        }
     }
 
     static TimeSignature parseTimeSignature(List<JAXBElement<String>> timeSignature) {

@@ -18,7 +18,7 @@ public class Stave {
     private final List<StaveElement> staveElements;
     private final List<Whitespace> whitespaces;
     private final List<MusicGroup> musicGroups;
-  
+
     public Stave() {
         staveElements = new ArrayList<>();
         whitespaces = new ArrayList<>();
@@ -37,6 +37,10 @@ public class Stave {
   
     public void addStaveElement(StaveElement staveElement) {
         staveElements.add(staveElement);
+    }
+
+    public void addMusicGroup(MusicGroup musicGroup) {
+        musicGroups.add(musicGroup);
     }
 
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Line line) {

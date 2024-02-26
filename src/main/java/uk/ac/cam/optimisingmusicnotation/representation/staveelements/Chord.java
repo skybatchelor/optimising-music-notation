@@ -45,6 +45,10 @@ public class Chord extends BeamGroup {
         return dots > 0;
     }
 
+    public MusicalPosition getMusicalPosition() {
+        return musicalPosition;
+    }
+
     @Override
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Map<Chord, ChordAnchors<Anchor>> chordAnchorsMap) {
         ChordAnchors<Anchor> chordAnchors = null;
