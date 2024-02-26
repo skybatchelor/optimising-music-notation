@@ -48,7 +48,7 @@ public class Clef {
         String clefPath = RenderingConfiguration.imgFilePath + "/clefs/" + this.toString().toLowerCase() + ".svg";
         float topLeftY = (this.line/2f) + ((sign.height - sign.lineDistanceFromBottomOfClef)-4);
         try{
-            canvas.drawImage(clefPath, anchor,-(5f+numAlterations) ,topLeftY,0f,this.sign.height);
+            canvas.drawImage(clefPath, anchor,-(6f+numAlterations) ,topLeftY,0f,this.sign.height);
         } catch (java.io.IOException e) {
             throw new RuntimeException(e);
         }
