@@ -49,14 +49,15 @@ public class Part {
     }
 
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, String workTitle) {
-        canvas.reserveHeight(15f);
+        canvas.reserveHeight(20f);
         try {
             canvas.drawText(RenderingConfiguration.fontFilePath,workTitle,24f,
                     TextAlignment.CENTRE, canvas.topCentreAnchor(), -60f,-7f,120f,20f);
+            canvas.drawText(RenderingConfiguration.fontFilePath,name,16f,
+                    TextAlignment.LEFT, canvas.topLeftAnchor(), 6f,-15f,100f,20f);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        //canvas.reserveHeight(10f);
         for (Section s: sections) {
             s.draw(canvas);
         }
