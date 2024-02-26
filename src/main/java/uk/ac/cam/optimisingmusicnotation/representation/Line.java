@@ -1,11 +1,10 @@
 package uk.ac.cam.optimisingmusicnotation.representation;
 
 import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
+import uk.ac.cam.optimisingmusicnotation.representation.beatlines.BarLine;
 import uk.ac.cam.optimisingmusicnotation.representation.beatlines.BeatLine;
 import uk.ac.cam.optimisingmusicnotation.representation.beatlines.PulseLine;
-import uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental;
-import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
-import uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch;
+import uk.ac.cam.optimisingmusicnotation.representation.properties.*;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType;
 import uk.ac.cam.optimisingmusicnotation.representation.whitespaces.Rest;
@@ -118,6 +117,21 @@ public class Line {
         }
         for (Stave s: staves){
             s.draw(canvas,this);
+        }
+        drawTimeSignatures(canvas);
+    }
+
+    private <Anchor> void drawTimeSignatures(MusicCanvas<Anchor> canvas){
+        TimeSignature lastTimeSig = null;
+        TimeSignature currentTimeSig;
+        for (PulseLine p: pulseLines) {
+            if (p instanceof BarLine){
+                currentTimeSig = ((BarLine) p).getTimeSignature();
+                if (currentTimeSig != null && !(currentTimeSig.equals(lastTimeSig))){
+                    lastTimeSig = ((BarLine) p).getTimeSignature();
+                    lastTimeSig.draw(canvas,p.getMusicalPosition());
+                }
+            }
         }
     }
 }

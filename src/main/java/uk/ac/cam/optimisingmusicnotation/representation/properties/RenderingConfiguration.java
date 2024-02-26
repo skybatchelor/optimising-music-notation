@@ -7,4 +7,5 @@ public class RenderingConfiguration {
     public static boolean upwardStems = true;
     public static float gapHeight = 0.125f;
     public static float artisticWhitespaceWidth = 1f; // A crochet of whitespace + dead space
+    public static String fontFilePath = "fonts/Roboto-Regular.ttf";
 }

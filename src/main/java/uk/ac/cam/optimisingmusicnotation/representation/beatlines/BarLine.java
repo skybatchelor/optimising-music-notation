@@ -14,6 +14,11 @@ public class BarLine implements PulseLine {
     }
     private final MusicalPosition musicalPosition;
     private final String barName;
+
+    public TimeSignature getTimeSignature() {
+        return timeSignature;
+    }
+
     private final TimeSignature timeSignature;
 
     public BarLine(MusicalPosition musicalPosition, String barName, TimeSignature timeSignature) {

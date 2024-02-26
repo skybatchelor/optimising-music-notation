@@ -53,7 +53,7 @@ public class Stave {
         drawStaveLines(canvas, line);
     }
     private <Anchor> void drawStaveLines(MusicCanvas<Anchor> canvas, Line line){
-        //PRECONDTITIONS: all whitespaces are grouped, and in order, with no overlapping
+        //PRECONDITION: all whitespaces are grouped, and in order, with no overlapping
         MusicalPosition endOfLastWhitespace = new MusicalPosition(line,0);
         MusicalPosition startOfNextWhitespace;
         for (Whitespace w: whitespaces) {
