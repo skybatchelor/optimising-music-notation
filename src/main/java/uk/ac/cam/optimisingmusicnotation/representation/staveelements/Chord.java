@@ -48,13 +48,16 @@ public class Chord extends BeamGroup {
     @Override
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Map<Chord, ChordAnchors<Anchor>> chordAnchorsMap) {
         ChordAnchors<Anchor> chordAnchors = null;
+        Anchor anchor;
+        boolean hasLedgerLines;
         for (Note note: notes) {
-            Anchor anchor = canvas.getAnchor(musicalPosition, note.pitch);
+            anchor = canvas.getAnchor(musicalPosition, note.pitch);
             drawNotehead(canvas,note);
             drawStem(canvas,note,RenderingConfiguration.upwardStems ? 1 : -1);
             drawDots(canvas,anchor);
-            drawAccidental(canvas,note,anchor);
-            drawLedgerLines(canvas,note);
+            hasLedgerLines = drawLedgerLines(canvas,note);
+            drawAccidental(canvas,note,anchor, hasLedgerLines);
+
         }
         chordAnchorsMap.put(this,chordAnchors);
     }
@@ -75,25 +78,30 @@ public class Chord extends BeamGroup {
                     RenderingConfiguration.gapHeight);
         }
     }
-    private <Anchor> void drawAccidental(MusicCanvas<Anchor> canvas, Note note, Anchor anchor){
+    private <Anchor> void drawAccidental(MusicCanvas<Anchor> canvas, Note note, Anchor anchor, boolean hasLedgerLines){
         if (note.accidental != Accidental.NONE){
             String accidentalPath = "img/accidentals/" + note.accidental.toString().toLowerCase() + ".svg";
             try{
-                canvas.drawImage(accidentalPath, anchor,-1.75f, 1f,0.75f, 2f);
+                canvas.drawImage(accidentalPath, anchor,-(1.65f + (hasLedgerLines ? 0.25f : 0f)), 1f,0.75f, 2f);
             } catch (java.io.IOException e) {
                 throw new RuntimeException(e);
             }
         }
     }
-    private <Anchor> void drawLedgerLines(MusicCanvas<Anchor> canvas, Note note){
+    private <Anchor> boolean drawLedgerLines(MusicCanvas<Anchor> canvas, Note note){
+        boolean drewLedgerLines = false;
         int lowestLine = note.pitch.rootStaveLine();
         int highestLine = note.pitch.rootStaveLine();
         for (int i = lowestLine / 2; i < 0; i += 2) {
             canvas.drawLine(canvas.getAnchor(musicalPosition, new Pitch(i, 0)), -1f, 0f, 1f, 0f, .2f);
+            drewLedgerLines = true;
         }
         for (int i = 10; i <= highestLine; i += 2) {
             canvas.drawLine(canvas.getAnchor(musicalPosition, new Pitch(i, 0)), -1f, 0f, 1f, 0f, .2f);
-        }}
+            drewLedgerLines = true;
+        }
+        return drewLedgerLines;
+    }
 
     private <Anchor> void drawDots(MusicCanvas<Anchor> canvas, Anchor anchor){
         if (dotted()) {
