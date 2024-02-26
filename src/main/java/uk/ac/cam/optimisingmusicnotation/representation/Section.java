@@ -17,8 +17,7 @@ public class Section {
         lines = new ArrayList<>();
         clef = new Clef(ClefSign.G);
         keySignature = new KeySignature();
-        lines.add(new Line(0,1));
-        lines.add(new Line(1,0));
+
     }
     public Section(Line line, Clef clef, KeySignature keySignature) {
         lines = new ArrayList<>() {{ add(line); }};
@@ -34,7 +33,7 @@ public class Section {
 
     public <Anchor> void draw(MusicCanvas<Anchor> canvas) {
         canvas.addLine();
-        drawClefKeyAndTimeSignature(canvas);
+        drawClefAndKey(canvas);
         lines.get(0).draw(canvas);
         for (Line l: lines.subList(1, lines.size())){
             canvas.addLine();
@@ -42,7 +41,7 @@ public class Section {
         }
     }
 
-    private <Anchor> void drawClefKeyAndTimeSignature(MusicCanvas<Anchor> canvas){
+    private <Anchor> void drawClefAndKey(MusicCanvas<Anchor> canvas){
         Line firstLine = lines.get(0);
         for (Stave s: firstLine.getStaves()){
             s.drawPreStaveLines(canvas,firstLine,keySignature.getAlterations().size());
