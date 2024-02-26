@@ -1,10 +1,10 @@
 package uk.ac.cam.optimisingmusicnotation.representation;
 
 import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
-import uk.ac.cam.optimisingmusicnotation.representation.Section;
+import uk.ac.cam.optimisingmusicnotation.rendering.TextAlignment;
+import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 
-import javax.sound.sampled.Line;
-import java.lang.reflect.AnnotatedArrayType;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,7 +48,16 @@ public class Part {
         sections.add(s);
     }
 
-    public <Anchor> void draw(MusicCanvas<Anchor> canvas) {
+    public <Anchor> void draw(MusicCanvas<Anchor> canvas, String workTitle) {
+        canvas.reserveHeight(20f);
+        try {
+            canvas.drawText(RenderingConfiguration.fontFilePath,workTitle,24f,
+                    TextAlignment.CENTRE, canvas.topCentreAnchor(), -60f,-7f,120f,20f);
+            canvas.drawText(RenderingConfiguration.fontFilePath,name,16f,
+                    TextAlignment.LEFT, canvas.topLeftAnchor(), 6f,-15f,100f,20f);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         for (Section s: sections) {
             s.draw(canvas);
         }

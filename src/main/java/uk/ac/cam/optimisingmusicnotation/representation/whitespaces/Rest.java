@@ -17,8 +17,7 @@ public class Rest implements Whitespace {
 
     @Override
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Line line) {
-        canvas.drawWhitespace(canvas.getAnchor(startMusicalPosition), 0, 0.5f,
-                canvas.getAnchor(endMusicalPosition), 0, -4.5f);
+        //canvas.drawWhitespace(canvas.getAnchor(startMusicalPosition), 0, 0.5f,canvas.getAnchor(endMusicalPosition), 0, -4.5f);
         MusicalPosition pulsePosition;
         for (PulseLine p: line.getPulseLines()) {
             pulsePosition = p.getMusicalPosition();
@@ -26,10 +25,15 @@ public class Rest implements Whitespace {
                 p.drawFull(canvas);
             }
         }
+    }
 
-//        for (int i = (int) Math.ceil(startMusicalPosition.crotchetsIntoLine()); i <= endMusicalPosition.crotchetsIntoLine(); i++) {
-//            MusicalPosition startPosition = new MusicalPosition(line, i);
-//            Anchor startAnchor = canvas.getAnchor(startPosition);
-//            canvas.drawLine(startAnchor,0f,2f,0f,-4f,RenderingConfiguration.pulseLineWidth);}
+    @Override
+    public MusicalPosition getStartMusicalPosition() {
+        return startMusicalPosition;
+    }
+
+    @Override
+    public MusicalPosition getEndMusicalPosition() {
+        return endMusicalPosition;
     }
 }
