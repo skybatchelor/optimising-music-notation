@@ -8,7 +8,7 @@ import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
 import java.util.List;
 import java.util.Map;
 
-public class Crescendo extends Line {
+public class Crescendo extends LineElement {
     public Crescendo(List<Chord> chords, MusicalPosition startPosition, MusicalPosition endPosition) {
         super(chords, startPosition, endPosition);
     }

@@ -8,7 +8,7 @@ import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
 import java.util.List;
 import java.util.Map;
 
-public class Diminuendo extends Line {
+public class Diminuendo extends LineElement {
     public Diminuendo(List<Chord> chords, MusicalPosition startPosition, MusicalPosition endPosition) {
         super(chords, startPosition, endPosition);
     }
