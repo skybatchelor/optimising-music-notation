@@ -167,6 +167,27 @@ public class Chord extends BeamGroup {
         }
     }
 
+    private <Anchor> void drawTie(MusicCanvas<Anchor> canvas, Note note, Anchor anchor, boolean hasTieFrom, boolean hasTieTo) {
+        if (hasTieFrom) {
+            MusicalPosition endMusicalPosition = new MusicalPosition(musicalPosition.line(), musicalPosition.crotchetsIntoLine() + durationInCrochets);
+            Anchor endAnchor = canvas.getAnchor(endMusicalPosition, note.pitch);
+            int sign = RenderingConfiguration.upwardStems ? 1 : -1;
+            float Xoffset = .2f;
+            float absoluteYOffset = .1f;
+            float signedYOffset = sign * absoluteYOffset;
+            canvas.drawCurve(anchor, Xoffset, signedYOffset, endAnchor, -Xoffset, signedYOffset, .15f, RenderingConfiguration.upwardStems);
+        }
+        if (hasTieTo) {
+            MusicalPosition startMusicalPosition = new MusicalPosition(musicalPosition.line(), 0);
+            Anchor startAnchor = canvas.getAnchor(startMusicalPosition, note.pitch);
+            int sign = RenderingConfiguration.upwardStems ? 1 : -1;
+            float Xoffset = .2f;
+            float absoluteYOffset = .1f;
+            float signedYOffset = sign * absoluteYOffset;
+            canvas.drawCurve(startAnchor, Xoffset, signedYOffset, anchor, -Xoffset, signedYOffset, .15f, RenderingConfiguration.upwardStems);
+        }
+    }
+
 
     private static class Note {
         Pitch pitch;
