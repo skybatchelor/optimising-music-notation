@@ -29,7 +29,8 @@ public class BarLine implements PulseLine {
 
     public <Anchor> void drawAboveStave(MusicCanvas<Anchor> canvas) {
         Anchor startAnchor = canvas.getAnchor(musicalPosition);
-        canvas.drawLine(startAnchor,0f,2f,0f,0.25f,RenderingConfiguration.barLineWidth, new Color(0xCCCCCC));
+        canvas.drawLine(startAnchor,0f,RenderingConfiguration.pulseLineHeight,0f,0.25f,
+                RenderingConfiguration.barLineWidth, new Color(0xCCCCCC));
     }
 
     public <Anchor> void drawFull(MusicCanvas<Anchor> canvas) {
