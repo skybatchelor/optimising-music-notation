@@ -50,9 +50,7 @@ public class BeamGroup implements StaveElement {
         for (Chord chord : chords) {
             chord.computeAnchors(canvas, chordAnchorsMap);
         }
-        if (chords.size() > 3) {
-            System.out.println("beams with more than 3 chords are illegal, ignoring");
-        } else if (chords.size() > 1) {
+        if (chords.size() > 1) {
             // draw the implicit first level beam
             Chord firstChord = chords.get(0);
             ChordAnchors<Anchor> firstChordAnchors = chordAnchorsMap.get(firstChord);
@@ -65,6 +63,9 @@ public class BeamGroup implements StaveElement {
                     lastChordAnchors.stemEnd(),
                     0, -sign * RenderingConfiguration.beamWidth / 2,
                     RenderingConfiguration.beamWidth);
+            if (chords.size() > 3) {
+                System.out.println("beams with more than 3 chords are illegal, no promises.");
+            }
             // adjust middle chord anchors to account for the beam
             if (chords.size() == 3) {
                 Chord secondChord = chords.get(1);

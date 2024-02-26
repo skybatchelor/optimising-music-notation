@@ -102,7 +102,9 @@ public class Chord extends BeamGroup {
         }
         chordAnchors = chordAnchorsMap.get(this);
         for (Note note : notes) {
-            canvas.drawCircle(canvas.getAnchor(musicalPosition, note.pitch), 0, 0, .5f, fillInCircle); // draw note head [!need to adjust on noteType]
+            canvas.drawCircle(canvas.getAnchor(musicalPosition, note.pitch), 0, 0,
+                    RenderingConfiguration.noteheadRadius, fillInCircle); // draw note head [!need to adjust on
+                                                                          // noteType]
             if (note.pitch.rootStaveLine() < lowestLine) {
                 lowestLine = note.pitch.rootStaveLine();
                 //ret = canvas.getAnchor(musicalPosition, note.pitch);
@@ -134,7 +136,8 @@ public class Chord extends BeamGroup {
 
         if (drawStem) {
             Anchor stemEnd = chordAnchors.stemEnd();
-            Anchor stemBeginning = canvas.offsetAnchor(stemEnd, 0, -sign * 3f);
+            Anchor stemBeginning = canvas.offsetAnchor(chordAnchors.notehead(), 0,
+                    sign * RenderingConfiguration.noteheadRadius);
             canvas.drawLine(stemBeginning, 0, 0, stemEnd, 0, 0, RenderingConfiguration.stemWidth);// draw stem
             // draw bit of whitespace to separate from pulse line
             canvas.drawWhitespace(stemEnd, -RenderingConfiguration.stemWidth,

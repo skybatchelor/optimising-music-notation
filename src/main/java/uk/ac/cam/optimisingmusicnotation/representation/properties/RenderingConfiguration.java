@@ -25,4 +25,5 @@ public class RenderingConfiguration {
     public static String imgFilePath;
     public static float beamWidth = 0.5f;
     public static float gapBetweenBeams = 0.5f;
+    public static float noteheadRadius = 0.5f;
 }
