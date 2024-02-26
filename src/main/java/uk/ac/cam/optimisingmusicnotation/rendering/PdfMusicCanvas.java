@@ -155,7 +155,7 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
         canvas.setStrokeColor(ColorConstants.BLACK);
         canvas.setFillColor(fill ? ColorConstants.BLACK : ColorConstants.WHITE);
         canvas.setLineWidth(0.15f * STAVE_SPACING);
-        canvas.circle((anchor.x + x) * STAVE_SPACING, (anchor.y + y) * STAVE_SPACING, r * STAVE_SPACING);
+        canvas.circle((anchor.x + x) * STAVE_SPACING, (anchor.y + y) * STAVE_SPACING, (r - 0.075f) * STAVE_SPACING);
         canvas.fillStroke();
     }
 
