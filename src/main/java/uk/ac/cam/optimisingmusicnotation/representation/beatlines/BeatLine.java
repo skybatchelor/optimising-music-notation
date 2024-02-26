@@ -24,11 +24,19 @@ public class BeatLine implements PulseLine {
 
     public <Anchor> void drawAboveStave(MusicCanvas<Anchor> canvas) {
         Anchor startAnchor = canvas.getAnchor(musicalPosition);
-        canvas.drawLine(startAnchor,0f,2f,0f,0.25f,RenderingConfiguration.pulseLineWidth, new Color(0xCCCCCC));
+        switch (beatWeight) {
+            case 1 -> canvas.drawLine(startAnchor,0f,2f,0f,0.25f, RenderingConfiguration.beatLineWidth, new Color(0xCCCCCC));
+            case 2 -> canvas.drawLine(startAnchor,0f,2f,0f,0.25f, RenderingConfiguration.subBeatLineWidth, new Color(0xEEEEEE));
+            default -> canvas.drawLine(startAnchor,0f,2f,0f,0.25f, RenderingConfiguration.subBeatLineWidth / (beatWeight + 1), new Color(0xEEEEEE));
+        }
     }
 
     public <Anchor> void drawFull(MusicCanvas<Anchor> canvas) {
         Anchor startAnchor = canvas.getAnchor(musicalPosition);
-        canvas.drawLine(startAnchor,0f,0.5f,0f,-4f,RenderingConfiguration.pulseLineWidth, new Color(0xCCCCCC));
+        switch (beatWeight) {
+            case 1 -> canvas.drawLine(startAnchor,0f,0.5f,0f,-4f,RenderingConfiguration.beatLineWidth, new Color(0xCCCCCC));
+            case 2 -> canvas.drawLine(startAnchor,0f,0.5f,0f,-4f,RenderingConfiguration.subBeatLineWidth, new Color(0xEEEEEE));
+            default -> canvas.drawLine(startAnchor,0f,0.5f,0f,-4f,RenderingConfiguration.subBeatLineWidth / (beatWeight + 1), new Color(0xEEEEEE));
+        }
     }
 }

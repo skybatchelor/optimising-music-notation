@@ -4,7 +4,8 @@ import java.net.URISyntaxException;
 import java.nio.file.Paths;
 
 public class RenderingConfiguration {
-    public static float pulseLineWidth = 0.1f;
+    public static float subBeatLineWidth = 0.05f;
+    public static float beatLineWidth = 0.15f;
     public static float barLineWidth = 0.4f;
     public static float stemWidth = 0.15f;
     public static boolean upwardStems = true;
