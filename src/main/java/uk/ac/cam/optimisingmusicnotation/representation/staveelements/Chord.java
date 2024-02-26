@@ -45,6 +45,10 @@ public class Chord extends BeamGroup {
         return dots > 0;
     }
 
+    public MusicalPosition getMusicalPosition() {
+        return musicalPosition;
+    }
+
     public <Anchor> void computeAnchors(MusicCanvas<Anchor> canvas, Map<Chord, ChordAnchors<Anchor>> chordAnchorsMap) {
         int lowestLine = 10000000;
         int highestLine = -10000000;
@@ -111,7 +115,8 @@ public class Chord extends BeamGroup {
             }
             if (note.accidental != Accidental.NONE) {
                 Anchor anchor = canvas.getAnchor(musicalPosition, note.pitch);
-                String accidentalPath = "img/accidentals/" + note.accidental.toString().toLowerCase() + ".svg";
+                String accidentalPath = RenderingConfiguration.imgFilePath + "/accidentals/"
+                        + note.accidental.toString().toLowerCase() + ".svg";
                 try{
                     canvas.drawImage(accidentalPath, anchor,-1.25f, 1f,0.75f, 2f);
                 } catch (java.io.IOException e) {
