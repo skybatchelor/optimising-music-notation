@@ -9,12 +9,13 @@ import java.util.List;
 import java.util.Map;
 
 public class Slur extends MusicGroup {
-    public Slur() {
-        super();
-    }
+    private final Chord firstChord;
+    private final Chord lastChord;
 
-    public Slur(List<Chord> chords) {
+    public Slur(List<Chord> chords, Chord firstChord, Chord lastChord) {
         super(chords);
+        this.firstChord = firstChord;
+        this.lastChord = lastChord;
     }
 
     @Override
