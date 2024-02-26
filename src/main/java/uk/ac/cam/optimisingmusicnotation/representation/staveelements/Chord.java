@@ -80,8 +80,9 @@ public class Chord extends BeamGroup {
     private <Anchor> void drawAccidental(MusicCanvas<Anchor> canvas, Note note, Anchor anchor, boolean hasLedgerLines){
         if (note.accidental != Accidental.NONE){
             String accidentalPath = "img/accidentals/" + note.accidental.toString().toLowerCase() + ".svg";
+            float topLeftY = 1f + (note.accidental == Accidental.FLAT ? 0.5f : 0f);
             try{
-                canvas.drawImage(accidentalPath, anchor,-(1.65f + (hasLedgerLines ? 0.25f : 0f)), 1f,0.75f, 2f);
+                canvas.drawImage(accidentalPath, anchor,-(1.65f + (hasLedgerLines ? 0.25f : 0f)), topLeftY,0.75f, 2f);
             } catch (java.io.IOException e) {
                 throw new RuntimeException(e);
             }
