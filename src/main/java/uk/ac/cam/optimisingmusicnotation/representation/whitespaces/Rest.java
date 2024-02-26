@@ -25,11 +25,6 @@ public class Rest implements Whitespace {
                 p.drawFull(canvas);
             }
         }
-
-//        for (int i = (int) Math.ceil(startMusicalPosition.crotchetsIntoLine()); i <= endMusicalPosition.crotchetsIntoLine(); i++) {
-//            MusicalPosition startPosition = new MusicalPosition(line, i);
-//            Anchor startAnchor = canvas.getAnchor(startPosition);
-//            canvas.drawLine(startAnchor,0f,2f,0f,-4f,RenderingConfiguration.pulseLineWidth);}
     }
 
     @Override
