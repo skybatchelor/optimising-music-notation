@@ -25,10 +25,10 @@ public class Chord extends BeamGroup {
         dots = 0;
     }
 
-    public Chord(List<Pitch> pitches, List<Accidental> accidentals, MusicalPosition musicalPosition, float durationInCrochets, NoteType noteType, int dots, List<ChordMarking> markings) {
+    public Chord(List<Pitch> pitches, List<Accidental> accidentals, List<Boolean> tiesFrom, List<Boolean> tiesTo, MusicalPosition musicalPosition, float durationInCrochets, NoteType noteType, int dots, List<ChordMarking> markings) {
         notes = new ArrayList<>(pitches.size());
         for (int i = 0; i < pitches.size(); ++i) {
-            notes.add(new Note(pitches.get(i), accidentals.get(i)));
+            notes.add(new Note(pitches.get(i), accidentals.get(i), tiesFrom.get(i), tiesTo.get(i)));
         }
         this.musicalPosition = musicalPosition;
         this.durationInCrochets = durationInCrochets;
@@ -118,9 +118,15 @@ public class Chord extends BeamGroup {
         Pitch pitch;
         Accidental accidental;
 
-        public Note(Pitch pitch, Accidental accidental) {
+        boolean hasTieFrom;
+
+        boolean hasTieTo;
+
+        public Note(Pitch pitch, Accidental accidental, boolean hasTieFrom, boolean hasTieTo) {
             this.pitch = pitch;
             this.accidental = accidental;
+            this.hasTieFrom = hasTieFrom;
+            this.hasTieTo = hasTieTo;
         }
     }
 }
