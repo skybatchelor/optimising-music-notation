@@ -25,10 +25,10 @@ public class Chord extends BeamGroup {
         dots = 0;
     }
 
-    public Chord(List<Pitch> pitches, List<Accidental> accidentals, MusicalPosition musicalPosition, float durationInCrochets, NoteType noteType, int dots, List<ChordMarking> markings) {
+    public Chord(List<Pitch> pitches, List<Accidental> accidentals, List<Boolean> tiesFrom, List<Boolean> tiesTo, MusicalPosition musicalPosition, float durationInCrochets, NoteType noteType, int dots, List<ChordMarking> markings) {
         notes = new ArrayList<>(pitches.size());
         for (int i = 0; i < pitches.size(); ++i) {
-            notes.add(new Note(pitches.get(i), accidentals.get(i)));
+            notes.add(new Note(pitches.get(i), accidentals.get(i), tiesFrom.get(i), tiesTo.get(i)));
         }
         this.musicalPosition = musicalPosition;
         this.durationInCrochets = durationInCrochets;
@@ -37,8 +37,10 @@ public class Chord extends BeamGroup {
         this.markings = markings;
     }
 
-    public void addMarking(ChordMarking marking) {
-        markings.add(marking);
+    public void removeTiesTo() {
+        for (Note note : notes) {
+            note.hasTieTo = false;
+        }
     }
 
     private boolean dotted(){
@@ -59,6 +61,7 @@ public class Chord extends BeamGroup {
             drawNotehead(canvas, note);
             drawStem(canvas, note, RenderingConfiguration.upwardStems ? 1 : -1);
             drawDots(canvas, anchor);
+            drawTie(canvas, note, anchor);
             hasLedgerLines = drawLedgerLines(canvas, note);
             drawAccidental(canvas, note, anchor, hasLedgerLines);
         }
@@ -113,14 +116,41 @@ public class Chord extends BeamGroup {
         }
     }
 
+    private <Anchor> void drawTie(MusicCanvas<Anchor> canvas, Note note, Anchor anchor) {
+        if (note.hasTieFrom) {
+            MusicalPosition endMusicalPosition = new MusicalPosition(musicalPosition.line(), musicalPosition.crotchetsIntoLine() + durationInCrochets);
+            Anchor endAnchor = canvas.getAnchor(endMusicalPosition, note.pitch);
+            int sign = RenderingConfiguration.upwardStems ? 1 : -1;
+            float Xoffset = .2f;
+            float absoluteYOffset = .1f;
+            float signedYOffset = sign * absoluteYOffset;
+            canvas.drawCurve(anchor, Xoffset, signedYOffset, endAnchor, -Xoffset, signedYOffset, .15f, RenderingConfiguration.upwardStems);
+        }
+        if (note.hasTieTo) {
+            MusicalPosition startMusicalPosition = new MusicalPosition(musicalPosition.line(), 0);
+            Anchor startAnchor = canvas.getAnchor(startMusicalPosition, note.pitch);
+            int sign = RenderingConfiguration.upwardStems ? 1 : -1;
+            float Xoffset = .2f;
+            float absoluteYOffset = .1f;
+            float signedYOffset = sign * absoluteYOffset;
+            canvas.drawCurve(startAnchor, Xoffset, signedYOffset, anchor, -Xoffset, signedYOffset, .15f, RenderingConfiguration.upwardStems);
+        }
+    }
+
 
     private static class Note {
         Pitch pitch;
         Accidental accidental;
 
-        public Note(Pitch pitch, Accidental accidental) {
+        boolean hasTieFrom;
+
+        boolean hasTieTo;
+
+        public Note(Pitch pitch, Accidental accidental, boolean hasTieFrom, boolean hasTieTo) {
             this.pitch = pitch;
             this.accidental = accidental;
+            this.hasTieFrom = hasTieFrom;
+            this.hasTieTo = hasTieTo;
         }
     }
 }
