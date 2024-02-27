@@ -33,6 +33,7 @@ public class BarLine implements PulseLine {
         Anchor startAnchor = canvas.getAnchor(musicalPosition);
         canvas.drawLine(startAnchor,0f,RenderingConfiguration.pulseLineHeight,0f,0.25f,
                 RenderingConfiguration.barLineWidth, new Color(0xCCCCCC));
+
         float width = barName.length() * 1.5f;
         try {
             canvas.drawText(RenderingConfiguration.defaultFontFilePath, barName,7.5f, TextAlignment.LEFT, startAnchor,
