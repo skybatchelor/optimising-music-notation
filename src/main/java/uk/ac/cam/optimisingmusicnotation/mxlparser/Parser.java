@@ -627,12 +627,12 @@ public class Parser {
             }
             case 7 -> {
                 pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 4f / time.getBeatType(), measureName, 1, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 2 * 4f / time.getBeatType(), measureName, 2, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 3 * 4f / time.getBeatType(), measureName, 1, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 4 * 4f / time.getBeatType(), measureName, 2, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 5 * 4f / time.getBeatType(), measureName, 1, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 6 * 4f / time.getBeatType(), measureName, 1, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 4f / time.getBeatType(), measureName, 2, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 2 * 4f / time.getBeatType(), measureName, 1, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 3 * 4f / time.getBeatType(), measureName, 2, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 4 * 4f / time.getBeatType(), measureName, 1, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 5 * 4f / time.getBeatType(), measureName, 2, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 6 * 4f / time.getBeatType(), measureName, 2, timeSig));
             }
             case 9 -> {
                 pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0, timeSig));

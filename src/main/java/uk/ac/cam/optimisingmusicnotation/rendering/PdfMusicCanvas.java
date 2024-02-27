@@ -145,6 +145,11 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     }
 
     @Override
+    public boolean isAnchorBelow(Anchor anchor1, Anchor anchor2) {
+        return anchor1.y < anchor2.y;
+    }
+
+    @Override
     public void drawCircle(Anchor anchor, float x, float y, float r) {
         drawCircle(anchor, x, y, r, true);
     }
@@ -155,7 +160,7 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
         canvas.setStrokeColor(ColorConstants.BLACK);
         canvas.setFillColor(fill ? ColorConstants.BLACK : ColorConstants.WHITE);
         canvas.setLineWidth(0.15f * STAVE_SPACING);
-        canvas.circle((anchor.x + x) * STAVE_SPACING, (anchor.y + y) * STAVE_SPACING, r * STAVE_SPACING);
+        canvas.circle((anchor.x + x) * STAVE_SPACING, (anchor.y + y) * STAVE_SPACING, (r - 0.075f) * STAVE_SPACING);
         canvas.fillStroke();
     }
 
