@@ -2,7 +2,9 @@ package uk.ac.cam.optimisingmusicnotation.mxlparser;
 
 import org.audiveris.proxymusic.*;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental;
+import uk.ac.cam.optimisingmusicnotation.representation.properties.KeySignature;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch;
+import uk.ac.cam.optimisingmusicnotation.representation.properties.PitchName;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmarkings.*;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmarkings.StrongAccent;
 
@@ -81,11 +83,13 @@ class ChordTuple {
     float crotchets;
     float duration;
     int lowestLine;
+    KeySignature keySig;
 
-    public ChordTuple(float crochets, int lowestLine) {
+    public ChordTuple(float crochets, int lowestLine, KeySignature keySig) {
         notes = new ArrayList<>();
         this.crotchets = crochets;
         this.lowestLine = lowestLine;
+        this.keySig = keySig;
     }
 
     InstantiatedChordTuple toInstantiatedChordTuple(float lineTime) {
@@ -95,25 +99,30 @@ class ChordTuple {
         List<Boolean> tiesFrom = new ArrayList<>();
         List<Boolean> tiesTo = new ArrayList<>();
         for (Note note : notes) {
-            if (note.getPitch() != null) {
-                pitches.add(new uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch(Parser.pitchToGrandStaveLine(note.getPitch()) - lowestLine, 0, Parser.pitchToGrandStaveLine(note.getPitch())));
-            } else if (note.getUnpitched() != null) {
-                pitches.add(new uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch(Parser.pitchToGrandStaveLine(note.getUnpitched()) - lowestLine, 0, Parser.pitchToGrandStaveLine(note.getUnpitched())));
-            } else {
-                pitches.add(new uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch(0, 0, 0));
-            }
+            Accidental accidental = Accidental.NONE;
             if (note.getAccidental() != null) {
-                switch (note.getAccidental().getValue()) {
-                    case FLAT -> accidentals.add(uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.FLAT);
-                    case SHARP -> accidentals.add(uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.SHARP);
-                    case FLAT_FLAT -> accidentals.add(uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.DOUBLE_FLAT);
-                    case DOUBLE_SHARP -> accidentals.add(uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.DOUBLE_SHARP);
-                    case NATURAL -> accidentals.add(uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.NATURAL);
-                    default -> accidentals.add(uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.NONE);
-                }
+                accidental = switch (note.getAccidental().getValue()) {
+                    case FLAT -> Accidental.FLAT;
+                    case SHARP -> Accidental.SHARP;
+                    case FLAT_FLAT -> Accidental.DOUBLE_FLAT;
+                    case DOUBLE_SHARP -> Accidental.DOUBLE_SHARP;
+                    case NATURAL -> Accidental.NATURAL;
+                    default -> Accidental.NONE;
+                };
             } else {
-                accidentals.add(uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.NONE);
+                accidental = Accidental.NONE;
             }
+            if (note.getPitch() != null) {
+                Accidental keyAccidental = keySig.getAccidental(PitchName.valueOf(note.getPitch().getStep().name()));
+                pitches.add(new Pitch(Parser.pitchToGrandStaveLine(note.getPitch()) - lowestLine,
+                        accidental.getSemitoneOffset() - keyAccidental.getSemitoneOffset(), Parser.pitchToGrandStaveLine(note.getPitch())));
+            } else if (note.getUnpitched() != null) {
+                pitches.add(new Pitch(Parser.pitchToGrandStaveLine(note.getUnpitched()) - lowestLine,
+                        0, Parser.pitchToGrandStaveLine(note.getUnpitched())));
+            } else {
+                pitches.add(new Pitch(0, 0, 0));
+            }
+            accidentals.add(accidental);
             tiesFrom.add(isTiedFrom(note));
             tiesTo.add(isTiedTo(note));
             addMarkings(note, markings);
