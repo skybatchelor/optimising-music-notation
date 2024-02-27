@@ -44,7 +44,7 @@ public class Clef {
     }
 
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Line line, int numAlterations){
-        Anchor anchor = canvas.getAnchor(new MusicalPosition(line, 0));
+        Anchor anchor = canvas.getLineStartAnchor(new MusicalPosition(line, 0));
         String clefPath = RenderingConfiguration.imgFilePath + "/clefs/" + this.toString().toLowerCase() + ".svg";
         float topLeftY = (this.line/2f) + ((sign.height - sign.lineDistanceFromBottomOfClef)-4);
         try{

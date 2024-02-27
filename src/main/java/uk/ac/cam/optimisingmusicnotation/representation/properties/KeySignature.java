@@ -80,7 +80,7 @@ public class KeySignature {
                 Pitch firstPitch = pitches.get(0);
                 Pitch lastPitch = pitches.get(pitches.size()-1);
                 String path = RenderingConfiguration.imgFilePath + "/accidentals/" + accidental.toString().toLowerCase() + ".svg";
-                canvas.drawImage(path, canvas.getAnchor(position,lastPitch),-(2f+numAlterations)+numAcross, accidental == Accidental.SHARP ? 1.3f: 1.9f,0,2.6f);
+                canvas.drawImage(path, canvas.getLineStartAnchor(position,lastPitch),-(2f+numAlterations)+numAcross, accidental == Accidental.SHARP ? 1.3f: 1.9f,0,2.6f);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

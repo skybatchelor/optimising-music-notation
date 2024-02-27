@@ -88,7 +88,7 @@ public class Stave {
         Anchor anchor1;
 
         for (int i = 0; i < 10; i=i+2) {
-            anchor1 = canvas.getAnchor(new MusicalPosition(line, 0),new Pitch(i,0, 0));
+            anchor1 = canvas.getLineStartAnchor(new MusicalPosition(line, 0),new Pitch(i,0, 0));
             canvas.drawLine(anchor1, -(6f+numAlterations), 0, -2f, 0, 0.1f);
         }
     }
