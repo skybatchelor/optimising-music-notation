@@ -110,6 +110,8 @@ public class Chord extends BeamGroup {
 
         if (drawStem) {
             drawStem(canvas, chordAnchors, RenderingConfiguration.upwardStems ? 1 : -1);
+        } else {
+            drawNonStemWhiteSpace(canvas, chordAnchors);
         }
 
         for (Note note : notes) {
@@ -170,6 +172,12 @@ public class Chord extends BeamGroup {
 //        canvas.drawWhitespace(anchor, -RenderingConfiguration.stemWidth,
 //                sign * RenderingConfiguration.gapHeight + sign * RenderingConfiguration.beamWidth / 2, 2 * RenderingConfiguration.stemWidth,
 //                sign * RenderingConfiguration.gapHeight);
+    }
+
+    private <Anchor> void drawNonStemWhiteSpace(MusicCanvas<Anchor> canvas, ChordAnchors<Anchor> chordAnchors) {
+        canvas.drawLine(chordAnchors.lowestNotehead(), 0, -0.5f - RenderingConfiguration.gapHeight,
+                chordAnchors.highestNotehead(), 0, +0.5f + RenderingConfiguration.gapHeight,
+                RenderingConfiguration.barLineWidth + 0.05f, Color.WHITE);// draw whitespace as white line to cover up pulse line
     }
 
     private <Anchor> void drawStem(MusicCanvas<Anchor> canvas, ChordAnchors<Anchor> chordAnchors, int sign) {
