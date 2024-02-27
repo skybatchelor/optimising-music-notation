@@ -15,7 +15,10 @@ public class RenderingConfiguration {
     public static String fontFilePath;
     public static float ledgerLineWidth = 1.5f;
     public static float hookRatio = 0.5f;
+    public static float flagRatio = 1.0f;
     public static boolean allHooked = true;
+    public static boolean allFlagged = true;
+    public static boolean beamlets = true;
 
     static {
         try {

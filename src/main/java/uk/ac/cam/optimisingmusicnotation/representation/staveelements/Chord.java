@@ -12,6 +12,11 @@ public class Chord extends BeamGroup {
     protected final List<Note> notes;
     protected final List<ChordMarking> markings;
     protected final MusicalPosition musicalPosition;
+
+    public float getDurationInCrochets() {
+        return durationInCrochets;
+    }
+
     protected final float durationInCrochets;
     protected final NoteType noteType;
     protected final int dots;
