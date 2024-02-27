@@ -11,8 +11,27 @@ import java.util.Map;
 public class Chord extends BeamGroup {
     protected final List<Note> notes;
     protected final List<ChordMarking> markings;
+
+    public float getCrotchetsIntoLine() {
+        return musicalPosition.crotchetsIntoLine();
+    }
+
+    public float getEndCrotchetsIntoLine() {
+        return musicalPosition.crotchetsIntoLine() + durationInCrotchets;
+    }
+
     protected final MusicalPosition musicalPosition;
-    protected final float durationInCrochets;
+
+    public float getDurationInCrotchets() {
+        return durationInCrotchets;
+    }
+
+    protected final float durationInCrotchets;
+
+    public NoteType getNoteType() {
+        return noteType;
+    }
+
     protected final NoteType noteType;
     protected final int dots;
 
@@ -20,7 +39,7 @@ public class Chord extends BeamGroup {
         notes = new ArrayList<>();
         markings = new ArrayList<>();
         musicalPosition = new MusicalPosition(null, 0);
-        durationInCrochets = 0;
+        durationInCrotchets = 0;
         noteType = NoteType.BREVE;
         dots = 0;
     }
@@ -31,7 +50,7 @@ public class Chord extends BeamGroup {
             notes.add(new Note(pitches.get(i), accidentals.get(i), tiesFrom.get(i), tiesTo.get(i)));
         }
         this.musicalPosition = musicalPosition;
-        this.durationInCrochets = durationInCrochets;
+        this.durationInCrotchets = durationInCrochets;
         this.noteType = noteType;
         this.dots = dots;
         this.markings = markings;
@@ -71,22 +90,11 @@ public class Chord extends BeamGroup {
             }
         }
         int sign = RenderingConfiguration.upwardStems ? 1 : -1; // decide to draw the not stem upwards or downwards
-        boolean drawStem = noteType.defaultLengthInCrotchets <= 2;
-        if (drawStem) {
-            Anchor stemBeginning;
-            Anchor stemEnd;
-            if (sign == 1) {
-                stemBeginning = canvas.offsetAnchor(highestNoteheadAnchor, 0,
-                        sign * .5f);
-                stemEnd = canvas.offsetAnchor(stemBeginning, 0, sign * 3f);
-            } else {
-                stemBeginning = canvas.offsetAnchor(lowestNoteheadAnchor, 0, sign * .5f);
-                stemEnd = canvas.offsetAnchor(stemBeginning, 0, sign * 3f);
-            }
-            chordAnchors = new ChordAnchors<>(lowestNoteheadAnchor, highestNoteheadAnchor, stemEnd, 0, 0);
-        } else {
-            chordAnchors = new ChordAnchors<>(lowestNoteheadAnchor, highestNoteheadAnchor, null, 0, 0);
-        }
+        Anchor stemBeginning;
+        Anchor stemEnd;
+        stemBeginning = canvas.offsetAnchor(sign == 1 ? highestNoteheadAnchor : lowestNoteheadAnchor, 0, sign * .5f);
+        stemEnd = canvas.offsetAnchor(stemBeginning, 0, sign * 3f);
+        chordAnchors = new ChordAnchors<>(lowestNoteheadAnchor, highestNoteheadAnchor, stemEnd, 0, 0);
         chordAnchorsMap.put(this, chordAnchors);
     }
 
@@ -117,7 +125,7 @@ public class Chord extends BeamGroup {
             drawNotehead(canvas, anchor, fillInCircle);
             drawDots(canvas, anchor);
             hasLedgerLines = hasLedgerLines(note);
-            drawAccidental(canvas, note, anchor, true); // I feel like changing the accidental placement based on ledger lines goes against his desire for consistency?
+            drawAccidental(canvas, note, anchor, false); // I feel like changing the accidental placement based on ledger lines goes against his desire for consistency?
         }
         drawLedgerLines(canvas, lowestLine, highestLine);
 
@@ -132,12 +140,7 @@ public class Chord extends BeamGroup {
     }
     private <Anchor> void drawStem(MusicCanvas<Anchor> canvas, ChordAnchors<Anchor> chordAnchors, int sign) {
         Anchor stemEnd = chordAnchors.stemEnd();
-        Anchor stemBeginning = canvas.offsetAnchor(stemEnd, 0, -sign * 3f);
-        if (sign == 1) {
-            stemBeginning = canvas.offsetAnchor(chordAnchors.highestNotehead(), 0, sign * 0.5f);
-        } else {
-            stemBeginning = canvas.offsetAnchor(chordAnchors.lowestNotehead(), 0, sign * 0.5f);
-        }
+        Anchor stemBeginning = canvas.offsetAnchor(sign == 1 ? chordAnchors.highestNotehead() : chordAnchors.lowestNotehead(), 0, sign * .5f);
         canvas.drawLine(stemBeginning, 0, 0, stemEnd, 0, 0, RenderingConfiguration.stemWidth);// draw stem
         // draw bit of whitespace to separate from pulse line
         canvas.drawWhitespace(stemEnd, -RenderingConfiguration.stemWidth,
@@ -160,10 +163,10 @@ public class Chord extends BeamGroup {
     }
     private <Anchor> void drawLedgerLines(MusicCanvas<Anchor> canvas, int lowestLine, int highestLine) {
         for (int i = (lowestLine / 2) * 2; i < 0; i += 2) {
-            canvas.drawLine(canvas.getAnchor(musicalPosition, new Pitch(i, 0)), -RenderingConfiguration.ledgerLineWidth/2f, 0f, RenderingConfiguration.ledgerLineWidth/2f, 0f, .2f);
+            canvas.drawLine(canvas.getAnchor(musicalPosition, new Pitch(i, 0)), -RenderingConfiguration.ledgerLineWidth/2f, 0f, RenderingConfiguration.ledgerLineWidth/2f, 0f, RenderingConfiguration.staveLineWidth);
         }
         for (int i = 10; i <= highestLine; i += 2) {
-            canvas.drawLine(canvas.getAnchor(musicalPosition, new Pitch(i, 0)), -RenderingConfiguration.ledgerLineWidth/2f, 0f, RenderingConfiguration.ledgerLineWidth/2f, 0f, .2f);
+            canvas.drawLine(canvas.getAnchor(musicalPosition, new Pitch(i, 0)), -RenderingConfiguration.ledgerLineWidth/2f, 0f, RenderingConfiguration.ledgerLineWidth/2f, 0f, RenderingConfiguration.staveLineWidth);
         }
     }
 
@@ -175,7 +178,7 @@ public class Chord extends BeamGroup {
 
     private <Anchor> void drawTie(MusicCanvas<Anchor> canvas, Note note, Anchor anchor) {
         if (note.hasTieFrom) {
-            MusicalPosition endMusicalPosition = new MusicalPosition(musicalPosition.line(), musicalPosition.crotchetsIntoLine() + durationInCrochets);
+            MusicalPosition endMusicalPosition = new MusicalPosition(musicalPosition.line(), musicalPosition.crotchetsIntoLine() + durationInCrotchets);
             Anchor endAnchor = canvas.getAnchor(endMusicalPosition, note.pitch);
             int sign = RenderingConfiguration.upwardStems ? 1 : -1;
             float Xoffset = .2f;
