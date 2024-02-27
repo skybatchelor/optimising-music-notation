@@ -208,11 +208,12 @@ public class Chord extends BeamGroup {
         }
     }
     private <Anchor> void drawLedgerLines(MusicCanvas<Anchor> canvas, int lowestLine, int highestLine) {
+        float width = RenderingConfiguration.ledgerLineWidth * durationToStretch(noteType);
         for (int i = (lowestLine / 2) * 2; i < 0; i += 2) {
-            canvas.drawLine(canvas.getAnchor(musicalPosition, new Pitch(i, 0, 0)), -RenderingConfiguration.ledgerLineWidth/2f, 0f, RenderingConfiguration.ledgerLineWidth/2f, 0f, RenderingConfiguration.staveLineWidth);
+            canvas.drawLine(canvas.getAnchor(musicalPosition, new Pitch(i, 0, 0)), -width/2f, 0f, width/2f, 0f, RenderingConfiguration.staveLineWidth);
         }
         for (int i = 10; i <= highestLine; i += 2) {
-            canvas.drawLine(canvas.getAnchor(musicalPosition, new Pitch(i, 0,0)), -RenderingConfiguration.ledgerLineWidth/2f, 0f, RenderingConfiguration.ledgerLineWidth/2f, 0f, RenderingConfiguration.staveLineWidth);
+            canvas.drawLine(canvas.getAnchor(musicalPosition, new Pitch(i, 0,0)), -width/2f, 0f, width/2f, 0f, RenderingConfiguration.staveLineWidth);
         }
     }
 
