@@ -356,7 +356,7 @@ public class Parser {
                 parts.get(part.getKey()).setSections(part.getValue());
             }
 
-            return new Score(getWorkTitle(partwise), parts.values().stream().toList());
+            return new Score(getWorkTitle(partwise), getComposer(partwise), parts.values().stream().toList());
         }
         return null;
     }
@@ -364,11 +364,22 @@ public class Parser {
     static String getWorkTitle(ScorePartwise score) {
         if (score.getWork() != null && score.getWork().getWorkTitle() != null) {
             return score.getWork().getWorkTitle();
-        } else {
-            return "";
         }
+        return "";
     }
 
+    static String getComposer(ScorePartwise score) {
+        if (score.getIdentification() != null && score.getIdentification().getCreator() != null) {
+            var composers = new ArrayList<String>();
+            for (TypedText text : score.getIdentification().getCreator()) {
+                if (text.getType().equals("composer")) {
+                    composers.add(text.getValue());
+                }
+            }
+            return String.join(", ", composers);
+        }
+        return "";
+    }
 
     static SplitChordTuple splitInstantiatedChordTuple(InstantiatedChordTuple tuple, float newLine) {
         SplitChordTuple res = new SplitChordTuple();

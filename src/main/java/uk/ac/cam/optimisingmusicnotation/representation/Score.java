@@ -8,6 +8,7 @@ public class Score {
     }
 
     private String workTitle;
+    private String composer;
 
     public List<Part> getParts() {
         return parts;
@@ -15,8 +16,9 @@ public class Score {
 
     private List<Part> parts;
 
-    public Score(String workTitle, List<Part> parts) {
+    public Score(String workTitle, String composer, List<Part> parts) {
         this.workTitle = workTitle;
+        this.composer = composer;
         this.parts = parts;
     }
 
