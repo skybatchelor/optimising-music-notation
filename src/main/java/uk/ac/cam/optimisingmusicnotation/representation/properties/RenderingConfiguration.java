@@ -33,7 +33,12 @@ public class RenderingConfiguration {
     public static float hookRatio = 0.5f;
     public static float flagRatio = 0.5f;
     public static float beamletRatio = 0.5f;
-    public static boolean allHooked = false;
+    public static boolean hookSingleForward = false;
+    public static boolean hookAllForward = false;
+    public static boolean hookSingleBackward = true;
+    public static boolean hookAllBackward = true;
+    public static boolean hookStart = true;
+    public static boolean hookEnd = true;
     public static boolean allFlagged = false;
     public static boolean beamlets = true;
     public static int beamletLimit = 0;
