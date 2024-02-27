@@ -1,6 +1,15 @@
 package uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmarkings;
 
-import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.MusicGroup;
+import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
 
 public class Accent extends ChordMarking {
+    @Override
+    public <Anchor> void draw(MusicCanvas<Anchor> canvas, Anchor anchor) {
+        float l = .9f;
+        float h = .5f;
+        float w = .1f;
+
+        canvas.drawLine(anchor, -l, signedYOffset + h, l, signedYOffset, w);
+        canvas.drawLine(anchor, -l, signedYOffset - h, l, signedYOffset, w);
+    }
 }
