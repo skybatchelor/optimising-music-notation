@@ -135,7 +135,8 @@ public class Chord extends BeamGroup {
         }
 
         if (!markings.isEmpty()) {
-            drawChordMarkings(canvas, chordAnchors.notehead());
+            Anchor notehead = RenderingConfiguration.upwardStems ? chordAnchors.lowestNotehead() : chordAnchors.highestNotehead();
+            drawChordMarkings(canvas, notehead);
             chordAnchors = updateNoteheadOffset(chordAnchors);
         }
 
