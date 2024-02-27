@@ -155,8 +155,24 @@ public class Chord extends BeamGroup {
         return chordAnchors.withNoteheadOffset(markings.get(markings.size() - 1).signedYOffset());
     }
 
+    private float durationToStretch(NoteType noteType) {
+        return switch (noteType) {
+            case MAXIMA -> 1.55f;
+            case BREVE -> 1.5f;
+            case SEMIBREVE -> 1.4f;
+            case MINIM -> 1.15f;
+            case CROTCHET -> 1;
+            case QUAVER -> .9f;
+            case SQUAVER -> .85f;
+            case DSQUAVER -> .825f;
+            case HDSQUAVER -> .8125f;
+        };
+    }
     private <Anchor> void drawNotehead(MusicCanvas<Anchor> canvas, Anchor anchor, boolean fillInCircle) {
-        canvas.drawCircle(anchor, 0, 0, .5f, fillInCircle);
+//        canvas.drawCircle(anchor, 0, 0, .5f, fillInCircle);
+        float r = .5f;
+        float k = durationToStretch(noteType);
+        canvas.drawEllipse(anchor, 0,0, k * r, r, fillInCircle);
     }
 
     private <Anchor> void drawStem(MusicCanvas<Anchor> canvas, ChordAnchors<Anchor> chordAnchors, int sign) {
