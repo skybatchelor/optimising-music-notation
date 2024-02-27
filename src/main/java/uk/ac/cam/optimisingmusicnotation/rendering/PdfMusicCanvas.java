@@ -14,6 +14,7 @@ import com.itextpdf.kernel.pdf.xobject.PdfXObject;
 import com.itextpdf.layout.Canvas;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.svg.converter.SvgConverter;
+import uk.ac.cam.optimisingmusicnotation.representation.Line;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch;
 
@@ -102,11 +103,6 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     }
 
     @Override
-    public Anchor getLowestStaveLineAnchor(MusicalPosition musicalPosition) {
-        return getAnchor(musicalPosition, new Pitch(0, 0, 0));
-    }
-
-    @Override
     public Anchor getAnchor(MusicalPosition musicalPosition, Pitch pitch) {
         Anchor lineAnchor = lineAnchors.get(musicalPosition.line().getLineNumber());
         PdfPage page = pdf.getPage(lineAnchor.page + 1);
@@ -116,6 +112,26 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
                         * (LINE_WIDTH / musicalPosition.line().getLengthInCrotchets())
                         * page.getPageSize().getWidth() / STAVE_SPACING,
                 lineAnchor.y + 0.5f * (pitch.rootStaveLine() - 8));
+    }
+
+    @Override
+    public Anchor getLowestStaveLineAnchor(MusicalPosition musicalPosition) {
+        return getAnchor(musicalPosition, new Pitch(0, 0, 0));
+    }
+
+    @Override
+    public Anchor getLowestStaveLineStartOfLineAnchor(Line line) {
+        return getAnchor(new MusicalPosition(line, 0), new Pitch(0, 0, 0));
+    }
+
+    @Override
+    public Anchor getStartOfLineAnchor(Line line) {
+        return getAnchor(new MusicalPosition(line, 0), new Pitch(8, 0, 0));
+    }
+
+    @Override
+    public Anchor getEndOfLineAnchor(Line line) {
+        return getAnchor(new MusicalPosition(line, line.getLengthInCrotchets()), new Pitch(8, 0, 0));
     }
 
     @Override
