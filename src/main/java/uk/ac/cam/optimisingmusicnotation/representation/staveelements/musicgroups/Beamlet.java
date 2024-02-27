@@ -3,7 +3,6 @@ package uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgrou
 import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.Line;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.ChordAnchors;
-import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
 
@@ -31,7 +30,7 @@ public class Beamlet extends MusicGroup {
             startAnchor = canvas.interpolateAnchors(
                 chordAnchorsMap.get(chord).stemEnd(),
                 chordAnchorsMap.get(postChord).stemEnd(),
-                    chord.getDurationInCrotchets() * RenderingConfiguration.beamletRatio / postChord.getDurationInCrotchets()
+                    chord.getDurationInCrotchets() * RenderingConfiguration.beamletRatio
             );
             int sign = RenderingConfiguration.upwardStems ? 1 : -1;
             for (int i = 0; i <= maxBeam && i <= RenderingConfiguration.beamletLimit; ++i) {
