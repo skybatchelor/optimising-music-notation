@@ -14,21 +14,6 @@ import java.util.List;
 
 class ChordTuple {
 
-    static uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType convertNoteType(NoteType noteType) {
-        return switch (noteType.getValue()) {
-            case "maxima" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.MAXIMA;
-            case "long" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.BREVE;
-            case "whole" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.SEMIBREVE;
-            case "half" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.MINIM;
-            case "quarter" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.CROTCHET;
-            case "eighth" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.QUAVER;
-            case "16th" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.SQUAVER;
-            case "32nd" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.DSQUAVER;
-            case "64th" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.HDSQUAVER;
-            default -> throw new IllegalArgumentException();
-        };
-    }
-
     static int getDotNumber(Note note) {
         if (note.getDot() == null) {
             return 0;
@@ -127,6 +112,6 @@ class ChordTuple {
             tiesTo.add(isTiedTo(note));
             addMarkings(note, markings);
         }
-        return new InstantiatedChordTuple(pitches, accidentals, tiesFrom, tiesTo,crotchets - lineTime, duration, convertNoteType(notes.get(0).getType()), getDotNumber(notes.get(0)), markings);
+        return new InstantiatedChordTuple(pitches, accidentals, tiesFrom, tiesTo,crotchets - lineTime, duration, Parser.convertNoteType(notes.get(0).getType()), getDotNumber(notes.get(0)), markings);
     }
 }

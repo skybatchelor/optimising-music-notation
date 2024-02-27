@@ -35,6 +35,8 @@ public class Parser {
             TreeSet<Float> newSections = new TreeSet<>() {{ add(0f); }};
             TreeMap<String, Part> parts = new TreeMap<>();
 
+            TreeMap<Float, TempoTuple> tempoMarkings = new TreeMap<>();
+
             BiConsumer<Float, Float> addNewSection = ((time, offset) -> { newSections.add(time); newlines.put(time, offset); });
             BiConsumer<Float, Float> addNewline = newlines::put;
 
@@ -61,6 +63,8 @@ public class Parser {
             List<ScorePartwise.Part> musicParts = partwise.getPart();
 
             for (ScorePartwise.Part part : musicParts) {
+                float currentTempo = 120;
+
                 TreeMap<MusicGroupType, TreeMap<Integer, MusicGroupTuple>> musicGroupTuples = new TreeMap<>();
                 for (MusicGroupType musicGroupType : MusicGroupType.values()) {
                     musicGroupTuples.put(musicGroupType, new TreeMap<>());
@@ -201,6 +205,7 @@ public class Parser {
                                 currentPart.beamGroups.add(whitespace);
                             }
                             parseMusicDirective(musicGroupTuples, currentPart, direction, measureStartTime + measureTime + offset);
+                            currentTempo = parseTempoMarking(tempoMarkings, currentTempo, direction, measureStartTime + measureTime + offset);
                             currentPart.directions.put(measureStartTime + measureTime + offset, direction);
                         }
                     }
@@ -245,7 +250,7 @@ public class Parser {
                             instantiateLines(
                                     newlines,
                                     populatePartLines(
-                                            partLines, parsingParts, newlines, lineIndices),
+                                            partLines, parsingParts, tempoMarkings, newlines, lineIndices),
                                     lineLengths, lineOffsets, parsingParts),
                             newSections, sectionIndices),
                     parsingParts);
@@ -274,6 +279,7 @@ public class Parser {
 
     static TreeMap<String, List<LineTuple>> populatePartLines(TreeMap<String, List<LineTuple>> partLines,
                                                               TreeMap<String, ParsingPartTuple> parsingParts,
+                                                              TreeMap<Float, TempoTuple> tempoMarkings,
                                                               TreeMap<Float, Float> newlines,
                                                               Map<Float, Integer> lineIndices) {
         for (Map.Entry<String, ParsingPartTuple> part : parsingParts.entrySet()) {
@@ -288,6 +294,11 @@ public class Parser {
             }
             for (MusicGroupTuple musicGroup : part.getValue().musicGroups) {
                 musicGroup.splitToInstantiatedMusicGroupTuple(newlines, lineIndices, partLines.get(part.getKey()));
+            }
+            for (Map.Entry<Float, TempoTuple> entry : tempoMarkings.entrySet()) {
+                float lineStart = newlines.floorKey(entry.getValue().time);
+                int lineNum = lineIndices.get(lineStart);
+                partLines.get(part.getKey()).get(lineNum).tempoMarkings.add(entry.getValue().toInstantiatedTempoTuple(lineStart));
             }
             for (PulseLineTuple pulseLine : part.getValue().pulseLines) {
                 float lineStart = newlines.floorKey(pulseLine.time);
@@ -364,6 +375,10 @@ public class Parser {
 
                 for (InstantiatedMusicGroupTuple musicGroupTuple : part.getValue().get(i).musicGroups) {
                     tempLine.getStaves().get(0).addMusicGroup(musicGroupTuple.toMusicGroup(tempLine, chords));
+                }
+
+                for (InstantiatedTempoTuple tempoTuple : part.getValue().get(i).tempoMarkings) {
+                    tempLine.getStaves().get(0).addMusicGroup(tempoTuple.toMusicGroup(tempLine, chords));
                 }
             }
             parsingPart.get(part.getKey()).upwardsStems = averager.getAverageStaveLine() < 4;
@@ -469,6 +484,25 @@ public class Parser {
         } + 7 * octave;
     }
 
+    static uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType convertNoteType(NoteType noteType) {
+        return convertNoteType(noteType.getValue());
+    }
+
+    static uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType convertNoteType(String noteType) {
+        return switch (noteType) {
+            case "maxima" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.MAXIMA;
+            case "long" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.BREVE;
+            case "whole" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.SEMIBREVE;
+            case "half" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.MINIM;
+            case "quarter" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.CROTCHET;
+            case "eighth" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.QUAVER;
+            case "16th" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.SQUAVER;
+            case "32nd" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.DSQUAVER;
+            case "64th" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.HDSQUAVER;
+            default -> throw new IllegalArgumentException();
+        };
+    }
+
     static boolean isNewline(Direction direction) {
         if (direction.getDirectionType() != null) {
             for (var directionType : direction.getDirectionType()) {
@@ -564,6 +598,35 @@ public class Parser {
                 }
             }
         }
+    }
+
+    static float parseTempoMarking(TreeMap<Float, TempoTuple> tempoMarkings, float currentTempo, Direction direction, float time) {
+        if (direction.getDirectionType() != null) {
+            for (DirectionType directionType : direction.getDirectionType()) {
+                if (directionType.getMetronome() != null) {
+                    Metronome met = directionType.getMetronome();
+                    uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType leftItem = uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.CROTCHET;
+                    int leftDots = 0;
+                    if (met.getBeatUnit() != null) {
+                        for (var unit : met.getBeatUnit()) {
+                            if (unit instanceof String noteString) {
+                                leftItem = convertNoteType(noteString);
+                                leftDots = 0;
+                                break;
+                            }
+                        }
+                    }
+                    if (met.getPerMinute() != null) {
+                        TempoTuple tuple = new TempoTuple(leftItem, leftDots, met.getPerMinute().getValue(), time);
+                        tempoMarkings.put(time, tuple);
+                        return tuple.bpmValue;
+                    } else {
+
+                    }
+                }
+            }
+        }
+        return currentTempo;
     }
 
     static void parseSlurs(TreeMap<MusicGroupType, TreeMap<Integer, MusicGroupTuple>> target, ParsingPartTuple currentPart, Note note, float time) {

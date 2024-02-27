@@ -22,7 +22,7 @@ class InstantiatedMusicGroupTuple {
         this.text = text;
     }
 
-    List<Chord> getChordsInInterval(TreeMap<Float, Chord> chordMap) {
+    static List<Chord> getChordsInInterval(TreeMap<Float, Chord> chordMap, Float startTime, Float endTime) {
         if (chordMap.size() == 0) {
             return new ArrayList<>();
         }
@@ -36,11 +36,11 @@ class InstantiatedMusicGroupTuple {
         if (chordMap.containsKey(currentTime)) {
             chords.add(chordMap.get(currentTime));
         }
-        float startTime = 0;
-        if (this.startTime != null) {
-            startTime = this.startTime;
+        float newStartTime = 0;
+        if (startTime != null) {
+            newStartTime = startTime;
         }
-        while (currentTime > startTime) {
+        while (currentTime > newStartTime) {
             Float nextTime = chordMap.lowerKey(currentTime);
             if (nextTime == null) {
                 break;
@@ -49,6 +49,10 @@ class InstantiatedMusicGroupTuple {
             currentTime = nextTime;
         }
         return chords;
+    }
+
+    List<Chord> getChordsInInterval(TreeMap<Float, Chord> chordMap) {
+        return getChordsInInterval(chordMap, startTime, endTime);
     }
 
     MusicGroup toMusicGroup(Line line, TreeMap<Float, Chord> chords) {

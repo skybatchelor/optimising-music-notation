@@ -3,6 +3,7 @@ package uk.ac.cam.optimisingmusicnotation.representation.staveelements;
 import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.*;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmarkings.ChordMarking;
+import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.Flag;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -89,10 +90,38 @@ public class Chord extends BeamGroup {
         int sign = RenderingConfiguration.upwardStems ? 1 : -1; // decide to draw the not stem upwards or downwards
         Anchor stemBeginning;
         Anchor stemEnd;
-        stemBeginning = canvas.offsetAnchor(sign == 1 ? highestNoteheadAnchor : lowestNoteheadAnchor, 0, sign * .5f);
+        stemBeginning = canvas.offsetAnchor(sign == 1 ? highestNoteheadAnchor : lowestNoteheadAnchor, 0, sign * RenderingConfiguration.noteheadRadius);
         stemEnd = canvas.offsetAnchor(stemBeginning, 0, sign * RenderingConfiguration.stemLength);
         chordAnchors = new ChordAnchors<>(lowestNoteheadAnchor, highestNoteheadAnchor, stemEnd, 0, 0);
         chordAnchorsMap.put(this, chordAnchors);
+    }
+
+    public static <Anchor> ChordAnchors<Anchor> computeAnchors(MusicCanvas<Anchor> canvas, Anchor anchor, float scaleFactor) {
+        ChordAnchors<Anchor> chordAnchors;
+        int sign = RenderingConfiguration.upwardStems ? 1 : -1; // decide to draw the not stem upwards or downwards
+        Anchor stemBeginning;
+        Anchor stemEnd;
+        stemBeginning = canvas.offsetAnchor(anchor, 0, sign * RenderingConfiguration.noteheadRadius * scaleFactor);
+        stemEnd = canvas.offsetAnchor(stemBeginning, 0, sign * RenderingConfiguration.stemLength * scaleFactor);
+        chordAnchors = new ChordAnchors<>(anchor, anchor, stemEnd, 0, 0);
+        return chordAnchors;
+    }
+
+    public static <Anchor> void draw(MusicCanvas<Anchor> canvas, Anchor anchor, NoteType noteType, int dots, float timeScaleFactor, float scaleFactor) {
+        ChordAnchors<Anchor> chordAnchors = computeAnchors(canvas, anchor, scaleFactor);
+
+        boolean fillInCircle = noteType.defaultLengthInCrotchets <= 1;
+        boolean drawStem = noteType.defaultLengthInCrotchets <= 2;
+
+        if (drawStem) {
+            drawStem(canvas, chordAnchors, RenderingConfiguration.upwardStems ? 1 : -1, scaleFactor);
+        } else {
+            drawNonStemWhiteSpace(canvas, chordAnchors, scaleFactor);
+        }
+
+        drawNotehead(canvas, anchor, noteType, fillInCircle, scaleFactor);
+        drawDots(canvas, anchor, noteType, dots, scaleFactor);
+        Flag.draw(canvas, chordAnchors, noteType, timeScaleFactor, scaleFactor);
     }
 
     @Override
@@ -109,9 +138,9 @@ public class Chord extends BeamGroup {
         chordAnchors = chordAnchorsMap.get(this);
 
         if (drawStem) {
-            drawStem(canvas, chordAnchors, RenderingConfiguration.upwardStems ? 1 : -1);
+            drawStem(canvas, chordAnchors, RenderingConfiguration.upwardStems ? 1 : -1, 1);
         } else {
-            drawNonStemWhiteSpace(canvas, chordAnchors);
+            drawNonStemWhiteSpace(canvas, chordAnchors, 1);
         }
 
         for (Note note : notes) {
@@ -123,8 +152,8 @@ public class Chord extends BeamGroup {
             }
             Anchor anchor = canvas.getAnchor(musicalPosition, note.pitch);
             drawTie(canvas, note, anchor);
-            drawNotehead(canvas, anchor, fillInCircle);
-            drawDots(canvas, anchor);
+            drawNotehead(canvas, anchor, noteType, fillInCircle, 1);
+            drawDots(canvas, anchor, noteType, dots, 1);
             drawAccidental(canvas, note, anchor);
         }
         drawLedgerLines(canvas, lowestLine, highestLine);
@@ -150,7 +179,7 @@ public class Chord extends BeamGroup {
         return chordAnchors.withNoteheadOffset(markings.get(markings.size() - 1).signedYOffset());
     }
 
-    private float durationToStretch(NoteType noteType) {
+    private static float durationToStretch(NoteType noteType) {
         return switch (noteType) {
             case MAXIMA -> 1.55f;
             case BREVE -> 1.5f;
@@ -163,9 +192,9 @@ public class Chord extends BeamGroup {
             case HDSQUAVER -> .8125f;
         };
     }
-    private <Anchor> void drawNotehead(MusicCanvas<Anchor> canvas, Anchor anchor, boolean fillInCircle) {
+    private static <Anchor> void drawNotehead(MusicCanvas<Anchor> canvas, Anchor anchor, NoteType noteType, boolean fillInCircle, float scaleFactor) {
 //        canvas.drawCircle(anchor, 0, 0, .5f, fillInCircle);
-        float r = .5f;
+        float r = RenderingConfiguration.noteheadRadius * scaleFactor;
         float k = durationToStretch(noteType);
         canvas.drawEllipse(anchor, 0,0, k * r, r, fillInCircle);
 
@@ -174,31 +203,31 @@ public class Chord extends BeamGroup {
 //                sign * RenderingConfiguration.gapHeight);
     }
 
-    private <Anchor> void drawNonStemWhiteSpace(MusicCanvas<Anchor> canvas, ChordAnchors<Anchor> chordAnchors) {
-        canvas.drawLine(chordAnchors.lowestNotehead(), 0, -0.5f - RenderingConfiguration.gapHeight,
-                chordAnchors.highestNotehead(), 0, +0.5f + RenderingConfiguration.gapHeight,
+    private static <Anchor> void drawNonStemWhiteSpace(MusicCanvas<Anchor> canvas, ChordAnchors<Anchor> chordAnchors, float scaleFactor) {
+        canvas.drawLine(chordAnchors.lowestNotehead(), 0, (-RenderingConfiguration.noteheadRadius - RenderingConfiguration.gapHeight)  * scaleFactor,
+                chordAnchors.highestNotehead(), 0, (RenderingConfiguration.noteheadRadius + RenderingConfiguration.gapHeight)  * scaleFactor,
                 RenderingConfiguration.barLineWidth + 0.05f, Color.WHITE);// draw whitespace as white line to cover up pulse line
     }
 
-    private <Anchor> void drawStem(MusicCanvas<Anchor> canvas, ChordAnchors<Anchor> chordAnchors, int sign) {
+    private static <Anchor> void drawStem(MusicCanvas<Anchor> canvas, ChordAnchors<Anchor> chordAnchors, int sign, float scaleFactor) {
         Anchor stemEnd = chordAnchors.stemEnd();
-        Anchor stemBeginning = canvas.offsetAnchor(sign == -1 ? chordAnchors.highestNotehead() : chordAnchors.lowestNotehead(), 0, sign * .5f);
+        Anchor stemBeginning = canvas.offsetAnchor(sign == -1 ? chordAnchors.highestNotehead() : chordAnchors.lowestNotehead(), 0, sign * RenderingConfiguration.noteheadRadius * scaleFactor);
         if (sign == 1) {
             if (canvas.isAnchorBelow(stemEnd, stemBeginning)) {
-                stemBeginning = canvas.offsetAnchor(chordAnchors.lowestNotehead(), 0, -sign * .5f);
+                stemBeginning = canvas.offsetAnchor(chordAnchors.lowestNotehead(), 0, -sign * RenderingConfiguration.noteheadRadius * scaleFactor);
                 sign *= -1;
             }
         } else {
             if (canvas.isAnchorBelow(stemBeginning, stemEnd)) {
-                stemBeginning = canvas.offsetAnchor(chordAnchors.highestNotehead(), 0, -sign * .5f);
+                stemBeginning = canvas.offsetAnchor(chordAnchors.highestNotehead(), 0, -sign * RenderingConfiguration.noteheadRadius * scaleFactor);
                 sign *= -1;
             }
         }
-        canvas.drawLine(chordAnchors.notehead(), 0, -sign * (0.5f + RenderingConfiguration.gapHeight),
-                stemEnd, 0,  sign * (RenderingConfiguration.beamWidth / 2 + RenderingConfiguration.gapHeight),
+        canvas.drawLine(chordAnchors.notehead(), 0, -sign * (RenderingConfiguration.noteheadRadius + RenderingConfiguration.gapHeight) * scaleFactor ,
+                stemEnd, 0,  sign * (RenderingConfiguration.beamWidth / 2 + RenderingConfiguration.gapHeight) * scaleFactor,
                 RenderingConfiguration.barLineWidth + 0.05f, Color.WHITE);// draw whitespace as white line to cover up pulse line
-        canvas.drawLine(stemBeginning, 0, 0, stemEnd, 0,  sign * RenderingConfiguration.beamWidth / 2,
-                RenderingConfiguration.stemWidth);// draw stem
+        canvas.drawLine(stemBeginning, 0, 0, stemEnd, 0,  sign * RenderingConfiguration.beamWidth * scaleFactor / 2,
+                RenderingConfiguration.stemWidth * scaleFactor);// draw stem
     }
     private <Anchor> void drawAccidental(MusicCanvas<Anchor> canvas, Note note, Anchor anchor) {
         if (note.accidental != Accidental.NONE){
@@ -214,16 +243,20 @@ public class Chord extends BeamGroup {
     private <Anchor> void drawLedgerLines(MusicCanvas<Anchor> canvas, int lowestLine, int highestLine) {
         float width = RenderingConfiguration.ledgerLineWidth * durationToStretch(noteType);
         for (int i = (lowestLine / 2) * 2; i < 0; i += 2) {
-            canvas.drawLine(canvas.getAnchor(musicalPosition, new Pitch(i, 0, 0)), -width/2f, 0f, width/2f, 0f, RenderingConfiguration.staveLineWidth);
+            canvas.drawLine(canvas.getAnchor(musicalPosition, new Pitch(i, 0, 0)),
+                    -width/2f, 0f, width/2f, 0f, RenderingConfiguration.staveLineWidth);
         }
         for (int i = 10; i <= highestLine; i += 2) {
-            canvas.drawLine(canvas.getAnchor(musicalPosition, new Pitch(i, 0,0)), -width/2f, 0f, width/2f, 0f, RenderingConfiguration.staveLineWidth);
+            canvas.drawLine(canvas.getAnchor(musicalPosition, new Pitch(i, 0,0)),
+                    -width/2f, 0f, width/2f, 0f, RenderingConfiguration.staveLineWidth);
         }
     }
 
-    private <Anchor> void drawDots(MusicCanvas<Anchor> canvas, Anchor anchor) {
+    private static <Anchor> void drawDots(MusicCanvas<Anchor> canvas, Anchor anchor, NoteType noteType, int dots, float scaleFactor) {
+        float k = durationToStretch(noteType);
         for (int i = 0; i < dots; i++) {
-            canvas.drawCircle(anchor, 0.5f + RenderingConfiguration.dotSpacing * (i + 1) + RenderingConfiguration.dotRadius * (2 * i + 1), 0, RenderingConfiguration.dotRadius);
+            canvas.drawCircle(anchor, (RenderingConfiguration.noteheadRadius * k + RenderingConfiguration.dotSpacing
+                    * (i + 1) + RenderingConfiguration.dotRadius * (2 * i + 1)) * scaleFactor, 0, RenderingConfiguration.dotRadius * scaleFactor);
         }
     }
 
