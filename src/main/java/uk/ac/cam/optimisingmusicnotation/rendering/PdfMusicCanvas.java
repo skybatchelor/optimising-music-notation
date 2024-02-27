@@ -32,6 +32,7 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     private final float LINE_WIDTH = 0.8f;
     private final float STAVE_SPACING = 5f;
     private final float MARGIN = 10f;
+    private final float MAX_CROTCHETS_IN_LINE = 24;
 
     private float reservedHeight = 0f;
 
@@ -109,7 +110,7 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
 
         return new Anchor(lineAnchor.page,
                 lineAnchor.x + musicalPosition.crotchetsIntoLine()
-                        * (LINE_WIDTH / musicalPosition.line().getLengthInCrotchets())
+                        * (LINE_WIDTH / MAX_CROTCHETS_IN_LINE)
                         * page.getPageSize().getWidth() / STAVE_SPACING,
                 lineAnchor.y + 0.5f * (pitch.rootStaveLine() - 8));
     }
@@ -284,22 +285,16 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     public void drawEllipse(Anchor centre, float x, float y, float rx, float ry, boolean fill) {
         PdfCanvas canvas = new PdfCanvas(pdf.getPage(centre.page + 1));
         canvas.setStrokeColor(ColorConstants.BLACK);
-        canvas.setFillColor(ColorConstants.BLACK);
-        canvas.setLineWidth(0.15f * STAVE_SPACING);
+        canvas.setFillColor(fill ? ColorConstants.BLACK : ColorConstants.WHITE);
+        canvas.setLineWidth(0.15f * STAVE_SPACING);;
 
         canvas.ellipse(
-                (centre.x + x - rx) * STAVE_SPACING,
-                (centre.y + y - ry) * STAVE_SPACING,
-                (centre.x + x + rx) * STAVE_SPACING,
-                (centre.y + y + ry) * STAVE_SPACING
+                (centre.x + x - rx + 0.075f) * STAVE_SPACING,
+                (centre.y + y - ry + 0.075f) * STAVE_SPACING,
+                (centre.x + x + rx - 0.075f) * STAVE_SPACING,
+                (centre.y + y + ry - 0.075f) * STAVE_SPACING
         );
-
-        if (fill) {
-            canvas.fill();
-        }
-        else {
-            canvas.stroke();
-        }
+        canvas.fillStroke();
     }
 
     @Override

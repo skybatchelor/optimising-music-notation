@@ -8,7 +8,7 @@ public class RenderingConfiguration {
     public static float beatLineWidth = 0.201f;
     public static float barLineWidth = 0.4f;
     public static float stemWidth = 0.15f;
-    public static boolean upwardStems = true;
+    public static boolean upwardStems = false;
     public static float gapHeight = 0.125f;
     public static float artisticWhitespaceWidth = 1f; // A crochet of whitespace + dead space
     public static float pulseLineHeight = 5f;
