@@ -1,7 +1,12 @@
 package uk.ac.cam.optimisingmusicnotation.representation.properties;
 
+import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.Paths;
+import java.util.HashMap;
 
 public class RenderingConfiguration {
     public static float subBeatLineWidth = 0.1f;
@@ -33,11 +38,23 @@ public class RenderingConfiguration {
 
     static {
         try {
-            fontFilePath = Paths.get(RenderingConfiguration.class.getResource("/fonts").toURI()).toString();
-            defaultFontFilePath = fontFilePath + "/Roboto-Regular.ttf";
-            dynamicsFontFilePath = fontFilePath + "/Century_Condensed_Bold_Italic.ttf";
-            imgFilePath = Paths.get(RenderingConfiguration.class.getResource("/img").toURI()).toString();
-        } catch (URISyntaxException | NullPointerException e) {
+            HashMap<String, String> env = new HashMap<>();
+            String[] fontPaths = RenderingConfiguration.class.getResource("/fonts").toURI().toString().split("!");
+            if (fontPaths.length == 1) {
+                fontFilePath = Paths.get(fontPaths[0]).toString();
+                defaultFontFilePath = fontFilePath + "/Roboto-Regular.ttf";
+                dynamicsFontFilePath = fontFilePath + "/Century_Condensed_Bold_Italic.ttf";
+                imgFilePath = Paths.get(RenderingConfiguration.class.getResource("/img").toURI()).toString();
+            }
+            else {
+                try (FileSystem fs = FileSystems.newFileSystem(URI.create(fontPaths[0]), env)) {
+                    fontFilePath = fs.getPath(fontPaths[1]).toString();
+                    defaultFontFilePath = fontFilePath + "/Roboto-Regular.ttf";
+                    dynamicsFontFilePath = fontFilePath + "/Century_Condensed_Bold_Italic.ttf";
+                    imgFilePath = fs.getPath(RenderingConfiguration.class.getResource("/img").toURI().toString().split("!")[1]).toString();
+                }
+            }
+        } catch (URISyntaxException | NullPointerException | IOException e) {
             throw new RuntimeException(e);
         }
     }

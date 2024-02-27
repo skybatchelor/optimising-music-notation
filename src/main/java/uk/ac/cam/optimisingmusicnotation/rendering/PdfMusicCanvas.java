@@ -21,6 +21,7 @@ import uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch;
 import java.awt.Color;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -290,9 +291,18 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
 
         // cache image if it's the first time loading it, since images are usually reused
         if (!images.containsKey(fileName)) {
-            FileInputStream imageFile = new FileInputStream(fileName);
-            image = SvgConverter.convertToXObject(imageFile, pdf);
-            imageFile.close();
+            try (InputStream in = getClass().getResourceAsStream(fileName)) {
+                if (in != null) {
+                    image = SvgConverter.convertToXObject(in, pdf);
+                }
+                else {
+                    System.out.println(fileName);
+                    FileInputStream imageFile = new FileInputStream(fileName);
+                    image = SvgConverter.convertToXObject(imageFile, pdf);
+                    imageFile.close();
+                }
+            }
+
             images.put(fileName, image);
         }
         else {
