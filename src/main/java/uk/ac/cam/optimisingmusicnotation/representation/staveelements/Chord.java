@@ -3,6 +3,7 @@ package uk.ac.cam.optimisingmusicnotation.representation.staveelements;
 import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.*;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmarkings.ChordMarking;
+import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.Flag;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -89,7 +90,7 @@ public class Chord extends BeamGroup {
         int sign = RenderingConfiguration.upwardStems ? 1 : -1; // decide to draw the not stem upwards or downwards
         Anchor stemBeginning;
         Anchor stemEnd;
-        stemBeginning = canvas.offsetAnchor(sign == 1 ? highestNoteheadAnchor : lowestNoteheadAnchor, 0, sign * .5f);
+        stemBeginning = canvas.offsetAnchor(sign == 1 ? highestNoteheadAnchor : lowestNoteheadAnchor, 0, sign * RenderingConfiguration.noteheadRadius);
         stemEnd = canvas.offsetAnchor(stemBeginning, 0, sign * RenderingConfiguration.stemLength);
         chordAnchors = new ChordAnchors<>(lowestNoteheadAnchor, highestNoteheadAnchor, stemEnd, 0, 0);
         chordAnchorsMap.put(this, chordAnchors);
@@ -100,13 +101,13 @@ public class Chord extends BeamGroup {
         int sign = RenderingConfiguration.upwardStems ? 1 : -1; // decide to draw the not stem upwards or downwards
         Anchor stemBeginning;
         Anchor stemEnd;
-        stemBeginning = canvas.offsetAnchor(anchor, 0, sign * .5f * scaleFactor);
-        stemEnd = canvas.offsetAnchor(stemBeginning, 0, sign * RenderingConfiguration.stemLength);
+        stemBeginning = canvas.offsetAnchor(anchor, 0, sign * RenderingConfiguration.noteheadRadius * scaleFactor);
+        stemEnd = canvas.offsetAnchor(stemBeginning, 0, sign * RenderingConfiguration.stemLength * scaleFactor);
         chordAnchors = new ChordAnchors<>(anchor, anchor, stemEnd, 0, 0);
         return chordAnchors;
     }
 
-    public static <Anchor> void draw(MusicCanvas<Anchor> canvas, Anchor anchor, NoteType noteType, int dots, float scaleFactor) {
+    public static <Anchor> void draw(MusicCanvas<Anchor> canvas, Anchor anchor, NoteType noteType, int dots, float timeScaleFactor, float scaleFactor) {
         ChordAnchors<Anchor> chordAnchors = computeAnchors(canvas, anchor, scaleFactor);
 
         boolean fillInCircle = noteType.defaultLengthInCrotchets <= 1;
@@ -120,6 +121,7 @@ public class Chord extends BeamGroup {
 
         drawNotehead(canvas, anchor, noteType, fillInCircle, scaleFactor);
         drawDots(canvas, anchor, noteType, dots, scaleFactor);
+        Flag.draw(canvas, chordAnchors, noteType, timeScaleFactor, scaleFactor);
     }
 
     @Override
