@@ -24,16 +24,16 @@ public class Slur extends MusicGroup {
 
     @Override
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Map<Chord, ChordAnchors<Anchor>> chordAnchorsMap) {
-        float absoluteYOffset = .5f; // set vertical offset from Notehead here
+        float absoluteYOffset = 1.5f; // set vertical offset from Notehead here
         float signedYOffset = RenderingConfiguration.upwardStems ? -absoluteYOffset : absoluteYOffset;
         // TODO: deal with null first and last chords
         Anchor startAnchor = canvas.getAnchor(new MusicalPosition(line, 0));
         Anchor endAnchor = canvas.getAnchor(new MusicalPosition(line, 0));
         if (chordAnchorsMap.get(firstChord) != null) {
-            startAnchor = chordAnchorsMap.get(firstChord).lowestNotehead();
+            startAnchor = chordAnchorsMap.get(firstChord).notehead();
         }
         if (chordAnchorsMap.get(lastChord) != null) {
-            endAnchor = chordAnchorsMap.get(lastChord).lowestNotehead();
+            endAnchor = chordAnchorsMap.get(lastChord).notehead();
         }
         canvas.drawCurve(startAnchor, 0, signedYOffset, endAnchor, 0, signedYOffset, .2f, !RenderingConfiguration.upwardStems);
     }

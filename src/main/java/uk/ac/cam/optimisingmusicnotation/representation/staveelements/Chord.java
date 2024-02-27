@@ -135,8 +135,7 @@ public class Chord extends BeamGroup {
         }
 
         if (!markings.isEmpty()) {
-            Anchor notehead = RenderingConfiguration.upwardStems ? chordAnchors.lowestNotehead() : chordAnchors.highestNotehead();
-            drawChordMarkings(canvas, notehead);
+            drawChordMarkings(canvas, chordAnchors.notehead());
             chordAnchors = updateNoteheadOffset(chordAnchors);
         }
 
@@ -199,20 +198,20 @@ public class Chord extends BeamGroup {
     }
 
     private <Anchor> void drawTie(MusicCanvas<Anchor> canvas, Note note, Anchor anchor) {
-        int sign = RenderingConfiguration.upwardStems ? 1 : -1;
+        int sign = RenderingConfiguration.upwardStems ? -1 : 1;
         if (note.hasTieFrom) {
             MusicalPosition endMusicalPosition = new MusicalPosition(musicalPosition.line(), musicalPosition.crotchetsIntoLine() + durationInCrotchets);
             Anchor endAnchor = canvas.getAnchor(endMusicalPosition, note.pitch);
-            float Xoffset = .2f;
-            float absoluteYOffset = .1f;
+            float Xoffset = .7f;
+            float absoluteYOffset = .4f;
             float signedYOffset = sign * absoluteYOffset;
             canvas.drawCurve(anchor, Xoffset, signedYOffset, endAnchor, -Xoffset, signedYOffset, .15f, !RenderingConfiguration.upwardStems);
         }
         if (note.hasTieTo) {
             MusicalPosition startMusicalPosition = new MusicalPosition(musicalPosition.line(), 0);
             Anchor startAnchor = canvas.getAnchor(startMusicalPosition, note.pitch);
-            float Xoffset = .2f;
-            float absoluteYOffset = .1f;
+            float Xoffset = .7f;
+            float absoluteYOffset = .4f;
             float signedYOffset = sign * absoluteYOffset;
             canvas.drawCurve(startAnchor, Xoffset, signedYOffset, anchor, -Xoffset, signedYOffset, .15f, !RenderingConfiguration.upwardStems);
         }

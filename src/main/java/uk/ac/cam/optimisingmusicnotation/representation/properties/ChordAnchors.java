@@ -4,4 +4,8 @@ public record ChordAnchors<Anchor>(Anchor lowestNotehead, Anchor highestNotehead
     public ChordAnchors<Anchor> withNoteheadOffset(float noteheadOffset) {
         return new ChordAnchors<>(lowestNotehead(), highestNotehead(), stemEnd(), noteheadOffset, stemEndOffset());
     }
+    // farthest notehead from stemEnd
+    public Anchor notehead() {
+        return RenderingConfiguration.upwardStems ? lowestNotehead() : highestNotehead();
+    }
 }
