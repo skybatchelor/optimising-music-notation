@@ -79,7 +79,7 @@ public class Stave {
             for (int i = 0; i < 10; i = i + 2) {
                 anchor1 = canvas.getAnchor(start, new Pitch(i, 0, 0));
                 anchor2 = canvas.getAnchor(end, new Pitch(i, 0, 0));
-                canvas.drawLine(anchor1, -1f, 0, anchor2, 2f, 0, RenderingConfiguration.staveLineWidth);
+                canvas.drawLine(anchor1, -0.5f, 0, anchor2, 0.5f, 0, RenderingConfiguration.staveLineWidth);
             }
         }
     }
