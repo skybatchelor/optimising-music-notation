@@ -62,7 +62,7 @@ class InstantiatedMusicGroupTuple {
                 if (endTime != null) {
                     endPos = new MusicalPosition(line, endTime);
                 }
-                return new Diminuendo(getChordsInInterval(chords), startPos, endPos);
+                return new Diminuendo(getChordsInInterval(chords), line, startPos, endPos);
             }
             case CRESC -> {
                 MusicalPosition startPos = null;
@@ -73,7 +73,7 @@ class InstantiatedMusicGroupTuple {
                 if (endTime != null) {
                     endPos = new MusicalPosition(line, endTime);
                 }
-                return new Crescendo(getChordsInInterval(chords), startPos, endPos);
+                return new Crescendo(getChordsInInterval(chords), line, startPos, endPos);
             }
             case SLUR -> {
                 Chord startChord = null;
