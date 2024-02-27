@@ -174,7 +174,7 @@ public class Chord extends BeamGroup {
 
     private <Anchor> void drawStem(MusicCanvas<Anchor> canvas, ChordAnchors<Anchor> chordAnchors, int sign) {
         Anchor stemEnd = chordAnchors.stemEnd();
-        Anchor stemBeginning = canvas.offsetAnchor(sign == 1 ? chordAnchors.highestNotehead() : chordAnchors.lowestNotehead(), 0, sign * .5f);
+        Anchor stemBeginning = canvas.offsetAnchor(sign == -1 ? chordAnchors.highestNotehead() : chordAnchors.lowestNotehead(), 0, sign * .5f);
         if (sign == 1) {
             if (canvas.isAnchorBelow(stemEnd, stemBeginning)) {
                 stemBeginning = canvas.offsetAnchor(chordAnchors.lowestNotehead(), 0, -sign * .5f);
