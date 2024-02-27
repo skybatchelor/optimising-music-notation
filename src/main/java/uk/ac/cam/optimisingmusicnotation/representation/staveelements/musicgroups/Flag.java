@@ -28,7 +28,7 @@ public class Flag extends MusicGroup {
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Map<Chord, ChordAnchors<Anchor>> chordAnchorsMap) {
         Anchor startAnchor;
         if (preChord == null) {
-            startAnchor = canvas.takeXtakeYAnchor(canvas.getAnchor(new MusicalPosition(line, chord.getMusicalPosition().crotchetsIntoLine() -
+            startAnchor = canvas.getTakeXTakeYAnchor(canvas.getAnchor(new MusicalPosition(line, chord.getMusicalPosition().crotchetsIntoLine() -
                     chord.getDurationInCrotchets() * RenderingConfiguration.flagRatio)), chordAnchorsMap.get(chord).stemEnd());
         } else {
             startAnchor = canvas.interpolateAnchors(

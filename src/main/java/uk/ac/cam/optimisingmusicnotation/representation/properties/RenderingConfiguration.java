@@ -24,6 +24,10 @@ public class RenderingConfiguration {
     public static float staveLineWidth = 0.1f;
     public static float dotRadius = 0.2f;
     public static float dotSpacing = 0.2f;
+    public static float dynamicsOffset = -3f;
+    public static float hairpinHeight = 1.5f;
+    public static float hairpinInset = 1.5f;
+    public static float dynamicsTextHeight = 5f;
 
     static {
         try {

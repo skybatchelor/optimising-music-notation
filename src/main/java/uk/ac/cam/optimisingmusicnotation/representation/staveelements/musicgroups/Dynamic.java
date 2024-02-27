@@ -24,10 +24,13 @@ public class Dynamic extends MusicGroup {
     @Override
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Map<Chord, ChordAnchors<Anchor>> chordAnchorsMap) {
         // TODO: actually render properly (I have once again botched something together)
-        Anchor anchor = canvas.getAnchor(musicalPosition);
+        Anchor anchor = canvas.getLowestStaveLineAnchor(musicalPosition);
+        Anchor lowestAnchor = canvas.getLowestAnchor(chords.stream().map((chord) -> chordAnchorsMap.get(chord).getLowestAnchor(canvas, chord)).toList(), anchor);
+        anchor = canvas.getTakeXTakeYAnchor(canvas.getAnchor(musicalPosition), lowestAnchor);
         float width = text.length() * 1.5f;
         try {
-            canvas.drawText(RenderingConfiguration.fontFilePath, text,10f, TextAlignment.CENTRE, anchor,-width/2,width/2, width,5f);
+            canvas.drawText(RenderingConfiguration.fontFilePath, text,10f, TextAlignment.CENTRE, anchor,
+                    -width/2, RenderingConfiguration.dynamicsOffset + RenderingConfiguration.dynamicsTextHeight / 2, width, RenderingConfiguration.dynamicsTextHeight);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
