@@ -206,7 +206,7 @@ public class Chord extends BeamGroup {
             float Xoffset = .2f;
             float absoluteYOffset = .1f;
             float signedYOffset = sign * absoluteYOffset;
-            canvas.drawCurve(anchor, Xoffset, signedYOffset, endAnchor, -Xoffset, signedYOffset, .15f, RenderingConfiguration.upwardStems);
+            canvas.drawCurve(anchor, Xoffset, signedYOffset, endAnchor, -Xoffset, signedYOffset, .15f, !RenderingConfiguration.upwardStems);
         }
         if (note.hasTieTo) {
             MusicalPosition startMusicalPosition = new MusicalPosition(musicalPosition.line(), 0);
@@ -214,7 +214,7 @@ public class Chord extends BeamGroup {
             float Xoffset = .2f;
             float absoluteYOffset = .1f;
             float signedYOffset = sign * absoluteYOffset;
-            canvas.drawCurve(startAnchor, Xoffset, signedYOffset, anchor, -Xoffset, signedYOffset, .15f, RenderingConfiguration.upwardStems);
+            canvas.drawCurve(startAnchor, Xoffset, signedYOffset, anchor, -Xoffset, signedYOffset, .15f, !RenderingConfiguration.upwardStems);
         }
     }
 

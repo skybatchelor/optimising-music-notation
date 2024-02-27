@@ -35,6 +35,6 @@ public class Slur extends MusicGroup {
         if (chordAnchorsMap.get(lastChord) != null) {
             endAnchor = chordAnchorsMap.get(lastChord).lowestNotehead();
         }
-        canvas.drawCurve(startAnchor, 0, signedYOffset, endAnchor, 0, signedYOffset, .2f, RenderingConfiguration.upwardStems);
+        canvas.drawCurve(startAnchor, 0, signedYOffset, endAnchor, 0, signedYOffset, .2f, !RenderingConfiguration.upwardStems);
     }
 }
