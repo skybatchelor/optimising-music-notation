@@ -65,9 +65,9 @@ public class Clef {
         int bottomNameI = pitches.indexOf(getBottomLinePitch());
         int nameI = pitches.indexOf(name);
         int spacesAbove = Math.floorMod((nameI - bottomNameI) , pitches.size());
-        retList.add(new Pitch(spacesAbove,0));
+        retList.add(new Pitch(spacesAbove,0, 0));
         if (spacesAbove < 3){
-            retList.add(new Pitch(spacesAbove + 7,0));
+            retList.add(new Pitch(spacesAbove + 7,0, 0));
         }
         return retList;
     }
