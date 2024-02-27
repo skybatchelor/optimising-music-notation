@@ -247,7 +247,6 @@ public class Chord extends BeamGroup {
         }
     }
 
-
     private static class Note {
         Pitch pitch;
         Accidental accidental;
