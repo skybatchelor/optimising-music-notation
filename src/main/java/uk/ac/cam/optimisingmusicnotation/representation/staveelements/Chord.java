@@ -62,10 +62,6 @@ public class Chord extends BeamGroup {
         }
     }
 
-    private boolean dotted() {
-        return dots > 0;
-    }
-
     public MusicalPosition getMusicalPosition() {
         return musicalPosition;
     }
@@ -79,7 +75,7 @@ public class Chord extends BeamGroup {
         for (Note note : notes) {
             // are notes sorted?
             Anchor noteheadAnchor = canvas.getAnchor(musicalPosition, note.pitch);
-            // since i'm not sure, we'll find the lowest/highest anchor
+            // since I'm not sure, we'll find the lowest/highest anchor
             if (note.pitch.rootStaveLine() < lowestLine) {
                 lowestLine = note.pitch.rootStaveLine();
                 lowestNoteheadAnchor = noteheadAnchor;
@@ -102,11 +98,8 @@ public class Chord extends BeamGroup {
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Map<Chord, ChordAnchors<Anchor>> chordAnchorsMap) {
         int lowestLine = Integer.MAX_VALUE;
         int highestLine = Integer.MIN_VALUE;
-        int sign = RenderingConfiguration.upwardStems ? 1 : -1; // decide to draw the not stem upwards or downwards
         boolean fillInCircle = noteType.defaultLengthInCrotchets <= 1;
         boolean drawStem = noteType.defaultLengthInCrotchets <= 2;
-
-        boolean hasLedgerLines;
 
         ChordAnchors<Anchor> chordAnchors;
         if (!chordAnchorsMap.containsKey(this)) {
@@ -125,8 +118,7 @@ public class Chord extends BeamGroup {
             drawTie(canvas, note, anchor);
             drawNotehead(canvas, anchor, fillInCircle);
             drawDots(canvas, anchor);
-            hasLedgerLines = hasLedgerLines(note);
-            drawAccidental(canvas, note, anchor, false); // I feel like changing the accidental placement based on ledger lines goes against his desire for consistency?
+            drawAccidental(canvas, note, anchor);
         }
         drawLedgerLines(canvas, lowestLine, highestLine);
 
@@ -139,7 +131,7 @@ public class Chord extends BeamGroup {
             chordAnchors = updateNoteheadOffset(chordAnchors);
         }
 
-        chordAnchorsMap.put(this,chordAnchors);
+        chordAnchorsMap.put(this, chordAnchors);
     }
 
     private <Anchor> void drawChordMarkings(MusicCanvas<Anchor> canvas, Anchor anchor) {
@@ -192,8 +184,8 @@ public class Chord extends BeamGroup {
                 stemFlipped = true;
             }
         }
-        canvas.drawLine(stemBeginning, 0, 0, stemEnd, 0,  + sign * RenderingConfiguration.beamWidth / 2, RenderingConfiguration.stemWidth);// draw stem
-        // draw bit of whitespace to separate from pulse line
+        canvas.drawLine(stemBeginning, 0, 0, stemEnd, 0,  sign * RenderingConfiguration.beamWidth / 2, RenderingConfiguration.stemWidth);// draw stem
+        // draw a bit of whitespace to separate from pulse line
         if (stemFlipped) {
             canvas.drawWhitespace(stemEnd, -RenderingConfiguration.stemWidth,
                     sign * RenderingConfiguration.gapHeight + sign * RenderingConfiguration.beamWidth / 2, 2 * RenderingConfiguration.stemWidth,
@@ -204,19 +196,16 @@ public class Chord extends BeamGroup {
                     sign * RenderingConfiguration.gapHeight);
         }
     }
-    private <Anchor> void drawAccidental(MusicCanvas<Anchor> canvas, Note note, Anchor anchor, boolean hasLedgerLines) {
+    private <Anchor> void drawAccidental(MusicCanvas<Anchor> canvas, Note note, Anchor anchor) {
         if (note.accidental != Accidental.NONE){
             String accidentalPath = RenderingConfiguration.imgFilePath + "/accidentals/" + note.accidental.toString().toLowerCase() + ".svg";
             float topLeftY = 1f + (note.accidental == Accidental.FLAT ? 0.5f : 0f);
             try{
-                canvas.drawImage(accidentalPath, anchor,-(1.65f + (hasLedgerLines ? 0.25f : 0f)), topLeftY,0.75f, 2f);
+                canvas.drawImage(accidentalPath, anchor,-1.65f, topLeftY,0.75f, 2f);
             } catch (java.io.IOException e) {
                 throw new RuntimeException(e);
             }
         }
-    }
-    private boolean hasLedgerLines(Note note) {
-        return note.pitch.rootStaveLine() < 0 || note.pitch.rootStaveLine() >= 10;
     }
     private <Anchor> void drawLedgerLines(MusicCanvas<Anchor> canvas, int lowestLine, int highestLine) {
         for (int i = (lowestLine / 2) * 2; i < 0; i += 2) {
@@ -238,18 +227,18 @@ public class Chord extends BeamGroup {
         if (note.hasTieFrom) {
             MusicalPosition endMusicalPosition = new MusicalPosition(musicalPosition.line(), musicalPosition.crotchetsIntoLine() + durationInCrotchets);
             Anchor endAnchor = canvas.getAnchor(endMusicalPosition, note.pitch);
-            float Xoffset = .7f;
+            float xOffset = .7f;
             float absoluteYOffset = .4f;
             float signedYOffset = sign * absoluteYOffset;
-            canvas.drawCurve(anchor, Xoffset, signedYOffset, endAnchor, -Xoffset, signedYOffset, .15f, !RenderingConfiguration.upwardStems);
+            canvas.drawCurve(anchor, xOffset, signedYOffset, endAnchor, -xOffset, signedYOffset, .15f, !RenderingConfiguration.upwardStems);
         }
         if (note.hasTieTo) {
             MusicalPosition startMusicalPosition = new MusicalPosition(musicalPosition.line(), 0);
             Anchor startAnchor = canvas.getAnchor(startMusicalPosition, note.pitch);
-            float Xoffset = .7f;
+            float xOffset = .7f;
             float absoluteYOffset = .4f;
             float signedYOffset = sign * absoluteYOffset;
-            canvas.drawCurve(startAnchor, Xoffset, signedYOffset, anchor, -Xoffset, signedYOffset, .15f, !RenderingConfiguration.upwardStems);
+            canvas.drawCurve(startAnchor, xOffset, signedYOffset, anchor, -xOffset, signedYOffset, .15f, !RenderingConfiguration.upwardStems);
         }
     }
 
