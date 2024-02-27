@@ -80,7 +80,7 @@ public class Parser {
                 int divisions = 0;
                 float prevChange;
                 int lowestLineGrandStaveLine = 0;
-                ChordTuple currentChord = new ChordTuple(0, 0);
+                ChordTuple currentChord = new ChordTuple(0, 0, currentKeySignature);
                 BeamGroupTuple beamGroup = new BeamGroupTuple();
                 List<ScorePartwise.Part.Measure> measures = part.getMeasure();
 
@@ -136,7 +136,7 @@ public class Parser {
                                 prevChange = 0;
                             }
                             if (note.getChord() == null) {
-                                currentChord = new ChordTuple(measureStartTime + measureTime, lowestLineGrandStaveLine);
+                                currentChord = new ChordTuple(measureStartTime + measureTime, lowestLineGrandStaveLine, currentKeySignature);
                                 measureTime += prevChange;
                             }
                             currentChord.notes.add(note);
@@ -192,7 +192,7 @@ public class Parser {
                                 var whitespace = new BeamGroupTuple();
                                 whitespace.startTime = (measureStartTime + measureTime + offset) - RenderingConfiguration.artisticWhitespaceWidth;
                                 whitespace.endTime = (measureStartTime + measureTime + offset);
-                                var restChord = new ChordTuple(whitespace.startTime, 0);
+                                var restChord = new ChordTuple(whitespace.startTime, 0, currentKeySignature);
                                 restChord.duration = RenderingConfiguration.artisticWhitespaceWidth;
                                 var restNote = new Note();
                                 restNote.setRest(new org.audiveris.proxymusic.Rest());
