@@ -6,6 +6,7 @@ import com.itextpdf.kernel.colors.ColorConstants;
 import com.itextpdf.kernel.colors.DeviceRgb;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
+import com.itextpdf.kernel.geom.PageSize;
 import com.itextpdf.kernel.geom.Rectangle;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfPage;
@@ -14,6 +15,7 @@ import com.itextpdf.kernel.pdf.xobject.PdfXObject;
 import com.itextpdf.layout.Canvas;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.svg.converter.SvgConverter;
+import org.w3c.dom.css.Rect;
 import uk.ac.cam.optimisingmusicnotation.representation.Line;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch;
@@ -33,8 +35,10 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     private final float STAVE_SPACING = 5f;
     private final float MARGIN = 10f;
     private final float MAX_CROTCHETS_IN_LINE = 24;
+    private final float DEFAULT_LINE_HEIGHT = 15f;
+    private final float SPACE_ABOVE_LINE = 5f;
 
-    private float reservedHeight = 0f;
+    private float reservedHeight = MARGIN;
 
     public static class Anchor {
 
@@ -69,8 +73,8 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
             int pageNum = lineAnchors.get(lineAnchors.size() - 1).page;
             PdfPage page = pdf.getPage(pageNum + 1);
 
-            float y = lineAnchors.get(lineAnchors.size() - 1).y - 15f - reservedHeight;
-            if (y < page.getPageSize().getBottom() + MARGIN) {
+            float y = page.getPageSize().getTop() / STAVE_SPACING - reservedHeight - SPACE_ABOVE_LINE;
+            if (y < page.getPageSize().getBottom() / STAVE_SPACING + MARGIN) {
                 addFirstLineOnPage(pageNum + 1);
             }
             else {
@@ -79,17 +83,18 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
             }
         }
 
-        reservedHeight = 0f;
+        reservedHeight += DEFAULT_LINE_HEIGHT;
     }
 
     private void addFirstLineOnPage(int pageNum) {
         while (pdf.getNumberOfPages() < pageNum + 1) {
             pdf.addNewPage();
+            reservedHeight = MARGIN;
         }
 
         PdfPage page = pdf.getPage(pageNum + 1);
         float x = (page.getPageSize().getWidth() * (1f - LINE_WIDTH) * 0.5f) / STAVE_SPACING;
-        float y = page.getPageSize().getTop() / STAVE_SPACING - MARGIN - reservedHeight;
+        float y = page.getPageSize().getTop() / STAVE_SPACING - reservedHeight - SPACE_ABOVE_LINE;
         lineAnchors.add(new Anchor(pageNum, x, y));
     }
 
@@ -198,6 +203,8 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
         canvas.setLineWidth(0.15f * STAVE_SPACING);
         canvas.circle((anchor.x + x) * STAVE_SPACING, (anchor.y + y) * STAVE_SPACING, (r - 0.075f) * STAVE_SPACING);
         canvas.fillStroke();
+
+        updateReservedHeight(anchor.page, anchor.y + y - r);
     }
 
     @Override
@@ -214,6 +221,9 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
         canvas.moveTo((anchor.x + x1) * STAVE_SPACING, (anchor.y + y1) * STAVE_SPACING)
                 .lineTo((anchor.x + x2) * STAVE_SPACING, (anchor.y + y2) * STAVE_SPACING)
                 .stroke();
+
+        updateReservedHeight(anchor.page, anchor.y + y1);
+        updateReservedHeight(anchor.page, anchor.y + y2);
     }
 
     @Override
@@ -223,7 +233,6 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
 
     @Override
     public void drawLine(Anchor anchor1, float x1, float y1, Anchor anchor2, float x2, float y2, float lineWidth, Color color) {
-        // TODO: check anchors are on same line
         drawLine(anchor1, x1, y1, anchor2.x + x2 - anchor1.x, anchor2.y + y2 - anchor1.y, lineWidth, color);
     }
 
@@ -233,6 +242,8 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
 
         canvas.rectangle((topLeftAnchor.x + topLeftX) * STAVE_SPACING, (topLeftAnchor.y + topLeftY - height) * STAVE_SPACING,
                 width * STAVE_SPACING, height * STAVE_SPACING).setFillColor(ColorConstants.WHITE).fill();
+
+        updateReservedHeight(topLeftAnchor.page, topLeftAnchor.y + topLeftY - height);
     }
 
     @Override
@@ -271,6 +282,8 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
                 (topLeftAnchor.x + topLeftX) * STAVE_SPACING, (topLeftAnchor.y + topLeftY - height) * STAVE_SPACING,
                 width * STAVE_SPACING, height * STAVE_SPACING
         ));
+
+        updateReservedHeight(topLeftAnchor.page, topLeftAnchor.y + topLeftY - height);
     }
 
     @Override
@@ -295,6 +308,8 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
                 (centre.y + y + ry - 0.075f) * STAVE_SPACING
         );
         canvas.fillStroke();
+
+        updateReservedHeight(centre.page, centre.y + y - ry);
     }
 
     @Override
@@ -315,6 +330,9 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
                 .lineTo(rightXPos, (anchor.y + y2 + height / 2f) * STAVE_SPACING)
                 .lineTo(rightXPos, (anchor.y + y2 - height / 2f) * STAVE_SPACING)
                 .closePath().fill();
+
+        updateReservedHeight(anchor.page, anchor.y + y1 - height);
+        updateReservedHeight(anchor.page, anchor.y + y2 - height);
     }
 
     @Override
@@ -334,6 +352,9 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
         canvas.moveTo(startXPos, startYPos)
                 .curveTo(startXPos, startYPos + height, endXPos, endYPos + height, endXPos, endYPos)
                 .stroke();
+
+        updateReservedHeight(start.page, start.y + startY + height);
+        updateReservedHeight(end.page, end.y + endY + height);
     }
 
     @Override
@@ -370,6 +391,16 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
                 case RIGHT -> canvas.setTextAlignment(com.itextpdf.layout.properties.TextAlignment.RIGHT);
             }
             canvas.add(paragraph);
+        }
+
+        updateReservedHeight(topLeftAnchor.page, topLeftAnchor.y + topLeftY - height);
+    }
+
+    private void updateReservedHeight(int pageNum, float y) {
+        Rectangle pageSize = pdf.getPage(pageNum + 1).getPageSize();
+        float newHeight = pageSize.getTop() / STAVE_SPACING - (y - 3f);
+        if (newHeight > reservedHeight) {
+            reservedHeight = newHeight;
         }
     }
 }
