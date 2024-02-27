@@ -393,6 +393,19 @@ public class Parser {
         } + 7 * pitch.getOctave();
     }
 
+    // translates a pitch into the number of lines above the root of C0.
+    static int pitchToGrandStaveLine(Unpitched unpitched) {
+        return switch (unpitched.getDisplayStep()) {
+            case C -> 0;
+            case D -> 1;
+            case E -> 2;
+            case F -> 3;
+            case G -> 4;
+            case A -> 5;
+            case B -> 6;
+        } + 7 * unpitched.getDisplayOctave();
+    }
+
     static int pitchToGrandStaveLine(Step step, int octave) {
         return switch (step) {
             case C -> 0;
@@ -581,8 +594,8 @@ public class Parser {
         return switch (clef.getSign()) {
             case C -> pitchToGrandStaveLine(Step.C, 4);
             case F -> pitchToGrandStaveLine(Step.F, 3);
-            case G -> pitchToGrandStaveLine(Step.G, 4);
-            case PERCUSSION, TAB -> 0;
+            case G, PERCUSSION -> pitchToGrandStaveLine(Step.G, 4);
+            case TAB -> 0;
         } + 7 * clef.getOctaveChange() - clef.getLine();
     }
 

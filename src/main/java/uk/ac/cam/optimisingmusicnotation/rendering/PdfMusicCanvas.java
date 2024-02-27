@@ -98,7 +98,7 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
 
     @Override
     public Anchor getAnchor(MusicalPosition musicalPosition) {
-        return getAnchor(musicalPosition, new Pitch(8, 0));
+        return getAnchor(musicalPosition, new Pitch(8, 0, 0));
     }
 
     @Override

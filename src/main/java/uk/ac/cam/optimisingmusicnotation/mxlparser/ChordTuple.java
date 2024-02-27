@@ -96,9 +96,11 @@ class ChordTuple {
         List<Boolean> tiesTo = new ArrayList<>();
         for (Note note : notes) {
             if (note.getPitch() != null) {
-                pitches.add(new uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch(Parser.pitchToGrandStaveLine(note.getPitch()) - lowestLine, 0));
+                pitches.add(new uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch(Parser.pitchToGrandStaveLine(note.getPitch()) - lowestLine, 0, Parser.pitchToGrandStaveLine(note.getPitch())));
+            } else if (note.getUnpitched() != null) {
+                pitches.add(new uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch(Parser.pitchToGrandStaveLine(note.getUnpitched()) - lowestLine, 0, Parser.pitchToGrandStaveLine(note.getUnpitched())));
             } else {
-                pitches.add(new uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch(0, 0));
+                pitches.add(new uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch(0, 0, 0));
             }
             if (note.getAccidental() != null) {
                 switch (note.getAccidental().getValue()) {

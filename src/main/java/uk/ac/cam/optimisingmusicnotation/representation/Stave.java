@@ -77,8 +77,8 @@ public class Stave {
             Anchor anchor2;
 
             for (int i = 0; i < 10; i = i + 2) {
-                anchor1 = canvas.getAnchor(start, new Pitch(i, 0));
-                anchor2 = canvas.getAnchor(end, new Pitch(i, 0));
+                anchor1 = canvas.getAnchor(start, new Pitch(i, 0, 0));
+                anchor2 = canvas.getAnchor(end, new Pitch(i, 0, 0));
                 canvas.drawLine(anchor1, -1f, 0, anchor2, 2f, 0, RenderingConfiguration.staveLineWidth);
             }
         }
@@ -88,7 +88,7 @@ public class Stave {
         Anchor anchor1;
 
         for (int i = 0; i < 10; i=i+2) {
-            anchor1 = canvas.getAnchor(new MusicalPosition(line, 0),new Pitch(i,0));
+            anchor1 = canvas.getAnchor(new MusicalPosition(line, 0),new Pitch(i,0, 0));
             canvas.drawLine(anchor1, -(6f+numAlterations), 0, -2f, 0, 0.1f);
         }
     }
