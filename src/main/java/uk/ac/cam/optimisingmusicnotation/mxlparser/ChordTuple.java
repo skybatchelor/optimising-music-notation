@@ -1,10 +1,10 @@
 package uk.ac.cam.optimisingmusicnotation.mxlparser;
 
-import org.audiveris.proxymusic.Articulations;
-import org.audiveris.proxymusic.Notations;
-import org.audiveris.proxymusic.Note;
-import org.audiveris.proxymusic.NoteType;
+import org.audiveris.proxymusic.*;
+import uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental;
+import uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmarkings.*;
+import uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmarkings.StrongAccent;
 
 import javax.xml.bind.JAXBElement;
 import java.util.ArrayList;
@@ -32,6 +32,28 @@ class ChordTuple {
             return 0;
         }
         return note.getDot().size();
+    }
+
+    static boolean isTiedFrom(Note note) {
+        if (note.getTie() != null) {
+            for (var tie : note.getTie()) {
+                if(tie.getType() == StartStop.START) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    static boolean isTiedTo(Note note) {
+        if (note.getTie() != null) {
+            for (var tie : note.getTie()) {
+                if(tie.getType() == StartStop.STOP) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     static void addMarkings(Note note, List<ChordMarking> target) {
@@ -66,10 +88,12 @@ class ChordTuple {
         this.lowestLine = lowestLine;
     }
 
-    InstantiatedChordTuple toInstantiatedChordTuple(float lineTime, int lineNum) {
-        List<uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch> pitches = new ArrayList<>();
-        List<uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental> accidentals = new ArrayList<>();
+    InstantiatedChordTuple toInstantiatedChordTuple(float lineTime) {
+        List<Pitch> pitches = new ArrayList<>();
+        List<Accidental> accidentals = new ArrayList<>();
         List<ChordMarking> markings = new ArrayList<>();
+        List<Boolean> tiesFrom = new ArrayList<>();
+        List<Boolean> tiesTo = new ArrayList<>();
         for (Note note : notes) {
             if (note.getPitch() != null) {
                 pitches.add(new uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch(Parser.pitchToGrandStaveLine(note.getPitch()) - lowestLine, 0));
@@ -88,8 +112,10 @@ class ChordTuple {
             } else {
                 accidentals.add(uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental.NONE);
             }
+            tiesFrom.add(isTiedFrom(note));
+            tiesTo.add(isTiedTo(note));
             addMarkings(note, markings);
         }
-        return new InstantiatedChordTuple(pitches, accidentals, crotchets - lineTime, duration, convertNoteType(notes.get(0).getType()), getDotNumber(notes.get(0)), markings);
+        return new InstantiatedChordTuple(pitches, accidentals, tiesFrom, tiesTo,crotchets - lineTime, duration, convertNoteType(notes.get(0).getType()), getDotNumber(notes.get(0)), markings);
     }
 }

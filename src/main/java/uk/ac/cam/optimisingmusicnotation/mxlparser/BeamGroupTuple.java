@@ -30,10 +30,10 @@ class BeamGroupTuple {
         return (this.chords.get(0).notes.get(0).getRest() != null);
     }
 
-    InstantiatedBeamGroupTuple toInstantiatedBeamTuple(float lineTime, int lineNum) {
+    InstantiatedBeamGroupTuple toInstantiatedBeamTuple(float lineTime) {
         InstantiatedBeamGroupTuple beamTuple = new InstantiatedBeamGroupTuple();
         for (ChordTuple chordTuple : chords) {
-            beamTuple.chords.add(chordTuple.toInstantiatedChordTuple(lineTime, lineNum));
+            beamTuple.chords.add(chordTuple.toInstantiatedChordTuple(lineTime));
         }
 
         Integer[] beaming = new Integer[10];

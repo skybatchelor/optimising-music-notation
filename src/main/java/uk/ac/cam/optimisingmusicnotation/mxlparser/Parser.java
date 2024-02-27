@@ -13,7 +13,6 @@ import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
 
 import javax.xml.bind.JAXBElement;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.String;
 import java.nio.file.Files;
@@ -251,7 +250,7 @@ public class Parser {
                     if (beam.isRest()) {
                         beam.splitToRestTuple(newlines, lineIndices, partLines.get(part.getKey()));
                     } else {
-                        partLines.get(part.getKey()).get(lineNum).notes.add(beam.toInstantiatedBeamTuple(lineStart, lineNum));
+                        partLines.get(part.getKey()).get(lineNum).notes.add(beam.toInstantiatedBeamTuple(lineStart));
                     }
                 }
                 for (MusicGroupTuple musicGroup : part.getValue().musicGroups) {
@@ -260,12 +259,12 @@ public class Parser {
                 for (PulseLineTuple pulseLine : part.getValue().pulseLines) {
                     float lineStart = newlines.floorKey(pulseLine.time);
                     int lineNum = lineIndices.get(lineStart);
-                    partLines.get(part.getKey()).get(lineNum).pulses.add(pulseLine.toInstantiatedPulseTuple(lineStart, lineNum));
+                    partLines.get(part.getKey()).get(lineNum).pulses.add(pulseLine.toInstantiatedPulseTuple(lineStart));
                     Float lowerLineStart = newlines.lowerKey(pulseLine.time);
                     if (lowerLineStart != null) {
                         int lowerLineNum = lineIndices.get(lowerLineStart);
                         if (lowerLineNum != lineNum) {
-                            partLines.get(part.getKey()).get(lowerLineNum).pulses.add(pulseLine.toInstantiatedPulseTuple(lowerLineStart, lowerLineNum));
+                            partLines.get(part.getKey()).get(lowerLineNum).pulses.add(pulseLine.toInstantiatedPulseTuple(lowerLineStart));
                         }
                     }
                 }
@@ -290,6 +289,12 @@ public class Parser {
 
                     for (InstantiatedBeamGroupTuple beamTuple : part.getValue().get(i).notes) {
                         tempLine.getStaves().get(0).addStaveElement(beamTuple.toBeamGroup(tempLine, chords));
+                    }
+
+                    for (var chordEntry : chords.entrySet()) {
+                        if (chordEntry.getKey() > chords.firstKey()) {
+                            chordEntry.getValue().removeTiesTo();
+                        }
                     }
 
                     for (InstantiatedPulseLineTuple pulseTuple : part.getValue().get(i).pulses) {

@@ -15,7 +15,7 @@ class PulseLineTuple {
         this.timeSig = timeSig;
     }
 
-    InstantiatedPulseLineTuple toInstantiatedPulseTuple(float lineTime, int lineNum) {
+    InstantiatedPulseLineTuple toInstantiatedPulseTuple(float lineTime) {
         return new InstantiatedPulseLineTuple(time - lineTime, name, beatWeight, timeSig);
     }
 }
