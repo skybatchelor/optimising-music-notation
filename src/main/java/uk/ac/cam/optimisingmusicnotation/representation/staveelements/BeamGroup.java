@@ -54,12 +54,6 @@ public class BeamGroup implements StaveElement {
             Chord lastChord = chords.get(chords.size() - 1);
             ChordAnchors<Anchor> lastChordAnchors = chordAnchorsMap.get(lastChord);
             // dividing the beam width by two to align the beams with the stems
-            canvas.drawBeam(
-                    firstChordAnchors.stemEnd(),
-                    0, -sign * RenderingConfiguration.beamOffset,
-                    lastChordAnchors.stemEnd(),
-                    0, -sign * RenderingConfiguration.beamOffset,
-                    RenderingConfiguration.beamWidth);
             // adjust middle chord anchors to account for the beam
             for (Chord chord : chords.subList(1, chords.size() - 1)) {
                 ChordAnchors<Anchor> chordAnchors = chordAnchorsMap.get(chord);
@@ -73,6 +67,18 @@ public class BeamGroup implements StaveElement {
                         interpolatedAnchor, chordAnchors.noteheadOffset(), chordAnchors.stemEndOffset());
                 chordAnchorsMap.put(chord, middleChordAnchors);
             }
+
+            // draw chords now to avoid beams being covered by whitespace
+            for (Chord chord : chords) {
+                chord.draw(canvas, chordAnchorsMap);
+            }
+
+            canvas.drawBeam(
+                    firstChordAnchors.stemEnd(),
+                    0, -sign * RenderingConfiguration.beamOffset,
+                    lastChordAnchors.stemEnd(),
+                    0, -sign * RenderingConfiguration.beamOffset,
+                    RenderingConfiguration.beamWidth);
 
             for (Beam beam : beams) {
                 float beamOffset = -(sign * beam.number * RenderingConfiguration.beamWidth
@@ -136,10 +142,9 @@ public class BeamGroup implements StaveElement {
                     }
                 }
             }
-
         }
-        for (Chord chord : chords) {
-            chord.draw(canvas, chordAnchorsMap);
+        else {
+            chords.get(0).draw(canvas, chordAnchorsMap);
         }
 
 //        if (chords.size() == 1) {
