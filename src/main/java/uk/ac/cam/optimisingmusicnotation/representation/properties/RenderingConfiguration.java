@@ -22,6 +22,8 @@ public class RenderingConfiguration {
     public static boolean beamlets = true;
     public static int beamletLimit = 0;
     public static float staveLineWidth = 0.1f;
+    public static float dotRadius = 0.2f;
+    public static float dotSpacing = 0.2f;
 
     static {
         try {

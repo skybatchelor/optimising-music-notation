@@ -62,7 +62,7 @@ public class Chord extends BeamGroup {
         }
     }
 
-    private boolean dotted(){
+    private boolean dotted() {
         return dots > 0;
     }
 
@@ -192,9 +192,9 @@ public class Chord extends BeamGroup {
         }
     }
 
-    private <Anchor> void drawDots(MusicCanvas<Anchor> canvas, Anchor anchor){
-        if (dotted()) {
-            canvas.drawCircle(anchor, 1f, 0, .2f);
+    private <Anchor> void drawDots(MusicCanvas<Anchor> canvas, Anchor anchor) {
+        for (int i = 0; i < dots; i++) {
+            canvas.drawCircle(anchor, 0.5f + RenderingConfiguration.dotSpacing * (i + 1) + RenderingConfiguration.dotRadius * (2 * i + 1), 0, RenderingConfiguration.dotRadius);
         }
     }
 
