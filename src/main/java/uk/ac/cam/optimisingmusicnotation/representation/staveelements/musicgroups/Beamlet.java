@@ -30,7 +30,7 @@ public class Beamlet extends MusicGroup {
             startAnchor = canvas.interpolateAnchors(
                 chordAnchorsMap.get(chord).stemEnd(),
                 chordAnchorsMap.get(postChord).stemEnd(),
-                    chord.getDurationInCrotchets() * RenderingConfiguration.beamletRatio
+                    RenderingConfiguration.beamletRatio
             );
             int sign = RenderingConfiguration.upwardStems ? 1 : -1;
             for (int i = 0; i <= maxBeam && i <= RenderingConfiguration.beamletLimit; ++i) {

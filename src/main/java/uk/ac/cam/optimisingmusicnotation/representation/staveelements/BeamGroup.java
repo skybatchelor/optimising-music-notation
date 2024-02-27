@@ -88,7 +88,7 @@ public class BeamGroup implements StaveElement {
                                 canvas.interpolateAnchors(
                                         chordAnchorsMap.get(chords.get(beam.startIndex)).stemEnd(),
                                         chordAnchorsMap.get(chords.get(beam.startIndex + 1)).stemEnd(),
-                                        RenderingConfiguration.hookRatio * chords.get(beam.startIndex).noteType.defaultLengthInCrotchets * 2
+                                        RenderingConfiguration.hookRatio
                                 ),
                                 0,
                                 beamOffset,
@@ -101,7 +101,8 @@ public class BeamGroup implements StaveElement {
                                 canvas.interpolateAnchors(
                                         chordAnchorsMap.get(chords.get(beam.startIndex)).stemEnd(),
                                         chordAnchorsMap.get(chords.get(beam.startIndex - 1)).stemEnd(),
-                                        RenderingConfiguration.hookRatio * chords.get(beam.startIndex).noteType.defaultLengthInCrotchets * 2
+                                        RenderingConfiguration.hookRatio * chords.get(beam.startIndex).getDurationInCrotchets()
+                                                / chords.get(beam.startIndex - 1).getDurationInCrotchets()
                                 ),
                                 0,
                                 beamOffset,
@@ -110,14 +111,14 @@ public class BeamGroup implements StaveElement {
                                 beamOffset,
                                 RenderingConfiguration.beamWidth);
                     }
-                    // TODO: implement beamlets here?
                 } else {
                     if (RenderingConfiguration.allHooked && beam.startIndex != 0) {
                         canvas.drawBeam(
                                 canvas.interpolateAnchors(
                                         chordAnchorsMap.get(chords.get(beam.startIndex)).stemEnd(),
                                         chordAnchorsMap.get(chords.get(beam.startIndex - 1)).stemEnd(),
-                                        RenderingConfiguration.hookRatio * chords.get(beam.startIndex).noteType.defaultLengthInCrotchets * 2
+                                        RenderingConfiguration.hookRatio * chords.get(beam.startIndex).getDurationInCrotchets()
+                                                / chords.get(beam.startIndex - 1).getDurationInCrotchets()
                                 ),
                                 0,
                                 beamOffset,
