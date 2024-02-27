@@ -14,6 +14,8 @@ public class RenderingConfiguration {
     public static float pulseLineHeight = 5f;
     public static String fontFilePath;
     public static float ledgerLineWidth = 1.5f;
+    public static float hookRatio = 0.5f;
+    public static boolean allHooked = true;
 
     static {
         try {

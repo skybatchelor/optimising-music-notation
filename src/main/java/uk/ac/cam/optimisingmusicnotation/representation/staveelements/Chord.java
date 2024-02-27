@@ -83,9 +83,9 @@ public class Chord extends BeamGroup {
                 stemBeginning = canvas.offsetAnchor(lowestNoteheadAnchor, 0, sign * .5f);
                 stemEnd = canvas.offsetAnchor(stemBeginning, 0, sign * 3f);
             }
-            chordAnchors = new ChordAnchors<>(lowestNoteheadAnchor, stemEnd, 0, 0);
+            chordAnchors = new ChordAnchors<>(lowestNoteheadAnchor, highestNoteheadAnchor, stemEnd, 0, 0);
         } else {
-            chordAnchors = new ChordAnchors<>(lowestNoteheadAnchor, null, 0, 0);
+            chordAnchors = new ChordAnchors<>(lowestNoteheadAnchor, highestNoteheadAnchor, null, 0, 0);
         }
         chordAnchorsMap.put(this, chordAnchors);
     }
@@ -124,7 +124,7 @@ public class Chord extends BeamGroup {
         if (drawStem) {
             drawStem(canvas, chordAnchors, RenderingConfiguration.upwardStems ? 1 : -1);
         }
-        chordAnchorsMap.put(this,chordAnchors);
+        chordAnchorsMap.put(this, chordAnchors);
     }
 
     private <Anchor> void drawNotehead(MusicCanvas<Anchor> canvas, Anchor anchor, boolean fillInCircle) {
@@ -133,6 +133,11 @@ public class Chord extends BeamGroup {
     private <Anchor> void drawStem(MusicCanvas<Anchor> canvas, ChordAnchors<Anchor> chordAnchors, int sign) {
         Anchor stemEnd = chordAnchors.stemEnd();
         Anchor stemBeginning = canvas.offsetAnchor(stemEnd, 0, -sign * 3f);
+        if (sign == 1) {
+            stemBeginning = canvas.offsetAnchor(chordAnchors.highestNotehead(), 0, sign * 0.5f);
+        } else {
+            stemBeginning = canvas.offsetAnchor(chordAnchors.lowestNotehead(), 0, sign * 0.5f);
+        }
         canvas.drawLine(stemBeginning, 0, 0, stemEnd, 0, 0, RenderingConfiguration.stemWidth);// draw stem
         // draw bit of whitespace to separate from pulse line
         canvas.drawWhitespace(stemEnd, -RenderingConfiguration.stemWidth,
