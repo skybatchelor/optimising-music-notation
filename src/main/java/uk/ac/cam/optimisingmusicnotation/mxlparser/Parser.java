@@ -764,10 +764,13 @@ public class Parser {
         try (FileInputStream xml = new FileInputStream(input)) {
             return Marshalling.unmarshal(xml);
         } catch (Marshalling.UnmarshallingException e) {
+            String[] splitPath = input.split("[/\\\\]");
+            String scoreMxlName = splitPath[splitPath.length - 1];
+            String scoreXmlName = scoreMxlName.split("\\.")[0] + ".xml";
             try (ZipInputStream xml = new ZipInputStream(new FileInputStream(input))) {
                 ZipEntry zipEntry = xml.getNextEntry();
                 while (zipEntry != null) {
-                    if(zipEntry.getName().equals("score.xml")) {
+                    if(zipEntry.getName().equals(scoreXmlName) || zipEntry.getName().equals("score.xml")) {
                         return Marshalling.unmarshal(xml);
                     }
                     zipEntry = xml.getNextEntry();
