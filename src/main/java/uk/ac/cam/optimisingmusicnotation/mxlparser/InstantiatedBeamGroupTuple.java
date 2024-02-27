@@ -54,6 +54,12 @@ class InstantiatedBeamGroupTuple {
         return highestBeamNumber;
     }
 
+    void addToAverager(StaveLineAverager averager) {
+        for (var tuple : chords) {
+            averager.addChord(tuple);
+        }
+    }
+
     BeamGroup toBeamGroup(Line line, TreeMap<Float, Chord> chordMap, Map<Chord, Integer> needsFlag, Map<Chord, Integer> needsBeamlet) {
         if (chords.size() == 1) {
             if (!isBeamed(chords.get(0).noteType)) {
