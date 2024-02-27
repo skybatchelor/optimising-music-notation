@@ -12,8 +12,8 @@ import java.util.List;
 import java.util.Map;
 
 public class Dynamic extends MusicGroup {
-    private String text;
-    private MusicalPosition musicalPosition;
+    private final String text;
+    private final MusicalPosition musicalPosition;
 
     public Dynamic (List<Chord> chords, String text, MusicalPosition musicalPosition) {
         super(chords);
@@ -29,7 +29,7 @@ public class Dynamic extends MusicGroup {
         anchor = canvas.getTakeXTakeYAnchor(canvas.getAnchor(musicalPosition), lowestAnchor);
         float width = text.length() * 1.5f;
         try {
-            canvas.drawText(RenderingConfiguration.fontFilePath, text,10f, TextAlignment.CENTRE, anchor,
+            canvas.drawText(RenderingConfiguration.dynamicsFontFilePath, text,10f, TextAlignment.CENTRE, anchor,
                     -width/2, RenderingConfiguration.dynamicsOffset + RenderingConfiguration.dynamicsTextHeight / 2, width, RenderingConfiguration.dynamicsTextHeight);
         } catch (IOException e) {
             throw new RuntimeException(e);

@@ -38,9 +38,10 @@ public class TimeSignature {
         Anchor anchor = canvas.getAnchor(musicalPosition);
         float width = maxDigits() * 1.5f;
         try {
-            canvas.drawWhitespace(anchor,-0.5f,7f,width,4.5f);
-            canvas.drawText(RenderingConfiguration.fontFilePath,Integer.toString(beatNum),10f, TextAlignment.LEFT,anchor,-0.5f,8f,width,5f);
-            canvas.drawText(RenderingConfiguration.fontFilePath,Integer.toString(beatType),10f, TextAlignment.LEFT,anchor,-0.5f,6f,width,5f);
+            //canvas.drawLine(anchor,-0.5f,7.5f,-0.5f,2f,3.5f);
+            canvas.drawWhitespace(anchor,-0.5f,7.5f,width,4.5f);
+            canvas.drawText(RenderingConfiguration.dynamicsFontFilePath,Integer.toString(beatNum),10f, TextAlignment.LEFT,anchor,-0.5f,9.5f,width,6f);
+            canvas.drawText(RenderingConfiguration.dynamicsFontFilePath,Integer.toString(beatType),10f, TextAlignment.LEFT,anchor,-0.5f,7.5f,width,6f);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

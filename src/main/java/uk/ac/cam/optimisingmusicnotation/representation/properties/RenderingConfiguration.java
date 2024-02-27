@@ -12,6 +12,8 @@ public class RenderingConfiguration {
     public static float gapHeight = 0.125f;
     public static float artisticWhitespaceWidth = 1f; // A crochet of whitespace + dead space
     public static float pulseLineHeight = 5f;
+    public static String defaultFontFilePath;
+    public static String dynamicsFontFilePath;
     public static String fontFilePath;
     public static float ledgerLineWidth = 1.5f;
     public static float hookRatio = 0.5f;
@@ -27,13 +29,15 @@ public class RenderingConfiguration {
     public static float dynamicsOffset = -3f;
     public static float hairpinHeight = 1.5f;
     public static float hairpinInset = 1.5f;
-    public static float dynamicsTextHeight = 5f;
+    public static float dynamicsTextHeight = 6f;
 
     static {
         try {
-            fontFilePath = Paths.get(RenderingConfiguration.class.getResource("/fonts/Roboto-Regular.ttf").toURI()).toString();
+            fontFilePath = Paths.get(RenderingConfiguration.class.getResource("/fonts").toURI()).toString();
+            defaultFontFilePath = fontFilePath + "/Roboto-Regular.ttf";
+            dynamicsFontFilePath = fontFilePath + "/Century_Condensed_Bold_Italic.ttf";
             imgFilePath = Paths.get(RenderingConfiguration.class.getResource("/img").toURI()).toString();
-        } catch (URISyntaxException e) {
+        } catch (URISyntaxException | NullPointerException e) {
             throw new RuntimeException(e);
         }
     }
