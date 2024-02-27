@@ -21,6 +21,15 @@ public class KeySignature {
         return alterations;
     }
 
+    public Accidental getAccidental(PitchName pitchName) {
+        for (Alteration alt : alterations) {
+            if (alt.alteredPitch == pitchName) {
+                return alt.getAccidental();
+            }
+        }
+        return Accidental.NONE;
+    }
+
     private final List<Alteration> alterations;
 
     public KeySignature () {

@@ -98,7 +98,7 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
 
     @Override
     public Anchor getAnchor(MusicalPosition musicalPosition) {
-        return getAnchor(musicalPosition, new Pitch(8, 0));
+        return getAnchor(musicalPosition, new Pitch(8, 0, 0));
     }
 
     @Override
@@ -123,6 +123,10 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
         return new Anchor(anchor1.page, (1 - t) * anchor1.x + t * anchor2.x, (1 - t) * anchor1.y + t * anchor2.y);
     }
 
+    @Override
+    public Anchor takeXtakeYAnchor(Anchor anchorX, Anchor anchorY) {
+        return new Anchor(anchorX.page, anchorX.x, anchorY.y);
+    }
     @Override
     public Anchor topLeftAnchor() {
         Rectangle pageSize = pdf.getPage(1).getPageSize();

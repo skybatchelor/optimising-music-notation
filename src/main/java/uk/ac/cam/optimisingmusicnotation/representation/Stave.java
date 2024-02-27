@@ -4,6 +4,7 @@ import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.ChordAnchors;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch;
+import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.StaveElement;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.MusicGroup;
@@ -76,9 +77,9 @@ public class Stave {
             Anchor anchor2;
 
             for (int i = 0; i < 10; i = i + 2) {
-                anchor1 = canvas.getAnchor(start, new Pitch(i, 0));
-                anchor2 = canvas.getAnchor(end, new Pitch(i, 0));
-                canvas.drawLine(anchor1, -1f, 0, anchor2, 2f, 0, 0.1f);
+                anchor1 = canvas.getAnchor(start, new Pitch(i, 0, 0));
+                anchor2 = canvas.getAnchor(end, new Pitch(i, 0, 0));
+                canvas.drawLine(anchor1, -1f, 0, anchor2, 2f, 0, RenderingConfiguration.staveLineWidth);
             }
         }
     }
@@ -87,7 +88,7 @@ public class Stave {
         Anchor anchor1;
 
         for (int i = 0; i < 10; i=i+2) {
-            anchor1 = canvas.getAnchor(new MusicalPosition(line, 0),new Pitch(i,0));
+            anchor1 = canvas.getAnchor(new MusicalPosition(line, 0),new Pitch(i,0, 0));
             canvas.drawLine(anchor1, -(6f+numAlterations), 0, -2f, 0, 0.1f);
         }
     }

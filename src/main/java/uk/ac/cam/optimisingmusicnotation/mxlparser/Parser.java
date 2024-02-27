@@ -10,6 +10,8 @@ import uk.ac.cam.optimisingmusicnotation.rendering.PdfMusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.*;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.*;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
+import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.Beamlet;
+import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.Flag;
 
 import javax.xml.bind.JAXBElement;
 import java.io.FileInputStream;
@@ -25,6 +27,7 @@ import java.util.zip.ZipInputStream;
 
 public class Parser {
     public static final boolean NEW_SECTION_FOR_KEY_SIGNATURE = true;
+    public static final float EPSILON = 0.001f;
 
     public static Score parseToScore(Object mxl) {
         if (mxl instanceof ScorePartwise partwise) {
@@ -77,7 +80,7 @@ public class Parser {
                 int divisions = 0;
                 float prevChange;
                 int lowestLineGrandStaveLine = 0;
-                ChordTuple currentChord = new ChordTuple(0, 0);
+                ChordTuple currentChord = new ChordTuple(0, 0, currentKeySignature);
                 BeamGroupTuple beamGroup = new BeamGroupTuple();
                 List<ScorePartwise.Part.Measure> measures = part.getMeasure();
 
@@ -133,7 +136,7 @@ public class Parser {
                                 prevChange = 0;
                             }
                             if (note.getChord() == null) {
-                                currentChord = new ChordTuple(measureStartTime + measureTime, lowestLineGrandStaveLine);
+                                currentChord = new ChordTuple(measureStartTime + measureTime, lowestLineGrandStaveLine, currentKeySignature);
                                 measureTime += prevChange;
                             }
                             currentChord.notes.add(note);
@@ -189,7 +192,7 @@ public class Parser {
                                 var whitespace = new BeamGroupTuple();
                                 whitespace.startTime = (measureStartTime + measureTime + offset) - RenderingConfiguration.artisticWhitespaceWidth;
                                 whitespace.endTime = (measureStartTime + measureTime + offset);
-                                var restChord = new ChordTuple(whitespace.startTime, 0);
+                                var restChord = new ChordTuple(whitespace.startTime, 0, currentKeySignature);
                                 restChord.duration = RenderingConfiguration.artisticWhitespaceWidth;
                                 var restNote = new Note();
                                 restNote.setRest(new org.audiveris.proxymusic.Rest());
@@ -277,6 +280,8 @@ public class Parser {
                 finalLines.put(part.getKey(), new ArrayList<>());
                 for (int i = 0; i < part.getValue().size(); ++i) {
                     var chords = new TreeMap<Float, Chord>();
+                    var needsFlag = new HashMap<Chord, Integer>();
+                    var needsBeamlet = new HashMap<Chord, Integer>();
                     Stave stave = new Stave(new ArrayList<>(), new ArrayList<>(),new ArrayList<>());
 
                     Line tempLine = new Line(new ArrayList<>() {{ add(stave); }}, lineLengths.get(i), lineOffsets.get(i), i);
@@ -288,13 +293,31 @@ public class Parser {
                     }
 
                     for (InstantiatedBeamGroupTuple beamTuple : part.getValue().get(i).notes) {
-                        tempLine.getStaves().get(0).addStaveElement(beamTuple.toBeamGroup(tempLine, chords));
+                        tempLine.getStaves().get(0).addStaveElement(beamTuple.toBeamGroup(tempLine, chords, needsFlag, needsBeamlet));
                     }
 
                     for (var chordEntry : chords.entrySet()) {
                         if (chordEntry.getKey() > chords.firstKey()) {
                             chordEntry.getValue().removeTiesTo();
                         }
+                    }
+
+                    for (var entry : needsFlag.entrySet()) {
+                        var preEntry = chords.lowerEntry(entry.getKey().getCrotchetsIntoLine());
+                        var preChord = preEntry == null ? null : preEntry.getValue();
+                        if (preChord != null && preChord.getEndCrotchetsIntoLine() + EPSILON < entry.getKey().getCrotchetsIntoLine()) {
+                            preChord = null;
+                        }
+                        tempLine.getStaves().get(0).addMusicGroup(new Flag(preChord, entry.getKey(), tempLine, entry.getValue()));
+                    }
+
+                    for (var entry : needsBeamlet.entrySet()) {
+                        var postEntry = chords.higherEntry(entry.getKey().getCrotchetsIntoLine());
+                        var postChord = postEntry == null ? null : postEntry.getValue();
+                        if (postChord != null && entry.getKey().getEndCrotchetsIntoLine() + EPSILON < postChord.getCrotchetsIntoLine()) {
+                            postChord = null;
+                        }
+                        tempLine.getStaves().get(0).addMusicGroup(new Beamlet(postChord, entry.getKey(), tempLine, entry.getValue()));
                     }
 
                     for (InstantiatedPulseLineTuple pulseTuple : part.getValue().get(i).pulses) {
@@ -333,7 +356,7 @@ public class Parser {
                 parts.get(part.getKey()).setSections(part.getValue());
             }
 
-            return new Score(getWorkTitle(partwise), parts.values().stream().toList());
+            return new Score(getWorkTitle(partwise), getComposer(partwise), parts.values().stream().toList());
         }
         return null;
     }
@@ -341,11 +364,22 @@ public class Parser {
     static String getWorkTitle(ScorePartwise score) {
         if (score.getWork() != null && score.getWork().getWorkTitle() != null) {
             return score.getWork().getWorkTitle();
-        } else {
-            return "";
         }
+        return "";
     }
 
+    static String getComposer(ScorePartwise score) {
+        if (score.getIdentification() != null && score.getIdentification().getCreator() != null) {
+            var composers = new ArrayList<String>();
+            for (TypedText text : score.getIdentification().getCreator()) {
+                if (text.getType().equals("composer")) {
+                    composers.add(text.getValue());
+                }
+            }
+            return String.join(", ", composers);
+        }
+        return "";
+    }
 
     static SplitChordTuple splitInstantiatedChordTuple(InstantiatedChordTuple tuple, float newLine) {
         SplitChordTuple res = new SplitChordTuple();
@@ -368,6 +402,19 @@ public class Parser {
             case A -> 5;
             case B -> 6;
         } + 7 * pitch.getOctave();
+    }
+
+    // translates a pitch into the number of lines above the root of C0.
+    static int pitchToGrandStaveLine(Unpitched unpitched) {
+        return switch (unpitched.getDisplayStep()) {
+            case C -> 0;
+            case D -> 1;
+            case E -> 2;
+            case F -> 3;
+            case G -> 4;
+            case A -> 5;
+            case B -> 6;
+        } + 7 * unpitched.getDisplayOctave();
     }
 
     static int pitchToGrandStaveLine(Step step, int octave) {
@@ -558,8 +605,8 @@ public class Parser {
         return switch (clef.getSign()) {
             case C -> pitchToGrandStaveLine(Step.C, 4);
             case F -> pitchToGrandStaveLine(Step.F, 3);
-            case G -> pitchToGrandStaveLine(Step.G, 4);
-            case PERCUSSION, TAB -> 0;
+            case G, PERCUSSION -> pitchToGrandStaveLine(Step.G, 4);
+            case TAB -> 0;
         } + 7 * clef.getOctaveChange() - clef.getLine();
     }
 
