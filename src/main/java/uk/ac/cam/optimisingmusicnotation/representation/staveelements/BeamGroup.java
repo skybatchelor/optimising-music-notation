@@ -56,9 +56,9 @@ public class BeamGroup implements StaveElement {
             // dividing the beam width by two to align the beams with the stems
             canvas.drawBeam(
                     firstChordAnchors.stemEnd(),
-                    0, -sign * RenderingConfiguration.beamWidth / 2,
+                    0, -sign * RenderingConfiguration.beamOffset,
                     lastChordAnchors.stemEnd(),
-                    0, -sign * RenderingConfiguration.beamWidth / 2,
+                    0, -sign * RenderingConfiguration.beamOffset,
                     RenderingConfiguration.beamWidth);
             // adjust middle chord anchors to account for the beam
             for (Chord chord : chords.subList(1, chords.size() - 1)) {
@@ -76,7 +76,7 @@ public class BeamGroup implements StaveElement {
 
             for (Beam beam : beams) {
                 float beamOffset = -(sign * beam.number * RenderingConfiguration.beamWidth
-                        + sign * RenderingConfiguration.gapBetweenBeams * beam.number);
+                        + sign * RenderingConfiguration.gapBetweenBeams * beam.number + sign * RenderingConfiguration.beamOffset);
                 if (beam.startIndex == beam.endIndex) {
                     // canvas.drawBeam(chordAnchorsMap.get(chords.get(beam.startIndex)).stemEnd(),
                     // -1, 3.125f - 1f * beam.number,

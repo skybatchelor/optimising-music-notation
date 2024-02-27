@@ -124,6 +124,10 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     }
 
     @Override
+    public Anchor takeXtakeYAnchor(Anchor anchorX, Anchor anchorY) {
+        return new Anchor(anchorX.page, anchorX.x, anchorY.y);
+    }
+    @Override
     public Anchor topLeftAnchor() {
         Rectangle pageSize = pdf.getPage(1).getPageSize();
         return new Anchor(0, pageSize.getLeft() / STAVE_SPACING,
