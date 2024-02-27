@@ -548,6 +548,18 @@ public class Parser {
                         }
                     }
                 }
+                if (directionType.getDynamics() != null) {
+                    for (var dynamics : directionType.getDynamics()) {
+                        if (dynamics.getPOrPpOrPpp() != null) {
+                            for (var element : dynamics.getPOrPpOrPpp()) {
+                                var tuple = new MusicGroupTuple(time, MusicGroupType.DYNAMIC);
+                                tuple.endTime = time;
+                                tuple.text = element.getName().getLocalPart();
+                                currentPart.musicGroups.add(tuple);
+                            }
+                        }
+                    }
+                }
             }
         }
     }
