@@ -27,27 +27,24 @@ public class Beamlet extends MusicGroup {
     @Override
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Map<Chord, ChordAnchors<Anchor>> chordAnchorsMap) {
         Anchor startAnchor;
-        if (postChord == null) {
-            startAnchor = canvas.takeXtakeYAnchor(canvas.getAnchor(new MusicalPosition(line, chord.getMusicalPosition().crotchetsIntoLine() +
-                    chord.getDurationInCrotchets() * RenderingConfiguration.beamletRatio)), chordAnchorsMap.get(chord).stemEnd());
-        } else {
+        if (postChord != null) {
             startAnchor = canvas.interpolateAnchors(
                 chordAnchorsMap.get(chord).stemEnd(),
                 chordAnchorsMap.get(postChord).stemEnd(),
                     chord.getDurationInCrotchets() * RenderingConfiguration.beamletRatio / postChord.getDurationInCrotchets()
             );
-        }
-        int sign = RenderingConfiguration.upwardStems ? 1 : -1;
-        for (int i = 0; i <= maxBeam && i <= RenderingConfiguration.beamletLimit; ++i) {
-            float beamOffset = -(sign * i * RenderingConfiguration.beamWidth
-                    + sign * RenderingConfiguration.gapBetweenBeams * i + sign * RenderingConfiguration.beamOffset);
-            canvas.drawBeam(
-                    startAnchor,
-                    0,
-                    beamOffset,
-                    chordAnchorsMap.get(chord).stemEnd(), 0,
-                    beamOffset,
-                    RenderingConfiguration.beamWidth);
+            int sign = RenderingConfiguration.upwardStems ? 1 : -1;
+            for (int i = 0; i <= maxBeam && i <= RenderingConfiguration.beamletLimit; ++i) {
+                float beamOffset = -(sign * i * RenderingConfiguration.beamWidth
+                        + sign * RenderingConfiguration.gapBetweenBeams * i + sign * RenderingConfiguration.beamOffset);
+                canvas.drawBeam(
+                        startAnchor,
+                        0,
+                        beamOffset,
+                        chordAnchorsMap.get(chord).stemEnd(), 0,
+                        beamOffset,
+                        RenderingConfiguration.beamWidth);
+            }
         }
     }
 }
