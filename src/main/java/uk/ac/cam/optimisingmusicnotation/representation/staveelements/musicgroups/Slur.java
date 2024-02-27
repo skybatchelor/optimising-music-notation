@@ -26,15 +26,25 @@ public class Slur extends MusicGroup {
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Map<Chord, ChordAnchors<Anchor>> chordAnchorsMap) {
         float absoluteYOffset = 1.5f; // set vertical offset from Notehead here
         float signedYOffset = RenderingConfiguration.upwardStems ? -absoluteYOffset : absoluteYOffset;
-        // TODO: deal with null first and last chords
+        float startNoteheadOffset = 0;
+        float endNoteheadOffset = 0;
+
         Anchor startAnchor = canvas.getAnchor(new MusicalPosition(line, 0));
         Anchor endAnchor = canvas.getAnchor(new MusicalPosition(line, 0));
-        if (chordAnchorsMap.get(firstChord) != null) {
-            startAnchor = chordAnchorsMap.get(firstChord).notehead();
+
+
+        ChordAnchors<Anchor> firstChordAnchors = chordAnchorsMap.get(firstChord);
+        if (firstChordAnchors != null) {
+            startAnchor = firstChordAnchors.notehead();
+            startNoteheadOffset = firstChordAnchors.noteheadOffset();
         }
-        if (chordAnchorsMap.get(lastChord) != null) {
-            endAnchor = chordAnchorsMap.get(lastChord).notehead();
+
+        ChordAnchors<Anchor> lastChordAnchors = chordAnchorsMap.get(lastChord);
+        if (lastChordAnchors != null) {
+            endAnchor = lastChordAnchors.notehead();
+            endNoteheadOffset = lastChordAnchors.noteheadOffset();
         }
-        canvas.drawCurve(startAnchor, 0, signedYOffset, endAnchor, 0, signedYOffset, .2f, !RenderingConfiguration.upwardStems);
+
+        canvas.drawCurve(startAnchor, 0, signedYOffset + startNoteheadOffset, endAnchor, 0, signedYOffset + endNoteheadOffset, .2f, !RenderingConfiguration.upwardStems);
     }
 }
