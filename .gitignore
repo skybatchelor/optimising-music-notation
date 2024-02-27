@@ -1,3 +1,10 @@
 # Default ignored files
 /target/
 /out/
+
+# Sibelius plugin generated files
+PASS
+FAIL
+ERRORS
+
+optimisingmusicnotation.jar
