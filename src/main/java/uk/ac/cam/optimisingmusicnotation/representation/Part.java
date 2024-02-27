@@ -58,7 +58,7 @@ public class Part {
         sections.add(s);
     }
 
-    public <Anchor> void draw(MusicCanvas<Anchor> canvas, String workTitle) {
+    public <Anchor> void draw(MusicCanvas<Anchor> canvas, String workTitle, String composer) {
         RenderingConfiguration.upwardStems = upwardsStems;
         canvas.reserveHeight(15f);
         try {
@@ -66,6 +66,8 @@ public class Part {
                     TextAlignment.CENTRE, canvas.topCentreAnchor(), -60f,-7f,120f,20f);
             canvas.drawText(RenderingConfiguration.defaultFontFilePath,name,16f,
                     TextAlignment.LEFT, canvas.topLeftAnchor(), 6f,-15f,100f,20f);
+            canvas.drawText(RenderingConfiguration.defaultFontFilePath,composer,16f,
+                    TextAlignment.RIGHT, canvas.topRightAnchor(), -106f,-15f,100f,20f);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

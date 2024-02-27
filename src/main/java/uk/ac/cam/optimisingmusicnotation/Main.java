@@ -45,7 +45,7 @@ public class Main {
             PageSize ps = PageSize.A4;
             pdf.addNewPage(ps);
             PdfMusicCanvas canvas = new PdfMusicCanvas(pdf);
-            part.draw(canvas, score.getWorkTitle());
+            part.draw(canvas, score.getWorkTitle(), score.getComposer());
             pdf.close();
         }
         catch (FileNotFoundException e) {

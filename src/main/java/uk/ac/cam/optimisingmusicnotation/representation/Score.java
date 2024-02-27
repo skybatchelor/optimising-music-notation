@@ -8,6 +8,11 @@ public class Score {
     }
 
     private String workTitle;
+
+    public String getComposer() {
+        return composer;
+    }
+
     private String composer;
 
     public List<Part> getParts() {

@@ -825,7 +825,7 @@ public class Parser {
                     pdf.addNewPage(ps);
 
                     PdfMusicCanvas canvas = new PdfMusicCanvas(pdf);
-                    part.draw(canvas, score.getWorkTitle());
+                    part.draw(canvas, score.getWorkTitle(), score.getComposer());
                     pdf.close();
                 }
                 catch (Exception e) {
@@ -841,7 +841,7 @@ public class Parser {
 
                 PdfMusicCanvas canvas = new PdfMusicCanvas(pdf);
                 Part testPart = score.getParts().get(targetPart);
-                testPart.draw(canvas, score.getWorkTitle());
+                testPart.draw(canvas, score.getWorkTitle(), score.getComposer());
                 pdf.close();
             }
             catch (IOException e) {
