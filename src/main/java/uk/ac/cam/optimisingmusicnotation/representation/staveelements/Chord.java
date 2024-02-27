@@ -162,11 +162,31 @@ public class Chord extends BeamGroup {
     private <Anchor> void drawStem(MusicCanvas<Anchor> canvas, ChordAnchors<Anchor> chordAnchors, int sign) {
         Anchor stemEnd = chordAnchors.stemEnd();
         Anchor stemBeginning = canvas.offsetAnchor(sign == 1 ? chordAnchors.highestNotehead() : chordAnchors.lowestNotehead(), 0, sign * .5f);
-        canvas.drawLine(stemBeginning, 0, 0, stemEnd, 0, 0, RenderingConfiguration.stemWidth);// draw stem
+        boolean stemFlipped = false;
+        if (sign == 1) {
+            if (canvas.isAnchorBelow(stemEnd, stemBeginning)) {
+                stemBeginning = canvas.offsetAnchor(chordAnchors.lowestNotehead(), 0, -sign * .5f);
+                sign *= -1;
+                stemFlipped = true;
+            }
+        } else {
+            if (canvas.isAnchorBelow(stemBeginning, stemEnd)) {
+                stemBeginning = canvas.offsetAnchor(chordAnchors.highestNotehead(), 0, -sign * .5f);
+                sign *= -1;
+                stemFlipped = true;
+            }
+        }
+        canvas.drawLine(stemBeginning, 0, 0, stemEnd, 0,  + sign * RenderingConfiguration.beamWidth / 2, RenderingConfiguration.stemWidth);// draw stem
         // draw bit of whitespace to separate from pulse line
-        canvas.drawWhitespace(stemEnd, -RenderingConfiguration.stemWidth,
-                sign * RenderingConfiguration.gapHeight, 2 * RenderingConfiguration.stemWidth,
-                RenderingConfiguration.gapHeight);
+        if (stemFlipped) {
+            canvas.drawWhitespace(stemEnd, -RenderingConfiguration.stemWidth,
+                    sign * RenderingConfiguration.gapHeight + sign * RenderingConfiguration.beamWidth / 2, 2 * RenderingConfiguration.stemWidth,
+                    sign * RenderingConfiguration.gapHeight);
+        } else {
+            canvas.drawWhitespace(stemEnd, -RenderingConfiguration.stemWidth,
+                    sign * RenderingConfiguration.gapHeight + sign * RenderingConfiguration.beamWidth / 2, 2 * RenderingConfiguration.stemWidth,
+                    sign * RenderingConfiguration.gapHeight);
+        }
     }
     private <Anchor> void drawAccidental(MusicCanvas<Anchor> canvas, Note note, Anchor anchor, boolean hasLedgerLines) {
         if (note.accidental != Accidental.NONE){
