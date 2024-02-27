@@ -206,9 +206,11 @@ public class Parser {
                     }
 
                     if (newTimeSignature) {
-                        addPulseLines(currentTimeSignature, measureStartTime, currentPart.pulseLines, measure.getText(), currentTimeSignature);
+                        addPulseLines(currentTimeSignature, measureStartTime, currentPart.pulseLines,
+                                measure.getText() == null ? measure.getNumber() == null ? "" : measure.getNumber() : measure.getText(), currentTimeSignature);
                     } else {
-                        addPulseLines(currentTimeSignature, measureStartTime, currentPart.pulseLines, measure.getText(), null);
+                        addPulseLines(currentTimeSignature, measureStartTime, currentPart.pulseLines,
+                                measure.getText() == null ? measure.getNumber() == null ? "" : measure.getNumber() : measure.getText(), null);
                     }
                     measureStartTime += measureLength;
                 }

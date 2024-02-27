@@ -41,7 +41,7 @@ public class RenderingConfiguration {
             HashMap<String, String> env = new HashMap<>();
             String[] fontPaths = RenderingConfiguration.class.getResource("/fonts").toURI().toString().split("!");
             if (fontPaths.length == 1) {
-                fontFilePath = Paths.get(fontPaths[0]).toString();
+                fontFilePath = Paths.get(URI.create(fontPaths[0])).toString();
                 defaultFontFilePath = fontFilePath + "/Roboto-Regular.ttf";
                 dynamicsFontFilePath = fontFilePath + "/Century_Condensed_Bold_Italic.ttf";
                 imgFilePath = Paths.get(RenderingConfiguration.class.getResource("/img").toURI()).toString();
