@@ -24,6 +24,10 @@ public class Flag extends MusicGroup {
         this.maxBeam = number;
     }
 
+    public static <Anchor> void drawFlag() {
+
+    }
+
     @Override
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Map<Chord, ChordAnchors<Anchor>> chordAnchorsMap) {
         Anchor startAnchor;

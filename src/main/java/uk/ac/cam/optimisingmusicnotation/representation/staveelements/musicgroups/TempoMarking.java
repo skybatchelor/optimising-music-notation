@@ -42,6 +42,8 @@ public class TempoMarking extends MusicGroup {
 
     @Override
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Map<Chord, ChordAnchors<Anchor>> chordAnchorsMap) {
-        Anchor anchor = canvas.getLowestStaveLineAnchor(position);
+        Anchor anchor = canvas.getAnchor(position);
+
+
     }
 }
