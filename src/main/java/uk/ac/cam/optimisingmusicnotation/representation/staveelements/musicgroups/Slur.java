@@ -30,10 +30,10 @@ public class Slur extends MusicGroup {
         Anchor startAnchor = canvas.getAnchor(new MusicalPosition(line, 0));
         Anchor endAnchor = canvas.getAnchor(new MusicalPosition(line, 0));
         if (chordAnchorsMap.get(firstChord) != null) {
-            startAnchor = chordAnchorsMap.get(firstChord).notehead();
+            startAnchor = chordAnchorsMap.get(firstChord).lowestNotehead();
         }
         if (chordAnchorsMap.get(lastChord) != null) {
-            endAnchor = chordAnchorsMap.get(lastChord).notehead();
+            endAnchor = chordAnchorsMap.get(lastChord).lowestNotehead();
         }
         canvas.drawCurve(startAnchor, 0, signedYOffset, endAnchor, 0, signedYOffset, .2f, RenderingConfiguration.upwardStems);
     }
