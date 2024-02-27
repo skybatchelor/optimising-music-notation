@@ -3,6 +3,7 @@ package uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgrou
 import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.ChordAnchors;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
+import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
 
 import java.util.List;
@@ -15,9 +16,13 @@ public class Diminuendo extends LineElement {
     @Override
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Map<Chord, ChordAnchors<Anchor>> chordAnchorsMap) {
         // TODO: range over the elements to have Anchor = argmin(x.verticalPos)
-        float YPos = -6;
-        float h = .75f;
-        canvas.drawLine(canvas.getAnchor(startPosition), 0, YPos - h, canvas.getAnchor(endPosition), 0, YPos, .1f);
-        canvas.drawLine(canvas.getAnchor(startPosition), 0, YPos + h, canvas.getAnchor(endPosition), 0, YPos, .1f);
+        Anchor startAnchor = canvas.getLowestStaveLineAnchor(startPosition);
+        Anchor lowestAnchor = canvas.getLowestAnchor(chords.stream().map((chord) -> chordAnchorsMap.get(chord).getLowestAnchor(canvas, chord)).toList(), startAnchor);
+        startAnchor = canvas.getTakeXTakeYAnchor(canvas.getAnchor(startPosition), lowestAnchor);
+        Anchor endAnchor = canvas.getTakeXTakeYAnchor(canvas.getAnchor(endPosition), lowestAnchor);
+        canvas.drawLine(startAnchor, RenderingConfiguration.hairpinInset, RenderingConfiguration.dynamicsOffset + RenderingConfiguration.hairpinHeight / 2,
+                endAnchor, -RenderingConfiguration.hairpinInset, RenderingConfiguration.dynamicsOffset,  .1f);
+        canvas.drawLine(startAnchor, RenderingConfiguration.hairpinInset, RenderingConfiguration.dynamicsOffset - RenderingConfiguration.hairpinHeight / 2,
+                endAnchor, -RenderingConfiguration.hairpinInset, RenderingConfiguration.dynamicsOffset,  .1f);
     }
 }

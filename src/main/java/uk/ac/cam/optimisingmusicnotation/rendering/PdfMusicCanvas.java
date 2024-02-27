@@ -102,6 +102,11 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     }
 
     @Override
+    public Anchor getLowestStaveLineAnchor(MusicalPosition musicalPosition) {
+        return getAnchor(musicalPosition, new Pitch(0, 0, 0));
+    }
+
+    @Override
     public Anchor getAnchor(MusicalPosition musicalPosition, Pitch pitch) {
         Anchor lineAnchor = lineAnchors.get(musicalPosition.line().getLineNumber());
         PdfPage page = pdf.getPage(lineAnchor.page + 1);
@@ -124,7 +129,7 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     }
 
     @Override
-    public Anchor takeXtakeYAnchor(Anchor anchorX, Anchor anchorY) {
+    public Anchor getTakeXTakeYAnchor(Anchor anchorX, Anchor anchorY) {
         return new Anchor(anchorX.page, anchorX.x, anchorY.y);
     }
     @Override
@@ -151,6 +156,16 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     @Override
     public boolean isAnchorBelow(Anchor anchor1, Anchor anchor2) {
         return anchor1.y < anchor2.y;
+    }
+
+    @Override
+    public Anchor getLowestAnchor(List<Anchor> anchors, Anchor start) {
+        for (Anchor anchor : anchors) {
+            if (isAnchorBelow(anchor, start)) {
+                start = anchor;
+            }
+        }
+        return start;
     }
 
     @Override
