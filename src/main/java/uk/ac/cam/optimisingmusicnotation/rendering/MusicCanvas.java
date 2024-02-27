@@ -16,6 +16,8 @@ public interface MusicCanvas<Anchor> {
     Anchor topCentreAnchor();
     Anchor topRightAnchor();
 
+    boolean isAnchorBelow(Anchor anchor1, Anchor anchor2);
+
     void addLine();
     void reserveHeight(float height);
 

@@ -145,6 +145,11 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     }
 
     @Override
+    public boolean isAnchorBelow(Anchor anchor1, Anchor anchor2) {
+        return anchor1.y < anchor2.y;
+    }
+
+    @Override
     public void drawCircle(Anchor anchor, float x, float y, float r) {
         drawCircle(anchor, x, y, r, true);
     }
