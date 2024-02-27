@@ -83,9 +83,9 @@ public class Chord extends BeamGroup {
                 stemBeginning = canvas.offsetAnchor(lowestNoteheadAnchor, 0, sign * .5f);
                 stemEnd = canvas.offsetAnchor(stemBeginning, 0, sign * 3f);
             }
-            chordAnchors = new ChordAnchors<Anchor>(lowestNoteheadAnchor, stemEnd, 0, 0);
+            chordAnchors = new ChordAnchors<>(lowestNoteheadAnchor, stemEnd, 0, 0);
         } else {
-            chordAnchors = new ChordAnchors<Anchor>(lowestNoteheadAnchor, null, 0, 0);
+            chordAnchors = new ChordAnchors<>(lowestNoteheadAnchor, null, 0, 0);
         }
         chordAnchorsMap.put(this, chordAnchors);
     }
@@ -98,66 +98,68 @@ public class Chord extends BeamGroup {
         boolean fillInCircle = noteType.defaultLengthInCrotchets <= 1;
         boolean drawStem = noteType.defaultLengthInCrotchets <= 2;
 
+        boolean hasLedgerLines;
+
         ChordAnchors<Anchor> chordAnchors;
         if (!chordAnchorsMap.containsKey(this)) {
             computeAnchors(canvas, chordAnchorsMap);
         }
         chordAnchors = chordAnchorsMap.get(this);
         for (Note note : notes) {
-            canvas.drawCircle(canvas.getAnchor(musicalPosition, note.pitch), 0, 0, .5f, fillInCircle); // draw note head [!need to adjust on noteType]
             if (note.pitch.rootStaveLine() < lowestLine) {
                 lowestLine = note.pitch.rootStaveLine();
-                //ret = canvas.getAnchor(musicalPosition, note.pitch);
             }
             if (note.pitch.rootStaveLine() > highestLine) {
                 highestLine = note.pitch.rootStaveLine();
             }
-            if (dotted()) {
-                canvas.drawCircle(canvas.getAnchor(musicalPosition, note.pitch), 1f, 0, .2f);
-            }
-            if (note.accidental != Accidental.NONE) {
-                Anchor anchor = canvas.getAnchor(musicalPosition, note.pitch);
-                String accidentalPath = RenderingConfiguration.imgFilePath + "/accidentals/"
-                        + note.accidental.toString().toLowerCase() + ".svg";
-                try{
-                    canvas.drawImage(accidentalPath, anchor,-1.25f, 1f,0.75f, 2f);
-                } catch (java.io.IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            // let's draw the ledger lines
-            for (int i = lowestLine / 2; i < 0; i += 2) {
-                canvas.drawLine(canvas.getAnchor(musicalPosition, new Pitch(i, 0)), -1f, 0f, 1f, 0f, .2f);
-            }
-            for (int i = 10; i <= highestLine; i += 2) {
-                canvas.drawLine(canvas.getAnchor(musicalPosition, new Pitch(i, 0)), -1f, 0f, 1f, 0f, .2f);
-            }
+            Anchor anchor = canvas.getAnchor(musicalPosition, note.pitch);
+            drawTie(canvas, note, anchor);
+            drawNotehead(canvas, anchor, fillInCircle);
+            drawDots(canvas, anchor);
+            hasLedgerLines = hasLedgerLines(note);
+            drawAccidental(canvas, note, anchor, true); // I feel like changing the accidental placement based on ledger lines goes against his desire for consistency?
         }
+        drawLedgerLines(canvas, lowestLine, highestLine);
 
         if (drawStem) {
-            Anchor stemEnd = chordAnchors.stemEnd();
-            Anchor stemBeginning = canvas.offsetAnchor(stemEnd, 0, -sign * 3f);
-            canvas.drawLine(stemBeginning, 0, 0, stemEnd, 0, 0, RenderingConfiguration.stemWidth);// draw stem
-            // draw bit of whitespace to separate from pulse line
-            canvas.drawWhitespace(stemEnd, -RenderingConfiguration.stemWidth,
-                    sign * RenderingConfiguration.gapHeight, 2 * RenderingConfiguration.stemWidth,
-                    RenderingConfiguration.gapHeight);
+            drawStem(canvas, chordAnchors, RenderingConfiguration.upwardStems ? 1 : -1);
         }
         chordAnchorsMap.put(this,chordAnchors);
     }
-    private <Anchor> boolean drawLedgerLines(MusicCanvas<Anchor> canvas, Note note){
-        boolean drewLedgerLines = false;
-        int lowestLine = note.pitch.rootStaveLine();
-        int highestLine = note.pitch.rootStaveLine();
-        for (int i = lowestLine / 2; i < 0; i += 2) {
-            canvas.drawLine(canvas.getAnchor(musicalPosition, new Pitch(i, 0)), -1f, 0f, 1f, 0f, .2f);
-            drewLedgerLines = true;
+
+    private <Anchor> void drawNotehead(MusicCanvas<Anchor> canvas, Anchor anchor, boolean fillInCircle) {
+        canvas.drawCircle(anchor, 0, 0, .5f, fillInCircle); // draw note head [!need to adjust on noteType]
+    }
+    private <Anchor> void drawStem(MusicCanvas<Anchor> canvas, ChordAnchors<Anchor> chordAnchors, int sign) {
+        Anchor stemEnd = chordAnchors.stemEnd();
+        Anchor stemBeginning = canvas.offsetAnchor(stemEnd, 0, -sign * 3f);
+        canvas.drawLine(stemBeginning, 0, 0, stemEnd, 0, 0, RenderingConfiguration.stemWidth);// draw stem
+        // draw bit of whitespace to separate from pulse line
+        canvas.drawWhitespace(stemEnd, -RenderingConfiguration.stemWidth,
+                sign * RenderingConfiguration.gapHeight, 2 * RenderingConfiguration.stemWidth,
+                RenderingConfiguration.gapHeight);
+    }
+    private <Anchor> void drawAccidental(MusicCanvas<Anchor> canvas, Note note, Anchor anchor, boolean hasLedgerLines) {
+        if (note.accidental != Accidental.NONE){
+            String accidentalPath = RenderingConfiguration.imgFilePath + "/accidentals/" + note.accidental.toString().toLowerCase() + ".svg";
+            float topLeftY = 1f + (note.accidental == Accidental.FLAT ? 0.5f : 0f);
+            try{
+                canvas.drawImage(accidentalPath, anchor,-(1.65f + (hasLedgerLines ? 0.25f : 0f)), topLeftY,0.75f, 2f);
+            } catch (java.io.IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+    private boolean hasLedgerLines(Note note) {
+        return note.pitch.rootStaveLine() < 0 || note.pitch.rootStaveLine() >= 10;
+    }
+    private <Anchor> void drawLedgerLines(MusicCanvas<Anchor> canvas, int lowestLine, int highestLine) {
+        for (int i = (lowestLine / 2) * 2; i < 0; i += 2) {
+            canvas.drawLine(canvas.getAnchor(musicalPosition, new Pitch(i, 0)), -RenderingConfiguration.ledgerLineWidth/2f, 0f, RenderingConfiguration.ledgerLineWidth/2f, 0f, .2f);
         }
         for (int i = 10; i <= highestLine; i += 2) {
-            canvas.drawLine(canvas.getAnchor(musicalPosition, new Pitch(i, 0)), -1f, 0f, 1f, 0f, .2f);
-            drewLedgerLines = true;
+            canvas.drawLine(canvas.getAnchor(musicalPosition, new Pitch(i, 0)), -RenderingConfiguration.ledgerLineWidth/2f, 0f, RenderingConfiguration.ledgerLineWidth/2f, 0f, .2f);
         }
-        return drewLedgerLines;
     }
 
     private <Anchor> void drawDots(MusicCanvas<Anchor> canvas, Anchor anchor){

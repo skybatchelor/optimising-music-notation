@@ -34,8 +34,8 @@ class InstantiatedMusicGroupTuple {
         } else {
             currentTime = endTime;
         }
-        if (chordMap.containsKey(endTime)) {
-            chords.add(chordMap.get(endTime));
+        if (chordMap.containsKey(currentTime)) {
+            chords.add(chordMap.get(currentTime));
         }
         float startTime = 0;
         if (this.startTime != null) {

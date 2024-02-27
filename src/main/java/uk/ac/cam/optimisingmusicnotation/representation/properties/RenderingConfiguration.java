@@ -13,6 +13,7 @@ public class RenderingConfiguration {
     public static float artisticWhitespaceWidth = 1f; // A crochet of whitespace + dead space
     public static float pulseLineHeight = 5f;
     public static String fontFilePath;
+    public static float ledgerLineWidth = 1.5f;
 
     static {
         try {
