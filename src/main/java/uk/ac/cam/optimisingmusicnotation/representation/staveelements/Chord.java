@@ -4,6 +4,7 @@ import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.*;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmarkings.ChordMarking;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -107,6 +108,10 @@ public class Chord extends BeamGroup {
         }
         chordAnchors = chordAnchorsMap.get(this);
 
+        if (drawStem) {
+            drawStem(canvas, chordAnchors, RenderingConfiguration.upwardStems ? 1 : -1);
+        }
+
         for (Note note : notes) {
             if (note.pitch.rootStaveLine() < lowestLine) {
                 lowestLine = note.pitch.rootStaveLine();
@@ -121,10 +126,6 @@ public class Chord extends BeamGroup {
             drawAccidental(canvas, note, anchor);
         }
         drawLedgerLines(canvas, lowestLine, highestLine);
-
-        if (drawStem) {
-            drawStem(canvas, chordAnchors, RenderingConfiguration.upwardStems ? 1 : -1);
-        }
 
         if (!markings.isEmpty()) {
             drawChordMarkings(canvas, chordAnchors.notehead());
@@ -165,36 +166,31 @@ public class Chord extends BeamGroup {
         float r = .5f;
         float k = durationToStretch(noteType);
         canvas.drawEllipse(anchor, 0,0, k * r, r, fillInCircle);
+
+//        canvas.drawWhitespace(anchor, -RenderingConfiguration.stemWidth,
+//                sign * RenderingConfiguration.gapHeight + sign * RenderingConfiguration.beamWidth / 2, 2 * RenderingConfiguration.stemWidth,
+//                sign * RenderingConfiguration.gapHeight);
     }
 
     private <Anchor> void drawStem(MusicCanvas<Anchor> canvas, ChordAnchors<Anchor> chordAnchors, int sign) {
         Anchor stemEnd = chordAnchors.stemEnd();
-        Anchor stemBeginning = canvas.offsetAnchor(sign == 1 ? chordAnchors.highestNotehead() : chordAnchors.lowestNotehead(), 0, sign * .5f);
-        boolean stemFlipped = false;
+        Anchor stemBeginning = canvas.offsetAnchor(sign == -1 ? chordAnchors.highestNotehead() : chordAnchors.lowestNotehead(), 0, sign * .5f);
         if (sign == 1) {
             if (canvas.isAnchorBelow(stemEnd, stemBeginning)) {
                 stemBeginning = canvas.offsetAnchor(chordAnchors.lowestNotehead(), 0, -sign * .5f);
                 sign *= -1;
-                stemFlipped = true;
             }
         } else {
             if (canvas.isAnchorBelow(stemBeginning, stemEnd)) {
                 stemBeginning = canvas.offsetAnchor(chordAnchors.highestNotehead(), 0, -sign * .5f);
                 sign *= -1;
-                stemFlipped = true;
             }
         }
-        canvas.drawLine(stemBeginning, 0, 0, stemEnd, 0,  sign * RenderingConfiguration.beamWidth / 2, RenderingConfiguration.stemWidth);// draw stem
-        // draw a bit of whitespace to separate from pulse line
-        if (stemFlipped) {
-            canvas.drawWhitespace(stemEnd, -RenderingConfiguration.stemWidth,
-                    sign * RenderingConfiguration.gapHeight + sign * RenderingConfiguration.beamWidth / 2, 2 * RenderingConfiguration.stemWidth,
-                    sign * RenderingConfiguration.gapHeight);
-        } else {
-            canvas.drawWhitespace(stemEnd, -RenderingConfiguration.stemWidth,
-                    sign * RenderingConfiguration.gapHeight + sign * RenderingConfiguration.beamWidth / 2, 2 * RenderingConfiguration.stemWidth,
-                    sign * RenderingConfiguration.gapHeight);
-        }
+        canvas.drawLine(chordAnchors.notehead(), 0, -sign * (0.5f + RenderingConfiguration.gapHeight),
+                stemEnd, 0,  sign * (RenderingConfiguration.beamWidth / 2 + RenderingConfiguration.gapHeight),
+                RenderingConfiguration.barLineWidth + 0.05f, Color.WHITE);// draw whitespace as white line to cover up pulse line
+        canvas.drawLine(stemBeginning, 0, 0, stemEnd, 0,  sign * RenderingConfiguration.beamWidth / 2,
+                RenderingConfiguration.stemWidth);// draw stem
     }
     private <Anchor> void drawAccidental(MusicCanvas<Anchor> canvas, Note note, Anchor anchor) {
         if (note.accidental != Accidental.NONE){

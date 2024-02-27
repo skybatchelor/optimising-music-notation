@@ -60,7 +60,7 @@ public class Part {
 
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, String workTitle) {
         RenderingConfiguration.upwardStems = upwardsStems;
-        canvas.reserveHeight(20f);
+        canvas.reserveHeight(15f);
         try {
             canvas.drawText(RenderingConfiguration.defaultFontFilePath,workTitle,24f,
                     TextAlignment.CENTRE, canvas.topCentreAnchor(), -60f,-7f,120f,20f);

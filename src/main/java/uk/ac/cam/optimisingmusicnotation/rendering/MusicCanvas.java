@@ -11,6 +11,8 @@ public interface MusicCanvas<Anchor> {
 
     Anchor getAnchor(MusicalPosition musicalPosition);
     Anchor getAnchor(MusicalPosition musicalPosition, Pitch pitch);
+    Anchor getLineStartAnchor(MusicalPosition musicalPosition);
+    Anchor getLineStartAnchor(MusicalPosition musicalPosition, Pitch pitch);
     Anchor getLowestStaveLineAnchor(MusicalPosition musicalPosition);
     Anchor getLowestStaveLineStartOfLineAnchor(Line line);
     Anchor getStartOfLineAnchor(Line line);
@@ -26,6 +28,7 @@ public interface MusicCanvas<Anchor> {
     boolean isAnchorBelow(Anchor anchor1, Anchor anchor2);
 
     void addLine();
+    void addLine(float crotchetsOffset);
     void reserveHeight(float height);
 
     void drawCircle(Anchor anchor, float x, float y, float r);
