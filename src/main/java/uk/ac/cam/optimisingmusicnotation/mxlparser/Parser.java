@@ -10,6 +10,7 @@ import uk.ac.cam.optimisingmusicnotation.rendering.PdfMusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.*;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.*;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
+import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.Beamlet;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.Flag;
 
 import javax.xml.bind.JAXBElement;
@@ -280,7 +281,7 @@ public class Parser {
                 for (int i = 0; i < part.getValue().size(); ++i) {
                     var chords = new TreeMap<Float, Chord>();
                     var needsFlag = new HashMap<Chord, Integer>();
-                    var needsBeamlet = new ArrayList<Chord>();
+                    var needsBeamlet = new HashMap<Chord, Integer>();
                     Stave stave = new Stave(new ArrayList<>(), new ArrayList<>(),new ArrayList<>());
 
                     Line tempLine = new Line(new ArrayList<>() {{ add(stave); }}, lineLengths.get(i), lineOffsets.get(i), i);
@@ -308,6 +309,15 @@ public class Parser {
                             preChord = null;
                         }
                         tempLine.getStaves().get(0).addMusicGroup(new Flag(preChord, entry.getKey(), tempLine, entry.getValue()));
+                    }
+
+                    for (var entry : needsBeamlet.entrySet()) {
+                        var postEntry = chords.higherEntry(entry.getKey().getCrotchetsIntoLine());
+                        var postChord = postEntry == null ? null : postEntry.getValue();
+                        if (postChord != null && entry.getKey().getEndCrotchetsIntoLine() + EPSILON < postChord.getCrotchetsIntoLine()) {
+                            postChord = null;
+                        }
+                        tempLine.getStaves().get(0).addMusicGroup(new Beamlet(postChord, entry.getKey(), tempLine, entry.getValue()));
                     }
 
                     for (InstantiatedPulseLineTuple pulseTuple : part.getValue().get(i).pulses) {

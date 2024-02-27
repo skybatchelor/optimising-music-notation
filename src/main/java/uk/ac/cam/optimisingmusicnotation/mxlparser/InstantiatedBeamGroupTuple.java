@@ -54,7 +54,7 @@ class InstantiatedBeamGroupTuple {
         return highestBeamNumber;
     }
 
-    BeamGroup toBeamGroup(Line line, TreeMap<Float, Chord> chordMap, Map<Chord, Integer> needsFlag, List<Chord> needsBeamlet) {
+    BeamGroup toBeamGroup(Line line, TreeMap<Float, Chord> chordMap, Map<Chord, Integer> needsFlag, Map<Chord, Integer> needsBeamlet) {
         if (chords.size() == 1) {
             if (!isBeamed(chords.get(0).noteType)) {
                 var chord = chords.get(0).toChord(line);
@@ -88,10 +88,10 @@ class InstantiatedBeamGroupTuple {
             }
         }
         if (RenderingConfiguration.allFlagged) {
-            needsFlag.put(firstChord, highestBeamNumber(0));
+            needsFlag.put(firstChord, highestBeamNumber(chords.indexOf(firstChord)));
         }
         if (RenderingConfiguration.beamlets) {
-            needsBeamlet.add(lastChord);
+            needsBeamlet.put(lastChord, highestBeamNumber(chords.indexOf(lastChord)));
         }
         BeamGroup group = new BeamGroup(chords);
         for (BeamTuple tuple : beams) {

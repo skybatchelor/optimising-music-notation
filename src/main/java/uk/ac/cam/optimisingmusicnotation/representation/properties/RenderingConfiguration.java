@@ -16,9 +16,11 @@ public class RenderingConfiguration {
     public static float ledgerLineWidth = 1.5f;
     public static float hookRatio = 0.5f;
     public static float flagRatio = 0.5f;
+    public static float beamletRatio = 0.5f;
     public static boolean allHooked = false;
     public static boolean allFlagged = false;
     public static boolean beamlets = true;
+    public static int beamletLimit = 0;
     public static float staveLineWidth = 0.1f;
 
     static {

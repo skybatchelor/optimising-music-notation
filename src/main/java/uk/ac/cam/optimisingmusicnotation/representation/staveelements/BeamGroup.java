@@ -84,7 +84,18 @@ public class BeamGroup implements StaveElement {
                     // beam.number,
                     // 0.75f);
                     if (beam.startIndex == 0) {
-                        System.out.println("Drawing what should become a flag");
+                        canvas.drawBeam(
+                                canvas.interpolateAnchors(
+                                        chordAnchorsMap.get(chords.get(beam.startIndex)).stemEnd(),
+                                        chordAnchorsMap.get(chords.get(beam.startIndex + 1)).stemEnd(),
+                                        RenderingConfiguration.hookRatio * chords.get(beam.startIndex).noteType.defaultLengthInCrotchets * 2
+                                ),
+                                0,
+                                beamOffset,
+                                chordAnchorsMap.get(chords.get(beam.startIndex)).stemEnd(),
+                                0,
+                                beamOffset,
+                                RenderingConfiguration.beamWidth);
                     } else {
                         canvas.drawBeam(
                                 canvas.interpolateAnchors(
