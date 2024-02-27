@@ -7,6 +7,7 @@ public class Tenuto extends ChordMarking {
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Anchor anchor) {
         float l = .45f;
         float w = .1f;
-        canvas.drawLine(anchor, -l, signedYOffset, l, signedYOffset, w);
+
+        canvas.drawLine(anchor, -l, signedYOffset(), l, signedYOffset(), w);
     }
 }

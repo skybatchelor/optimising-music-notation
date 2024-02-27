@@ -92,8 +92,8 @@ public class Chord extends BeamGroup {
 
     @Override
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Map<Chord, ChordAnchors<Anchor>> chordAnchorsMap) {
-        int lowestLine = 10000000;
-        int highestLine = -10000000;
+        int lowestLine = Integer.MAX_VALUE;
+        int highestLine = Integer.MIN_VALUE;
         int sign = RenderingConfiguration.upwardStems ? 1 : -1; // decide to draw the not stem upwards or downwards
         boolean fillInCircle = noteType.defaultLengthInCrotchets <= 1;
         boolean drawStem = noteType.defaultLengthInCrotchets <= 2;
@@ -105,6 +105,7 @@ public class Chord extends BeamGroup {
             computeAnchors(canvas, chordAnchorsMap);
         }
         chordAnchors = chordAnchorsMap.get(this);
+
         for (Note note : notes) {
             if (note.pitch.rootStaveLine() < lowestLine) {
                 lowestLine = note.pitch.rootStaveLine();
@@ -124,12 +125,32 @@ public class Chord extends BeamGroup {
         if (drawStem) {
             drawStem(canvas, chordAnchors, RenderingConfiguration.upwardStems ? 1 : -1);
         }
+
+        if (!markings.isEmpty()) {
+            drawChordMarkings(canvas, chordAnchors.notehead());
+            chordAnchors = updateNoteheadOffset(chordAnchors);
+        }
+
         chordAnchorsMap.put(this,chordAnchors);
     }
 
-    private <Anchor> void drawNotehead(MusicCanvas<Anchor> canvas, Anchor anchor, boolean fillInCircle) {
-        canvas.drawCircle(anchor, 0, 0, .5f, fillInCircle); // draw note head [!need to adjust on noteType]
+    private <Anchor> void drawChordMarkings(MusicCanvas<Anchor> canvas, Anchor anchor) {
+        float cumulatedYOffsetIncrease = 0;
+        for (ChordMarking marking: markings) {
+            marking.increaseYOffset(cumulatedYOffsetIncrease);
+            marking.draw(canvas, anchor);
+            cumulatedYOffsetIncrease += .8f;
+        }
     }
+
+    private <Anchor> ChordAnchors<Anchor> updateNoteheadOffset(ChordAnchors<Anchor> chordAnchors) {
+        return chordAnchors.withNoteheadOffset(markings.get(markings.size() - 1).signedYOffset());
+    }
+
+    private <Anchor> void drawNotehead(MusicCanvas<Anchor> canvas, Anchor anchor, boolean fillInCircle) {
+        canvas.drawCircle(anchor, 0, 0, .5f, fillInCircle);
+    }
+
     private <Anchor> void drawStem(MusicCanvas<Anchor> canvas, ChordAnchors<Anchor> chordAnchors, int sign) {
         Anchor stemEnd = chordAnchors.stemEnd();
         Anchor stemBeginning = canvas.offsetAnchor(stemEnd, 0, -sign * 3f);
@@ -169,10 +190,10 @@ public class Chord extends BeamGroup {
     }
 
     private <Anchor> void drawTie(MusicCanvas<Anchor> canvas, Note note, Anchor anchor) {
+        int sign = RenderingConfiguration.upwardStems ? 1 : -1;
         if (note.hasTieFrom) {
             MusicalPosition endMusicalPosition = new MusicalPosition(musicalPosition.line(), musicalPosition.crotchetsIntoLine() + durationInCrochets);
             Anchor endAnchor = canvas.getAnchor(endMusicalPosition, note.pitch);
-            int sign = RenderingConfiguration.upwardStems ? 1 : -1;
             float Xoffset = .2f;
             float absoluteYOffset = .1f;
             float signedYOffset = sign * absoluteYOffset;
@@ -181,7 +202,6 @@ public class Chord extends BeamGroup {
         if (note.hasTieTo) {
             MusicalPosition startMusicalPosition = new MusicalPosition(musicalPosition.line(), 0);
             Anchor startAnchor = canvas.getAnchor(startMusicalPosition, note.pitch);
-            int sign = RenderingConfiguration.upwardStems ? 1 : -1;
             float Xoffset = .2f;
             float absoluteYOffset = .1f;
             float signedYOffset = sign * absoluteYOffset;
