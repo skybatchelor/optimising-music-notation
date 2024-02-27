@@ -210,7 +210,6 @@ public class Parser {
                     } else {
                         addPulseLines(currentTimeSignature, measureStartTime, currentPart.pulseLines, measure.getText(), null);
                     }
-
                     measureStartTime += measureLength;
                 }
                 totalLength = Math.max(measureStartTime, totalLength);
@@ -236,129 +235,168 @@ public class Parser {
             }
             lineLengths.add(totalLength - prevLineStart);
 
-            Map<Float, Integer> sectionIndices = new HashMap<>();
-            index = 0;
-            for (Float newSection : newSections) {
-                sectionIndices.put(newSection, index);
-                for (List<TreeMap<Float, Line>> lineList : partSections.values()) {
-                    lineList.add(new TreeMap<>());
-                }
-                ++index;
-            }
+            var sectionIndices = createSectionIndices(newSections, partSections);
 
-            for (Map.Entry<String, ParsingPartTuple> part : parsingParts.entrySet()) {
-                for (BeamGroupTuple beam : part.getValue().beamGroups) {
-                    float lineStart = newlines.floorKey(beam.chords.get(0).crotchets);
-                    int lineNum = lineIndices.get(lineStart);
-                    if (beam.isRest()) {
-                        beam.splitToRestTuple(newlines, lineIndices, partLines.get(part.getKey()));
-                    } else {
-                        partLines.get(part.getKey()).get(lineNum).notes.add(beam.toInstantiatedBeamTuple(lineStart));
-                    }
-                }
-                for (MusicGroupTuple musicGroup : part.getValue().musicGroups) {
-                    musicGroup.splitToInstantiatedMusicGroupTuple(newlines, lineIndices, partLines.get(part.getKey()));
-                }
-                for (PulseLineTuple pulseLine : part.getValue().pulseLines) {
-                    float lineStart = newlines.floorKey(pulseLine.time);
-                    int lineNum = lineIndices.get(lineStart);
-                    partLines.get(part.getKey()).get(lineNum).pulses.add(pulseLine.toInstantiatedPulseTuple(lineStart));
-                    Float lowerLineStart = newlines.lowerKey(pulseLine.time);
-                    if (lowerLineStart != null) {
-                        int lowerLineNum = lineIndices.get(lowerLineStart);
-                        if (lowerLineNum != lineNum) {
-                            partLines.get(part.getKey()).get(lowerLineNum).pulses.add(pulseLine.toInstantiatedPulseTuple(lowerLineStart));
-                        }
-                    }
-                }
-            }
-
-            TreeMap<String, List<InstantiatedLineTuple>> finalLines = new TreeMap<>();
-            List<Float> newlinesList = newlines.keySet().stream().toList();
-
-            for (Map.Entry<String, List<LineTuple>> part : partLines.entrySet()) {
-                finalLines.put(part.getKey(), new ArrayList<>());
-                for (int i = 0; i < part.getValue().size(); ++i) {
-                    var chords = new TreeMap<Float, Chord>();
-                    var needsFlag = new HashMap<Chord, Integer>();
-                    var needsBeamlet = new HashMap<Chord, Integer>();
-                    Stave stave = new Stave(new ArrayList<>(), new ArrayList<>(),new ArrayList<>());
-
-                    Line tempLine = new Line(new ArrayList<>() {{ add(stave); }}, lineLengths.get(i), lineOffsets.get(i), i);
-                    finalLines.get(part.getKey()).add(new InstantiatedLineTuple(newlinesList.get(i), tempLine));
-
-                    var fusedRests = RestTuple.fuseRestTuples(part.getValue().get(i).rests);
-                    for (RestTuple restTuple : fusedRests) {
-                        tempLine.getStaves().get(0).addWhiteSpace(restTuple.toRest(tempLine));
-                    }
-
-                    for (InstantiatedBeamGroupTuple beamTuple : part.getValue().get(i).notes) {
-                        tempLine.getStaves().get(0).addStaveElement(beamTuple.toBeamGroup(tempLine, chords, needsFlag, needsBeamlet));
-                    }
-
-                    for (var chordEntry : chords.entrySet()) {
-                        if (chordEntry.getKey() > chords.firstKey()) {
-                            chordEntry.getValue().removeTiesTo();
-                        }
-                    }
-
-                    for (var entry : needsFlag.entrySet()) {
-                        var preEntry = chords.lowerEntry(entry.getKey().getCrotchetsIntoLine());
-                        var preChord = preEntry == null ? null : preEntry.getValue();
-                        if (preChord != null && preChord.getEndCrotchetsIntoLine() + EPSILON < entry.getKey().getCrotchetsIntoLine()) {
-                            preChord = null;
-                        }
-                        tempLine.getStaves().get(0).addMusicGroup(new Flag(preChord, entry.getKey(), tempLine, entry.getValue()));
-                    }
-
-                    for (var entry : needsBeamlet.entrySet()) {
-                        var postEntry = chords.higherEntry(entry.getKey().getCrotchetsIntoLine());
-                        var postChord = postEntry == null ? null : postEntry.getValue();
-                        if (postChord != null && entry.getKey().getEndCrotchetsIntoLine() + EPSILON < postChord.getCrotchetsIntoLine()) {
-                            postChord = null;
-                        }
-                        tempLine.getStaves().get(0).addMusicGroup(new Beamlet(postChord, entry.getKey(), tempLine, entry.getValue()));
-                    }
-
-                    for (InstantiatedPulseLineTuple pulseTuple : part.getValue().get(i).pulses) {
-                        tempLine.addPulseLine(pulseTuple.toPulseLine(tempLine));
-                    }
-
-                    for (InstantiatedMusicGroupTuple musicGroupTuple : part.getValue().get(i).musicGroups) {
-                        tempLine.getStaves().get(0).addMusicGroup(musicGroupTuple.toMusicGroup(tempLine, chords));
-                    }
-                }
-            }
-
-            for (Map.Entry<String, List<InstantiatedLineTuple>> part : finalLines.entrySet()) {
-                for (InstantiatedLineTuple instantiatedLineTuple : part.getValue()) {
-                    float sectionStart = newSections.floor(instantiatedLineTuple.startTime);
-                    int sectionNum = sectionIndices.get(sectionStart);
-                    partSections.get(part.getKey()).get(sectionNum).put(instantiatedLineTuple.startTime, instantiatedLineTuple.line);
-                }
-            }
-
-            TreeMap<String, List<Section>> finalSections = new TreeMap<>();
-
-            for (Map.Entry<String, List<TreeMap<Float, Line>>> part : partSections.entrySet()) {
-                List<Section> sections = new ArrayList<>();
-                for (TreeMap<Float, Line> lines : part.getValue()) {
-                    if (lines.size() != 0) {
-                        sections.add(new Section(lines.values().stream().toList(),
-                                parsingParts.get(part.getKey()).clefs.floorEntry(lines.firstKey()).getValue(),
-                                parsingParts.get(part.getKey()).keySignatures.floorEntry(lines.firstKey()).getValue()));
-                    }
-                }
-                finalSections.put(part.getKey(), sections);
-            }
+            var finalSections = finaliseSections(
+                    populatePartSections(
+                            partSections,
+                            instantiateLines(
+                                    newlines,
+                                    populatePartLines(
+                                            partLines, parsingParts, newlines, lineIndices),
+                                    lineLengths, lineOffsets, parsingParts),
+                            newSections, sectionIndices),
+                    parsingParts);
 
             for (Map.Entry<String, List<Section>> part : finalSections.entrySet()) {
                 parts.get(part.getKey()).setSections(part.getValue());
+                parts.get(part.getKey()).setUpwardsStems(parsingParts.get(part.getKey()).upwardsStems);
             }
-
             return new Score(getWorkTitle(partwise), getComposer(partwise), parts.values().stream().toList());
         }
         return null;
+    }
+
+    static Map<Float, Integer> createSectionIndices(TreeSet<Float> newSections, TreeMap<String, List<TreeMap<Float, Line>>> partSections) {
+        Map<Float, Integer> sectionIndices = new HashMap<>();
+        int index = 0;
+        for (Float newSection : newSections) {
+            sectionIndices.put(newSection, index);
+            for (List<TreeMap<Float, Line>> lineList : partSections.values()) {
+                lineList.add(new TreeMap<>());
+            }
+            ++index;
+        }
+        return sectionIndices;
+    }
+
+    static TreeMap<String, List<LineTuple>> populatePartLines(TreeMap<String, List<LineTuple>> partLines,
+                                                              TreeMap<String, ParsingPartTuple> parsingParts,
+                                                              TreeMap<Float, Float> newlines,
+                                                              Map<Float, Integer> lineIndices) {
+        for (Map.Entry<String, ParsingPartTuple> part : parsingParts.entrySet()) {
+            for (BeamGroupTuple beam : part.getValue().beamGroups) {
+                float lineStart = newlines.floorKey(beam.chords.get(0).crotchets);
+                int lineNum = lineIndices.get(lineStart);
+                if (beam.isRest()) {
+                    beam.splitToRestTuple(newlines, lineIndices, partLines.get(part.getKey()));
+                } else {
+                    partLines.get(part.getKey()).get(lineNum).notes.add(beam.toInstantiatedBeamTuple(lineStart));
+                }
+            }
+            for (MusicGroupTuple musicGroup : part.getValue().musicGroups) {
+                musicGroup.splitToInstantiatedMusicGroupTuple(newlines, lineIndices, partLines.get(part.getKey()));
+            }
+            for (PulseLineTuple pulseLine : part.getValue().pulseLines) {
+                float lineStart = newlines.floorKey(pulseLine.time);
+                int lineNum = lineIndices.get(lineStart);
+                partLines.get(part.getKey()).get(lineNum).pulses.add(pulseLine.toInstantiatedPulseTuple(lineStart));
+                Float lowerLineStart = newlines.lowerKey(pulseLine.time);
+                if (lowerLineStart != null) {
+                    int lowerLineNum = lineIndices.get(lowerLineStart);
+                    if (lowerLineNum != lineNum) {
+                        partLines.get(part.getKey()).get(lowerLineNum).pulses.add(pulseLine.toInstantiatedPulseTuple(lowerLineStart));
+                    }
+                }
+            }
+        }
+        return partLines;
+    }
+
+    static TreeMap<String, List<InstantiatedLineTuple>> instantiateLines(TreeMap<Float, Float> newlines, TreeMap<String, List<LineTuple>> partLines,
+                                                                         List<Float> lineLengths, List<Float> lineOffsets, TreeMap<String, ParsingPartTuple> parsingPart) {
+        TreeMap<String, List<InstantiatedLineTuple>> finalLines = new TreeMap<>();
+        List<Float> newlinesList = newlines.keySet().stream().toList();
+
+        StaveLineAverager averager = new MeanAverager();
+
+        for (Map.Entry<String, List<LineTuple>> part : partLines.entrySet()) {
+            finalLines.put(part.getKey(), new ArrayList<>());
+            averager.reset();
+            for (int i = 0; i < part.getValue().size(); ++i) {
+                var chords = new TreeMap<Float, Chord>();
+                var needsFlag = new HashMap<Chord, Integer>();
+                var needsBeamlet = new HashMap<Chord, Integer>();
+                Stave stave = new Stave(new ArrayList<>(), new ArrayList<>(),new ArrayList<>());
+
+                Line tempLine = new Line(new ArrayList<>() {{ add(stave); }}, lineLengths.get(i), lineOffsets.get(i), i);
+                finalLines.get(part.getKey()).add(new InstantiatedLineTuple(newlinesList.get(i), tempLine));
+
+                var fusedRests = RestTuple.fuseRestTuples(part.getValue().get(i).rests);
+                for (RestTuple restTuple : fusedRests) {
+                    tempLine.getStaves().get(0).addWhiteSpace(restTuple.toRest(tempLine));
+                }
+
+                for (InstantiatedBeamGroupTuple beamTuple : part.getValue().get(i).notes) {
+                    beamTuple.addToAverager(averager);
+                    tempLine.getStaves().get(0).addStaveElement(beamTuple.toBeamGroup(tempLine, chords, needsFlag, needsBeamlet));
+                }
+
+                for (var chordEntry : chords.entrySet()) {
+                    if (chordEntry.getKey() > chords.firstKey()) {
+                        chordEntry.getValue().removeTiesTo();
+                    }
+                }
+
+                for (var entry : needsFlag.entrySet()) {
+                    var preEntry = chords.lowerEntry(entry.getKey().getCrotchetsIntoLine());
+                    var preChord = preEntry == null ? null : preEntry.getValue();
+                    if (preChord != null && preChord.getEndCrotchetsIntoLine() + EPSILON < entry.getKey().getCrotchetsIntoLine()) {
+                        preChord = null;
+                    }
+                    tempLine.getStaves().get(0).addMusicGroup(new Flag(preChord, entry.getKey(), tempLine, entry.getValue()));
+                }
+
+                for (var entry : needsBeamlet.entrySet()) {
+                    var postEntry = chords.higherEntry(entry.getKey().getCrotchetsIntoLine());
+                    var postChord = postEntry == null ? null : postEntry.getValue();
+                    if (postChord != null && entry.getKey().getEndCrotchetsIntoLine() + EPSILON < postChord.getCrotchetsIntoLine()) {
+                        postChord = null;
+                    }
+                    tempLine.getStaves().get(0).addMusicGroup(new Beamlet(postChord, entry.getKey(), tempLine, entry.getValue()));
+                }
+
+                for (InstantiatedPulseLineTuple pulseTuple : part.getValue().get(i).pulses) {
+                    tempLine.addPulseLine(pulseTuple.toPulseLine(tempLine));
+                }
+
+                for (InstantiatedMusicGroupTuple musicGroupTuple : part.getValue().get(i).musicGroups) {
+                    tempLine.getStaves().get(0).addMusicGroup(musicGroupTuple.toMusicGroup(tempLine, chords));
+                }
+            }
+            parsingPart.get(part.getKey()).upwardsStems = averager.getAverageStaveLine() < 4;
+        }
+        return finalLines;
+    }
+
+    static TreeMap<String, List<TreeMap<Float, Line>>> populatePartSections(TreeMap<String, List<TreeMap<Float, Line>>> partSections,
+                                                                            TreeMap<String, List<InstantiatedLineTuple>> finalLines,
+                                                                            TreeSet<Float> newSections, Map<Float, Integer> sectionIndices) {
+        for (Map.Entry<String, List<InstantiatedLineTuple>> part : finalLines.entrySet()) {
+            for (InstantiatedLineTuple instantiatedLineTuple : part.getValue()) {
+                float sectionStart = newSections.floor(instantiatedLineTuple.startTime);
+                int sectionNum = sectionIndices.get(sectionStart);
+                partSections.get(part.getKey()).get(sectionNum).put(instantiatedLineTuple.startTime, instantiatedLineTuple.line);
+            }
+        }
+        return partSections;
+    }
+
+    static TreeMap<String, List<Section>> finaliseSections(TreeMap<String, List<TreeMap<Float, Line>>> partSections, TreeMap<String, ParsingPartTuple> parsingParts) {
+        TreeMap<String, List<Section>> finalSections = new TreeMap<>();
+
+        for (Map.Entry<String, List<TreeMap<Float, Line>>> part : partSections.entrySet()) {
+            List<Section> sections = new ArrayList<>();
+            for (TreeMap<Float, Line> lines : part.getValue()) {
+                if (lines.size() != 0) {
+                    sections.add(new Section(lines.values().stream().toList(),
+                            parsingParts.get(part.getKey()).clefs.floorEntry(lines.firstKey()).getValue(),
+                            parsingParts.get(part.getKey()).keySignatures.floorEntry(lines.firstKey()).getValue()));
+                }
+            }
+            finalSections.put(part.getKey(), sections);
+        }
+        return finalSections;
     }
 
     static String getWorkTitle(ScorePartwise score) {

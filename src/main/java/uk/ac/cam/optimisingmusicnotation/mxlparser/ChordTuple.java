@@ -99,7 +99,7 @@ class ChordTuple {
         List<Boolean> tiesFrom = new ArrayList<>();
         List<Boolean> tiesTo = new ArrayList<>();
         for (Note note : notes) {
-            Accidental accidental = Accidental.NONE;
+            Accidental accidental;
             if (note.getAccidental() != null) {
                 accidental = switch (note.getAccidental().getValue()) {
                     case FLAT -> Accidental.FLAT;

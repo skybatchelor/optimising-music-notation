@@ -16,7 +16,7 @@ class ParsingPartTuple {
     TreeMap<Float, Direction> directions;
     TreeMap<Float, uk.ac.cam.optimisingmusicnotation.representation.properties.Clef> clefs;
     TreeMap<Float, KeySignature> keySignatures;
-
+    boolean upwardsStems;
     public ParsingPartTuple() {
         beamGroups = new ArrayList<>();
         pulseLines = new ArrayList<>();

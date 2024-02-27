@@ -25,6 +25,16 @@ public class Part {
     private String name;
     private String abbreviation;
 
+    public boolean getUpwardsStems() {
+        return upwardsStems;
+    }
+
+    public void setUpwardsStems(boolean upwardsStems) {
+        this.upwardsStems = upwardsStems;
+    }
+
+    private boolean upwardsStems;
+
     public Part() {
         this.sections = new ArrayList<>();
         name = "";
@@ -49,6 +59,7 @@ public class Part {
     }
 
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, String workTitle) {
+        RenderingConfiguration.upwardStems = upwardsStems;
         canvas.reserveHeight(20f);
         try {
             canvas.drawText(RenderingConfiguration.fontFilePath,workTitle,24f,
