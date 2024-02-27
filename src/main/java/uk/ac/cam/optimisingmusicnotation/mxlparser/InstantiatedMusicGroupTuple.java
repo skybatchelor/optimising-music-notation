@@ -3,10 +3,7 @@ package uk.ac.cam.optimisingmusicnotation.mxlparser;
 import uk.ac.cam.optimisingmusicnotation.representation.Line;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
-import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.Crescendo;
-import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.Diminuendo;
-import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.MusicGroup;
-import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.Slur;
+import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,11 +13,13 @@ class InstantiatedMusicGroupTuple {
     Float startTime;
     Float endTime;
     MusicGroupType type;
+    String text;
 
-    public InstantiatedMusicGroupTuple(Float startTime, Float endTime, MusicGroupType type) {
+    public InstantiatedMusicGroupTuple(Float startTime, Float endTime, MusicGroupType type, String text) {
         this.startTime = startTime;
         this.endTime = endTime;
         this.type = type;
+        this.text = text;
     }
 
     List<Chord> getChordsInInterval(TreeMap<Float, Chord> chordMap) {
@@ -86,6 +85,9 @@ class InstantiatedMusicGroupTuple {
                     endChord = chords.get(endTime);
                 }
                 return new Slur(getChordsInInterval(chords), startChord, endChord, line);
+            }
+            case DYNAMIC -> {
+                return new Dynamic(getChordsInInterval(chords), text, new MusicalPosition(line, startTime));
             }
         }
         throw new IllegalArgumentException();
