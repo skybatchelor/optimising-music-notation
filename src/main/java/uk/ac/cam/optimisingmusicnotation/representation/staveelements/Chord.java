@@ -90,7 +90,7 @@ public class Chord extends BeamGroup {
         Anchor stemBeginning;
         Anchor stemEnd;
         stemBeginning = canvas.offsetAnchor(sign == 1 ? highestNoteheadAnchor : lowestNoteheadAnchor, 0, sign * .5f);
-        stemEnd = canvas.offsetAnchor(stemBeginning, 0, sign * 3f);
+        stemEnd = canvas.offsetAnchor(stemBeginning, 0, sign * RenderingConfiguration.stemLength);
         chordAnchors = new ChordAnchors<>(lowestNoteheadAnchor, highestNoteheadAnchor, stemEnd, 0, 0);
         chordAnchorsMap.put(this, chordAnchors);
     }

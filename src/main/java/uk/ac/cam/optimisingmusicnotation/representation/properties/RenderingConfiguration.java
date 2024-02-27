@@ -20,6 +20,7 @@ public class RenderingConfiguration {
     public static String defaultFontFilePath;
     public static String dynamicsFontFilePath;
     public static String fontFilePath;
+    public static float stemLength = 3f;
     public static float ledgerLineWidth = 1.5f;
     public static float hookRatio = 0.5f;
     public static float flagRatio = 0.5f;
