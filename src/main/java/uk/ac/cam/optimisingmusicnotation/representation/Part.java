@@ -62,9 +62,9 @@ public class Part {
         RenderingConfiguration.upwardStems = upwardsStems;
         canvas.reserveHeight(20f);
         try {
-            canvas.drawText(RenderingConfiguration.fontFilePath,workTitle,24f,
+            canvas.drawText(RenderingConfiguration.defaultFontFilePath,workTitle,24f,
                     TextAlignment.CENTRE, canvas.topCentreAnchor(), -60f,-7f,120f,20f);
-            canvas.drawText(RenderingConfiguration.fontFilePath,name,16f,
+            canvas.drawText(RenderingConfiguration.defaultFontFilePath,name,16f,
                     TextAlignment.LEFT, canvas.topLeftAnchor(), 6f,-15f,100f,20f);
         } catch (IOException e) {
             throw new RuntimeException(e);
