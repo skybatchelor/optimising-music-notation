@@ -6,6 +6,7 @@ import uk.ac.cam.optimisingmusicnotation.representation.properties.ChordAnchors;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
+import uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -24,8 +25,19 @@ public class Flag extends MusicGroup {
         this.maxBeam = number;
     }
 
-    public static <Anchor> void drawFlag() {
-
+    public static <Anchor> void draw(MusicCanvas<Anchor> canvas, ChordAnchors<Anchor> chordAnchors, NoteType noteType, float timeScale, float scaleFactor) {
+        int sign = RenderingConfiguration.upwardStems ? 1 : -1;
+        for (int i = 0; i <= noteType.beamNumber(); ++i) {
+            float beamOffset = -sign * (i * RenderingConfiguration.beamWidth
+                    + RenderingConfiguration.gapBetweenBeams * i + RenderingConfiguration.beamOffset) * scaleFactor;
+            canvas.drawBeam(
+                    chordAnchors.stemEnd(),
+                    -timeScale * noteType.defaultLengthInCrotchets * scaleFactor,
+                    beamOffset,
+                    chordAnchors.stemEnd(), 0,
+                    beamOffset,
+                    RenderingConfiguration.beamWidth * scaleFactor);
+        }
     }
 
     @Override

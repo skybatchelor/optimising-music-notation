@@ -13,24 +13,6 @@ import java.util.TreeMap;
 
 class InstantiatedBeamGroupTuple {
 
-    static boolean isBeamed(NoteType noteType) {
-        switch (noteType) {
-            case MAXIMA, BREVE, SEMIBREVE, MINIM, CROTCHET -> { return false; }
-            case QUAVER, SQUAVER, DSQUAVER, HDSQUAVER -> { return true; }
-        }
-        return false;
-    }
-
-    static int beamNumber(NoteType noteType) {
-        return switch (noteType) {
-            case MAXIMA, BREVE, SEMIBREVE, MINIM, CROTCHET -> -1;
-            case QUAVER -> 0;
-            case SQUAVER -> 1;
-            case DSQUAVER -> 2;
-            case HDSQUAVER -> 3;
-        };
-    }
-
     List<InstantiatedChordTuple> chords;
     List<BeamTuple> beams;
 
@@ -62,14 +44,14 @@ class InstantiatedBeamGroupTuple {
 
     BeamGroup toBeamGroup(Line line, TreeMap<Float, Chord> chordMap, Map<Chord, Integer> needsFlag, Map<Chord, Integer> needsBeamlet) {
         if (chords.size() == 1) {
-            if (!isBeamed(chords.get(0).noteType)) {
+            if (!chords.get(0).noteType.isBeamed()) {
                 var chord = chords.get(0).toChord(line);
                 chordMap.put(chord.getMusicalPosition().crotchetsIntoLine(), chord);
                 return chord;
             } else {
                 var chord = chords.get(0).toChord(line);
                 chordMap.put(chord.getMusicalPosition().crotchetsIntoLine(), chord);
-                needsFlag.put(chord, beamNumber(chord.getNoteType()));
+                needsFlag.put(chord, chord.getNoteType().beamNumber());
                 return chord;
             }
         }
