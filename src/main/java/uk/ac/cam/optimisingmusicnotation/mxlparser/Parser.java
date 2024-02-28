@@ -859,7 +859,12 @@ public class Parser {
                 pulseLines.add(new PulseLineTuple(measureStartTime + 10 * 4f / time.getBeatType(), measureName, 2, timeSig));
                 pulseLines.add(new PulseLineTuple(measureStartTime + 11 * 4f / time.getBeatType(), measureName, 2, timeSig));
             }
-            default -> pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0, timeSig));
+            default -> {
+                pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0, timeSig));
+                for (int i = 1; i < time.getBeatNum(); i++) {
+                    pulseLines.add(new PulseLineTuple(measureStartTime + i * 4f / time.getBeatType(), measureName, 2, timeSig));
+                }
+            }
         }
     }
 
