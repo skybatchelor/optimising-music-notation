@@ -75,4 +75,8 @@ public class Part {
             s.draw(canvas);
         }
     }
+
+    public float getMaxCrotchetsPerLine() {
+        return sections.stream().map(Section::getMaxCrotchetsPerLine).max(Float::compareTo).orElse(0f);
+    }
 }

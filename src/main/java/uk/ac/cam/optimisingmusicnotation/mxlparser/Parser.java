@@ -910,7 +910,7 @@ public class Parser {
                     PageSize ps = PageSize.A4;
                     pdf.addNewPage(ps);
 
-                    PdfMusicCanvas canvas = new PdfMusicCanvas(pdf);
+                    PdfMusicCanvas canvas = new PdfMusicCanvas(pdf, part.getMaxCrotchetsPerLine());
                     part.draw(canvas, score.getWorkTitle(), score.getComposer());
                     pdf.close();
                 }
@@ -925,8 +925,8 @@ public class Parser {
                 PageSize ps = PageSize.A4;
                 pdf.addNewPage(ps);
 
-                PdfMusicCanvas canvas = new PdfMusicCanvas(pdf);
                 Part testPart = score.getParts().get(targetPart);
+                PdfMusicCanvas canvas = new PdfMusicCanvas(pdf, testPart.getMaxCrotchetsPerLine());
                 testPart.draw(canvas, score.getWorkTitle(), score.getComposer());
                 pdf.close();
             }

@@ -49,4 +49,8 @@ public class Section {
             keySignature.draw(canvas,firstLine,clef);
         }
     }
+
+    public float getMaxCrotchetsPerLine() {
+        return lines.stream().map(Line::getLengthInCrotchets).max(Float::compareTo).orElse(0f);
+    }
 }
