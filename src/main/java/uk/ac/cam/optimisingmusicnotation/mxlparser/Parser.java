@@ -28,6 +28,8 @@ import java.util.zip.ZipInputStream;
 public class Parser {
     public static final boolean NEW_SECTION_FOR_KEY_SIGNATURE = true;
     public static final float EPSILON = 0.001f;
+    public static final boolean END_BAR_LINE_TIME_SIGNATURE = false;
+    public static final boolean END_BAR_LINE_NAME = false;
     public static HashSet<String> escapedDirectives = new HashSet<>() {{ add("\\n"); add("\\s"); add("\\w"); }};
     public static HashSet<String> boxedDirectives = new HashSet<>() {{ add("n"); add("s"); add("w"); }};
 
@@ -310,7 +312,14 @@ public class Parser {
                 if (lowerLineStart != null) {
                     int lowerLineNum = lineIndices.get(lowerLineStart);
                     if (lowerLineNum != lineNum) {
-                        partLines.get(part.getKey()).get(lowerLineNum).pulses.add(pulseLine.toInstantiatedPulseTuple(lowerLineStart));
+                        var pulseTuple = pulseLine.toInstantiatedPulseTuple(lowerLineStart);
+                        if (!END_BAR_LINE_NAME) {
+                            pulseTuple.name = "";
+                        }
+                        if (!END_BAR_LINE_TIME_SIGNATURE) {
+                            pulseTuple.timeSig = null;
+                        }
+                        partLines.get(part.getKey()).get(lowerLineNum).pulses.add(pulseTuple);
                     }
                 }
             }
