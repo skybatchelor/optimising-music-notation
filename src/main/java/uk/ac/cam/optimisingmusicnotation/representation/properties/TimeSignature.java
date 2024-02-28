@@ -40,8 +40,10 @@ public class TimeSignature {
         try {
             //canvas.drawLine(anchor,-0.5f,7.5f,-0.5f,2f,3.5f);
             canvas.drawWhitespace(anchor,-0.5f,7.5f,width,4.5f);
-            canvas.drawText(RenderingConfiguration.dynamicsFontFilePath,Integer.toString(beatNum),10f, TextAlignment.LEFT,anchor,-0.5f,9.5f,width,6f);
-            canvas.drawText(RenderingConfiguration.dynamicsFontFilePath,Integer.toString(beatType),10f, TextAlignment.LEFT,anchor,-0.5f,7.5f,width,6f);
+            canvas.drawText(RenderingConfiguration.dynamicsFontFilePath,Integer.toString(beatNum),10f, TextAlignment.LEFT,
+                    anchor,-width/2,9.5f,width,6f);
+            canvas.drawText(RenderingConfiguration.dynamicsFontFilePath,Integer.toString(beatType),10f, TextAlignment.LEFT,
+                    anchor,-width/2,7.5f,width,6f);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

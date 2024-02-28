@@ -37,7 +37,7 @@ public class BarLine implements PulseLine {
         float width = barName.length() * 1.5f;
         try {
             canvas.drawText(RenderingConfiguration.defaultFontFilePath, barName,7.5f, TextAlignment.LEFT, startAnchor,
-                    0f, RenderingConfiguration.pulseLineHeight + 1f, width, 5f);
+                    timeSignature == null ? 0.5f : 1.0f, RenderingConfiguration.pulseLineHeight + 1f, width, 5f);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
