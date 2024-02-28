@@ -2,6 +2,8 @@ package uk.ac.cam.optimisingmusicnotation.mxlparser;
 
 import uk.ac.cam.optimisingmusicnotation.representation.properties.TimeSignature;
 
+import java.util.TreeMap;
+
 class PulseLineTuple {
     float time;
     String name;
@@ -15,7 +17,7 @@ class PulseLineTuple {
         this.timeSig = timeSig;
     }
 
-    InstantiatedPulseLineTuple toInstantiatedPulseTuple(float lineTime) {
-        return new InstantiatedPulseLineTuple(time - lineTime, name, beatWeight, timeSig);
+    InstantiatedPulseLineTuple toInstantiatedPulseTuple(float lineTime, TreeMap<Float, TempoChangeTuple> integratedTime) {
+        return new InstantiatedPulseLineTuple(Parser.normaliseTime(time, integratedTime) - lineTime, name, beatWeight, timeSig);
     }
 }

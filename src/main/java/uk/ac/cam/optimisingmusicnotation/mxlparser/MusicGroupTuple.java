@@ -16,13 +16,14 @@ class MusicGroupTuple {
         this.type = type;
     }
 
-    void splitToInstantiatedMusicGroupTuple(TreeMap<Float, Float> newlines, Map<Float, Integer> lineIndices, List<LineTuple> target) {
+    void splitToInstantiatedMusicGroupTuple(TreeMap<Float, Float> newlines, Map<Float, Integer> lineIndices, TreeMap<Float, TempoChangeTuple> integratedTime, List<LineTuple> target) {
+        float startTime = Parser.normaliseTime(this.startTime, integratedTime);
+        float endTime = Parser.normaliseTime(this.endTime, integratedTime);
         if (startTime == endTime) {
             float lineTime = newlines.floorKey(startTime);
             target.get(lineIndices.get(lineTime)).musicGroups.add(new InstantiatedMusicGroupTuple(startTime - lineTime, endTime - lineTime, type, text, aboveStave));
             return;
         }
-        float endTime = this.endTime;
         boolean start = true;
         while (endTime > startTime) {
             float newEndTime = newlines.lowerKey(endTime);

@@ -11,6 +11,7 @@ import uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmarki
 import javax.xml.bind.JAXBElement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeMap;
 
 class ChordTuple {
 
@@ -77,7 +78,7 @@ class ChordTuple {
         this.keySig = keySig;
     }
 
-    InstantiatedChordTuple toInstantiatedChordTuple(float lineTime) {
+    InstantiatedChordTuple toInstantiatedChordTuple(float lineTime, TreeMap<Float, TempoChangeTuple> integratedTime) {
         List<Pitch> pitches = new ArrayList<>();
         List<Accidental> accidentals = new ArrayList<>();
         List<ChordMarking> markings = new ArrayList<>();
@@ -112,6 +113,8 @@ class ChordTuple {
             tiesTo.add(isTiedTo(note));
             addMarkings(note, markings);
         }
-        return new InstantiatedChordTuple(pitches, accidentals, tiesFrom, tiesTo,crotchets - lineTime, duration, Parser.convertNoteType(notes.get(0).getType()), getDotNumber(notes.get(0)), markings);
+        return new InstantiatedChordTuple(pitches, accidentals, tiesFrom, tiesTo,
+                Parser.normaliseTime(crotchets, integratedTime) - lineTime, Parser.normaliseDuration(crotchets, duration, integratedTime),
+                Parser.convertNoteType(notes.get(0).getType()), getDotNumber(notes.get(0)), markings);
     }
 }

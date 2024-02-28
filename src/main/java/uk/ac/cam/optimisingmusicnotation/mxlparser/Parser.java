@@ -30,6 +30,9 @@ public class Parser {
     public static final float EPSILON = 0.001f;
     public static final boolean END_BAR_LINE_TIME_SIGNATURE = false;
     public static final boolean END_BAR_LINE_NAME = false;
+    public static final boolean TIME_NORMALISED_PARSING = true;
+    public static final float TIME_NORMALISATION_FACTOR = 60 * 12;
+    public static float startBpm = 120f;
     public static HashSet<String> escapedDirectives = new HashSet<>() {{ add("\\n"); add("\\s"); add("\\w"); }};
     public static HashSet<String> boxedDirectives = new HashSet<>() {{ add("n"); add("s"); add("w"); }};
 
@@ -40,6 +43,8 @@ public class Parser {
             TreeMap<String, Part> parts = new TreeMap<>();
 
             TreeMap<Float, TempoTuple> tempoMarkings = new TreeMap<>();
+
+            TreeMap<Float, Float> tempoChanges = new TreeMap<>() {{ put(0f, startBpm); }};
 
             BiConsumer<Float, Float> addNewSection = ((time, offset) -> { newSections.add(time); newlines.put(time, offset); });
             BiConsumer<Float, Float> addNewline = newlines::put;
@@ -67,7 +72,7 @@ public class Parser {
             List<ScorePartwise.Part> musicParts = partwise.getPart();
 
             for (ScorePartwise.Part part : musicParts) {
-                float currentTempo = 120;
+                float currentTempo = startBpm;
 
                 TreeMap<MusicGroupType, TreeMap<Integer, MusicGroupTuple>> musicGroupTuples = new TreeMap<>();
                 for (MusicGroupType musicGroupType : MusicGroupType.values()) {
@@ -209,7 +214,7 @@ public class Parser {
                                 currentPart.beamGroups.add(whitespace);
                             }
                             parseMusicDirective(musicGroupTuples, currentPart, direction, measureStartTime + measureTime + offset);
-                            currentTempo = parseTempoMarking(tempoMarkings, currentTempo, direction, measureStartTime + measureTime + offset);
+                            currentTempo = parseTempoMarking(tempoMarkings, tempoChanges, currentTempo, direction, measureStartTime + measureTime + offset);
                             currentPart.directions.put(measureStartTime + measureTime + offset, direction);
                         }
                     }
@@ -227,14 +232,19 @@ public class Parser {
                 currentPart.pulseLines.add(new PulseLineTuple(measureStartTime, "", 0, null));
             }
 
+            var integratedTime = integrateTime(tempoChanges);
+
+            var nNewlines = normalisedNewlines(newlines, integratedTime);
+            var nNewSections = normalisedSections(newSections, integratedTime);
+
             Map<Float, Integer> lineIndices = new HashMap<>();
             List<Float> lineLengths = new ArrayList<>();
             List<Float> lineOffsets = new ArrayList<>();
             int index = 0;
             float prevLineStart = 0;
-            for (Float newline : newlines.keySet()) {
+            for (Float newline : nNewlines.keySet()) {
                 lineIndices.put(newline, index);
-                lineOffsets.add(newlines.get(newline));
+                lineOffsets.add(nNewlines.get(newline));
                 if (index != 0) {
                     lineLengths.add(newline - prevLineStart);
                     prevLineStart = newline;
@@ -246,17 +256,18 @@ public class Parser {
             }
             lineLengths.add(totalLength - prevLineStart);
 
-            var sectionIndices = createSectionIndices(newSections, partSections);
+            var sectionIndices = createSectionIndices(nNewSections, partSections);
+
 
             var finalSections = finaliseSections(
                     populatePartSections(
                             partSections,
                             instantiateLines(
-                                    newlines,
+                                    nNewlines,
                                     populatePartLines(
-                                            partLines, parsingParts, tempoMarkings, newlines, lineIndices),
+                                            partLines, parsingParts, tempoMarkings, nNewlines, lineIndices, integratedTime),
                                     lineLengths, lineOffsets, parsingParts),
-                            newSections, sectionIndices),
+                            nNewSections, sectionIndices),
                     parsingParts);
 
             for (Map.Entry<String, List<Section>> part : finalSections.entrySet()) {
@@ -266,6 +277,41 @@ public class Parser {
             return new Score(getWorkTitle(partwise), getComposer(partwise), parts.values().stream().toList());
         }
         return null;
+    }
+
+    static TreeMap<Float, TempoChangeTuple> integrateTime(TreeMap<Float, Float> tempoChanges) {
+        TreeMap<Float, TempoChangeTuple> integratedTime = new TreeMap<>() {{ put(0f, new TempoChangeTuple(0f, TIME_NORMALISATION_FACTOR / tempoChanges.firstEntry().getValue())); }};
+        if (TIME_NORMALISED_PARSING) {
+            for (Map.Entry<Float, Float> entry : tempoChanges.entrySet()) {
+                var timeEntry = integratedTime.lowerEntry(entry.getKey());
+                var tempoEntry = tempoChanges.lowerEntry(entry.getKey());
+                if (timeEntry != null && tempoEntry != null) {
+                    integratedTime.put(entry.getKey(), new TempoChangeTuple(
+                            timeEntry.getValue().time() + (entry.getKey() - timeEntry.getKey()) * (TIME_NORMALISATION_FACTOR / tempoEntry.getValue()),
+                            TIME_NORMALISATION_FACTOR / entry.getValue()));
+                }
+            }
+        } else {
+            integratedTime.clear();
+            integratedTime.put(0f, new TempoChangeTuple(0f, 1));
+        }
+        return integratedTime;
+    }
+
+    static TreeMap<Float, Float> normalisedNewlines(TreeMap<Float, Float> newlines, TreeMap<Float, TempoChangeTuple> integratedTime) {
+        var normalisedNewlines = new TreeMap<Float, Float>();
+        for (var newline : newlines.entrySet()) {
+            normalisedNewlines.put(normaliseTime(newline.getKey(), integratedTime), normaliseDuration(newline.getKey(), newline.getValue(), integratedTime));
+        }
+        return normalisedNewlines;
+    }
+
+    static TreeSet<Float> normalisedSections(TreeSet<Float> newSections, TreeMap<Float, TempoChangeTuple> integratedTime) {
+        var normalisedSections = new TreeSet<Float>();
+        for (var newSection : newSections) {
+            normalisedSections.add(normaliseTime(newSection, integratedTime));
+        }
+        return normalisedSections;
     }
 
     static Map<Float, Integer> createSectionIndices(TreeSet<Float> newSections, TreeMap<String, List<TreeMap<Float, Line>>> partSections) {
@@ -285,34 +331,35 @@ public class Parser {
                                                               TreeMap<String, ParsingPartTuple> parsingParts,
                                                               TreeMap<Float, TempoTuple> tempoMarkings,
                                                               TreeMap<Float, Float> newlines,
-                                                              Map<Float, Integer> lineIndices) {
+                                                              Map<Float, Integer> lineIndices,
+                                                              TreeMap<Float, TempoChangeTuple> integratedTime) {
         for (Map.Entry<String, ParsingPartTuple> part : parsingParts.entrySet()) {
             for (BeamGroupTuple beam : part.getValue().beamGroups) {
-                float lineStart = newlines.floorKey(beam.chords.get(0).crotchets);
+                float lineStart = newlines.floorKey(normaliseTime(beam.chords.get(0).crotchets, integratedTime));
                 int lineNum = lineIndices.get(lineStart);
                 if (beam.isRest()) {
-                    beam.splitToRestTuple(newlines, lineIndices, partLines.get(part.getKey()));
+                    beam.splitToRestTuple(newlines, lineIndices, integratedTime, partLines.get(part.getKey()));
                 } else {
-                    partLines.get(part.getKey()).get(lineNum).notes.add(beam.toInstantiatedBeamTuple(lineStart));
+                    partLines.get(part.getKey()).get(lineNum).notes.add(beam.toInstantiatedBeamTuple(lineStart, integratedTime));
                 }
             }
             for (MusicGroupTuple musicGroup : part.getValue().musicGroups) {
-                musicGroup.splitToInstantiatedMusicGroupTuple(newlines, lineIndices, partLines.get(part.getKey()));
+                musicGroup.splitToInstantiatedMusicGroupTuple(newlines, lineIndices, integratedTime, partLines.get(part.getKey()));
             }
             for (Map.Entry<Float, TempoTuple> entry : tempoMarkings.entrySet()) {
-                float lineStart = newlines.floorKey(entry.getValue().time);
+                float lineStart = newlines.floorKey(normaliseTime(entry.getValue().time, integratedTime));
                 int lineNum = lineIndices.get(lineStart);
-                partLines.get(part.getKey()).get(lineNum).tempoMarkings.add(entry.getValue().toInstantiatedTempoTuple(lineStart));
+                partLines.get(part.getKey()).get(lineNum).tempoMarkings.add(entry.getValue().toInstantiatedTempoTuple(lineStart, integratedTime));
             }
             for (PulseLineTuple pulseLine : part.getValue().pulseLines) {
-                float lineStart = newlines.floorKey(pulseLine.time);
+                float lineStart = newlines.floorKey(normaliseTime(pulseLine.time, integratedTime));
                 int lineNum = lineIndices.get(lineStart);
-                partLines.get(part.getKey()).get(lineNum).pulses.add(pulseLine.toInstantiatedPulseTuple(lineStart));
-                Float lowerLineStart = newlines.lowerKey(pulseLine.time);
+                partLines.get(part.getKey()).get(lineNum).pulses.add(pulseLine.toInstantiatedPulseTuple(lineStart, integratedTime));
+                Float lowerLineStart = newlines.lowerKey(normaliseTime(pulseLine.time, integratedTime));
                 if (lowerLineStart != null) {
                     int lowerLineNum = lineIndices.get(lowerLineStart);
                     if (lowerLineNum != lineNum) {
-                        var pulseTuple = pulseLine.toInstantiatedPulseTuple(lowerLineStart);
+                        var pulseTuple = pulseLine.toInstantiatedPulseTuple(lowerLineStart, integratedTime);
                         if (!END_BAR_LINE_NAME) {
                             pulseTuple.name = "";
                         }
@@ -455,6 +502,25 @@ public class Parser {
 
     static List<InstantiatedBeamGroupTuple> splitInstantiatedBeamTuple(InstantiatedBeamGroupTuple tuple, TreeMap<Float, Float> newlines, TreeMap<Float, Integer> lineIndices) {
         return null;
+    }
+
+    static float normaliseTime(float time, TreeMap<Float, TempoChangeTuple> integratedTime) {
+        if (TIME_NORMALISED_PARSING) {
+            var timeEntry = integratedTime.floorEntry(time);
+            if (timeEntry != null) {
+                return (time - timeEntry.getKey()) * timeEntry.getValue().factor() + timeEntry.getValue().time();
+            } else {
+                return time;
+            }
+        } else {
+            return time;
+        }
+    }
+
+    static float normaliseDuration(float time, float duration, TreeMap<Float, TempoChangeTuple> integratedTime) {
+        var startTime = normaliseTime(time, integratedTime);
+        var endTime = normaliseTime(time + duration, integratedTime);
+        return endTime - startTime;
     }
 
     // translates a pitch into the number of lines above the root of C0.
@@ -629,7 +695,7 @@ public class Parser {
         }
     }
 
-    static float parseTempoMarking(TreeMap<Float, TempoTuple> tempoMarkings, float currentTempo, Direction direction, float time) {
+    static float parseTempoMarking(TreeMap<Float, TempoTuple> tempoMarkings, TreeMap<Float, Float> tempoChanges, float currentTempo, Direction direction, float time) {
         if (direction.getDirectionType() != null) {
             for (DirectionType directionType : direction.getDirectionType()) {
                 if (directionType.getMetronome() != null) {
@@ -664,10 +730,12 @@ public class Parser {
                     if (met.getPerMinute() != null) {
                         TempoTuple tuple = new TempoTuple(leftItem, leftDots, met.getPerMinute().getValue(), time);
                         tempoMarkings.put(time, tuple);
+                        tempoChanges.put(time, tuple.bpmValue);
                         return tuple.bpmValue;
                     } else {
                         TempoTuple tuple = new TempoTuple(leftItem, leftDots, rightItem, rightDots, currentTempo, time);
                         tempoMarkings.put(time, tuple);
+                        tempoChanges.put(time, tuple.bpmValue);
                         return tuple.bpmValue;
                     }
                 }

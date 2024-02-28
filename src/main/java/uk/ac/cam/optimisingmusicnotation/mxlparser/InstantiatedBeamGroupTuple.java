@@ -4,7 +4,6 @@ import uk.ac.cam.optimisingmusicnotation.representation.Line;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.BeamGroup;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
-import uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,11 +45,11 @@ class InstantiatedBeamGroupTuple {
         if (chords.size() == 1) {
             if (!chords.get(0).noteType.isBeamed()) {
                 var chord = chords.get(0).toChord(line);
-                chordMap.put(chord.getMusicalPosition().crotchetsIntoLine(), chord);
+                chordMap.put(chord.getCrotchetsIntoLine(), chord);
                 return chord;
             } else {
                 var chord = chords.get(0).toChord(line);
-                chordMap.put(chord.getMusicalPosition().crotchetsIntoLine(), chord);
+                chordMap.put(chord.getCrotchetsIntoLine(), chord);
                 needsFlag.put(chord, chord.getNoteType().beamNumber());
                 return chord;
             }
