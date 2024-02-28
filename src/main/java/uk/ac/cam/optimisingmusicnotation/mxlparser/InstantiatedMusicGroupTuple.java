@@ -14,12 +14,14 @@ class InstantiatedMusicGroupTuple {
     Float endTime;
     MusicGroupType type;
     String text;
+    boolean aboveStave;
 
-    public InstantiatedMusicGroupTuple(Float startTime, Float endTime, MusicGroupType type, String text) {
+    public InstantiatedMusicGroupTuple(Float startTime, Float endTime, MusicGroupType type, String text, boolean aboveStave) {
         this.startTime = startTime;
         this.endTime = endTime;
         this.type = type;
         this.text = text;
+        this.aboveStave = aboveStave;
     }
 
     static List<Chord> getChordsInInterval(TreeMap<Float, Chord> chordMap, Float startTime, Float endTime) {
@@ -92,6 +94,9 @@ class InstantiatedMusicGroupTuple {
             }
             case DYNAMIC -> {
                 return new Dynamic(getChordsInInterval(chords), text, new MusicalPosition(line, startTime));
+            }
+            case TEXT -> {
+                return new TextAnnotation(getChordsInInterval(chords), text, new MusicalPosition(line, startTime), aboveStave);
             }
         }
         throw new IllegalArgumentException();

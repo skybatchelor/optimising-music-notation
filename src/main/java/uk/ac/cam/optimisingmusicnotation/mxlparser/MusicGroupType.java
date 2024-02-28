@@ -4,5 +4,6 @@ enum MusicGroupType {
     CRESC,
     DIM,
     SLUR,
-    DYNAMIC
+    DYNAMIC,
+    TEXT,
 }
