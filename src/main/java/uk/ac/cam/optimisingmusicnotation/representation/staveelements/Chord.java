@@ -256,7 +256,7 @@ public class Chord extends BeamGroup {
         float k = durationToStretch(noteType);
         for (int i = 0; i < dots; i++) {
             canvas.drawCircle(anchor, (RenderingConfiguration.noteheadRadius * k + RenderingConfiguration.dotSpacing
-                    * (i + 1) + RenderingConfiguration.dotRadius * (2 * i + 1)) * scaleFactor, 0.5f * (onLine ? -1 : 0), RenderingConfiguration.dotRadius * scaleFactor);
+                    * (i + 1) + RenderingConfiguration.dotRadius * (2 * i + 1)) * scaleFactor, 0.5f * (onLine ? 1 : 0), RenderingConfiguration.dotRadius * scaleFactor);
         }
     }
 
