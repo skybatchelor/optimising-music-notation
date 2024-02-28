@@ -32,7 +32,7 @@ public class RenderingConfiguration {
     // Beaming information
     public static float hookRatio = 0.5f;
     public static float flagRatio = 0.5f;
-    public static float beamletRatio = 0.5f;
+    public static float beamletRatio = 0.25f;
     public static boolean hookSingleForward = false;
     public static boolean hookAllForward = false;
     public static boolean hookSingleBackward = true;
@@ -47,7 +47,7 @@ public class RenderingConfiguration {
     public static float beamOffset = -0f;
 
     // Whitespace information
-    public static float artisticWhitespaceWidth = 1f; // A crochet of whitespace + dead space
+    public static float artisticWhitespaceWidth = 0.5f; // A crochet of whitespace + dead space
 
     // Text information
     public static String defaultFontFilePath;

@@ -18,8 +18,8 @@ public class Diminuendo extends LineElement {
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Map<Chord, ChordAnchors<Anchor>> chordAnchorsMap) {
         // TODO: range over the elements to have Anchor = argmin(x.verticalPos)
         Anchor startAnchor = startPosition != null ? canvas.getLowestStaveLineAnchor(startPosition) : canvas.getLowestStaveLineStartOfLineAnchor(line);
-        float startOffset = startPosition != null ? 0 : RenderingConfiguration.hairpinHeight / 8;
-        float endOffset = endPosition != null ? RenderingConfiguration.hairpinHeight / 2 : RenderingConfiguration.hairpinHeight * 3 / 8;
+        float startOffset = startPosition != null ? RenderingConfiguration.hairpinHeight / 2 : RenderingConfiguration.hairpinHeight * 3 / 8;
+        float endOffset = endPosition != null ? 0 : RenderingConfiguration.hairpinHeight / 8;
         Anchor lowestAnchor = canvas.getMinAnchor(chords.stream().map((chord) -> chordAnchorsMap.get(chord).getLowestAnchor(canvas, chord)).toList(), startAnchor, canvas::isAnchorBelow);
         startAnchor = canvas.getTakeXTakeYAnchor(startPosition != null ? canvas.getAnchor(startPosition) : canvas.getStartOfLineAnchor(line), lowestAnchor);
         Anchor endAnchor = canvas.getTakeXTakeYAnchor(endPosition != null ? canvas.getAnchor(endPosition) : canvas.getEndOfLineAnchor(line), lowestAnchor);
