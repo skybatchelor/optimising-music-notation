@@ -22,10 +22,8 @@ import java.awt.Color;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.BiFunction;
 
 public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
 
@@ -213,9 +211,14 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     }
 
     @Override
-    public Anchor getLowestAnchor(List<Anchor> anchors, Anchor start) {
+    public boolean isAnchorAbove(Anchor anchor1, Anchor anchor2) {
+        return anchor1.y > anchor2.y;
+    }
+
+    @Override
+    public Anchor getMinAnchor(List<Anchor> anchors, Anchor start, BiFunction<Anchor, Anchor, Boolean> lessThan) {
         for (Anchor anchor : anchors) {
-            if (isAnchorBelow(anchor, start)) {
+            if (lessThan.apply(anchor, start)) {
                 start = anchor;
             }
         }

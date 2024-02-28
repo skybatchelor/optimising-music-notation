@@ -49,18 +49,18 @@ public class TempoMarking extends MusicGroup {
             float width = rightText.length() * 1.5f + 1.5f;
             try {
                 canvas.drawText(RenderingConfiguration.defaultFontFilePath, "=" + rightText,10f, TextAlignment.LEFT, anchor,
-                        0.75f, 2.5f, width, 5f);
+                        RenderingConfiguration.tempoNoteSpacing * RenderingConfiguration.tempoNoteScale, 2.5f, width, 5f);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         } else {
             try {
                 canvas.drawText(RenderingConfiguration.defaultFontFilePath, "=",10f, TextAlignment.LEFT, anchor,
-                        0.75f, 2.5f, 1.5f, 5f);
+                        RenderingConfiguration.tempoNoteSpacing * RenderingConfiguration.tempoNoteScale, 2.5f, 1.5f, 5f);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            Chord.draw(canvas, canvas.offsetAnchor(anchor, 2.5f, 0f), rightItem, rightDots, RenderingConfiguration.tempoNoteTimeScale, RenderingConfiguration.tempoNoteScale);
+            Chord.draw(canvas, canvas.offsetAnchor(anchor, 1.25f + RenderingConfiguration.tempoNoteSpacing * RenderingConfiguration.tempoNoteScale * 2, 0f), rightItem, rightDots, RenderingConfiguration.tempoNoteTimeScale, RenderingConfiguration.tempoNoteScale);
         }
     }
 }

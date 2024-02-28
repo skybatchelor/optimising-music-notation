@@ -23,4 +23,16 @@ public record ChordAnchors<Anchor>(Anchor lowestNotehead, Anchor highestNotehead
             return lowestNotehead;
         }
     }
+
+    public Anchor getHighestAnchor(MusicCanvas<Anchor> canvas, Chord chord) {
+        if (chord.getNoteType().defaultLengthInCrotchets <= 2) {
+            if (canvas.isAnchorAbove(highestNotehead, stemEnd)) {
+                return highestNotehead;
+            } else {
+                return stemEnd;
+            }
+        } else {
+            return highestNotehead;
+        }
+    }
 }

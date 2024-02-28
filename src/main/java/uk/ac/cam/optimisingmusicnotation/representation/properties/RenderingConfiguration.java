@@ -64,9 +64,12 @@ public class RenderingConfiguration {
     public static float dynamicsTextHeight = 6f;
 
     // Tempo marking information
-
     public static float tempoNoteScale = 0.5f;
+    public static float tempoNoteSpacing = 1.5f;
     public static float tempoNoteTimeScale = 2.5f;
+
+    // Stave text information
+    public static float staveTextHeight = 5f;
 
     static {
         try {
