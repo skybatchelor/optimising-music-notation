@@ -36,6 +36,7 @@ public class Chord extends BeamGroup {
 
     protected final NoteType noteType;
     protected final int dots;
+    protected float noteScale = 1f;
 
     public Chord() {
         notes = new ArrayList<>();
@@ -138,9 +139,9 @@ public class Chord extends BeamGroup {
         chordAnchors = chordAnchorsMap.get(this);
 
         if (drawStem) {
-            drawStem(canvas, chordAnchors, RenderingConfiguration.upwardStems ? 1 : -1, 1);
+            drawStem(canvas, chordAnchors, RenderingConfiguration.upwardStems ? 1 : -1, noteScale);
         } else {
-            drawNonStemWhiteSpace(canvas, chordAnchors, 1);
+            drawNonStemWhiteSpace(canvas, chordAnchors, noteScale);
         }
 
         for (Note note : notes) {
@@ -152,8 +153,8 @@ public class Chord extends BeamGroup {
             }
             Anchor anchor = canvas.getAnchor(musicalPosition, note.pitch);
             drawTie(canvas, note, anchor);
-            drawNotehead(canvas, anchor, noteType, fillInCircle, 1);
-            drawDots(canvas, anchor, noteType, dots, note.pitch.rootStaveLine() % 2 == 0, 1);
+            drawNotehead(canvas, anchor, noteType, fillInCircle, noteScale);
+            drawDots(canvas, anchor, noteType, dots, note.pitch.rootStaveLine() % 2 == 0, noteScale);
             drawAccidental(canvas, note, anchor);
         }
         drawLedgerLines(canvas, lowestLine, highestLine);
@@ -285,7 +286,6 @@ public class Chord extends BeamGroup {
         Accidental accidental;
 
         boolean hasTieFrom;
-
         boolean hasTieTo;
 
         public Note(Pitch pitch, Accidental accidental, boolean hasTieFrom, boolean hasTieTo) {
