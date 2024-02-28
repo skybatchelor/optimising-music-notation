@@ -120,7 +120,7 @@ public class Chord extends BeamGroup {
         }
 
         drawNotehead(canvas, anchor, noteType, fillInCircle, scaleFactor);
-        drawDots(canvas, anchor, noteType, dots, scaleFactor);
+        drawDots(canvas, anchor, noteType, dots, false, scaleFactor);
         Flag.draw(canvas, chordAnchors, noteType, timeScaleFactor, scaleFactor);
     }
 
@@ -153,7 +153,7 @@ public class Chord extends BeamGroup {
             Anchor anchor = canvas.getAnchor(musicalPosition, note.pitch);
             drawTie(canvas, note, anchor);
             drawNotehead(canvas, anchor, noteType, fillInCircle, 1);
-            drawDots(canvas, anchor, noteType, dots, 1);
+            drawDots(canvas, anchor, noteType, dots, note.pitch.rootStaveLine() % 2 == 0, 1);
             drawAccidental(canvas, note, anchor);
         }
         drawLedgerLines(canvas, lowestLine, highestLine);
@@ -252,11 +252,11 @@ public class Chord extends BeamGroup {
         }
     }
 
-    private static <Anchor> void drawDots(MusicCanvas<Anchor> canvas, Anchor anchor, NoteType noteType, int dots, float scaleFactor) {
+    private static <Anchor> void drawDots(MusicCanvas<Anchor> canvas, Anchor anchor, NoteType noteType, int dots, boolean onLine, float scaleFactor) {
         float k = durationToStretch(noteType);
         for (int i = 0; i < dots; i++) {
             canvas.drawCircle(anchor, (RenderingConfiguration.noteheadRadius * k + RenderingConfiguration.dotSpacing
-                    * (i + 1) + RenderingConfiguration.dotRadius * (2 * i + 1)) * scaleFactor, 0, RenderingConfiguration.dotRadius * scaleFactor);
+                    * (i + 1) + RenderingConfiguration.dotRadius * (2 * i + 1)) * scaleFactor, 0.5f * (onLine ? -1 : 0), RenderingConfiguration.dotRadius * scaleFactor);
         }
     }
 
