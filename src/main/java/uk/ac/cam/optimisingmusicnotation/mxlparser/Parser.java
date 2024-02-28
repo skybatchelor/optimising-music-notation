@@ -28,6 +28,8 @@ import java.util.zip.ZipInputStream;
 public class Parser {
     public static final boolean NEW_SECTION_FOR_KEY_SIGNATURE = true;
     public static final float EPSILON = 0.001f;
+    public static HashSet<String> escapedDirectives = new HashSet<>() {{ add("\\n"); add("\\s"); add("\\w"); }};
+    public static HashSet<String> boxedDirectives = new HashSet<>() {{ add("n"); add("s"); add("w"); }};
 
     public static Score parseToScore(Object mxl) {
         if (mxl instanceof ScorePartwise partwise) {
@@ -563,12 +565,17 @@ public class Parser {
         return false;
     }
 
+    static boolean isDirective(FormattedTextId text) {
+        return escapedDirectives.contains(text.getValue())
+                || (text.getEnclosure() == EnclosureShape.RECTANGLE && boxedDirectives.contains(text.getValue()));
+    }
+
     static List<MusicGroupType> wedgeGroups = new ArrayList<>(2) {{ add(MusicGroupType.DIM); add(MusicGroupType.CRESC); }};
     static void parseMusicDirective(TreeMap<MusicGroupType, TreeMap<Integer, MusicGroupTuple>> target, ParsingPartTuple currentPart, Direction direction, float time) {
         if (direction.getDirectionType() != null) {
             for (DirectionType directionType : direction.getDirectionType()) {
-                Wedge wedge = directionType.getWedge();
-                if (wedge != null) {
+                if (directionType.getWedge() != null) {
+                    Wedge wedge = directionType.getWedge();
                     switch (wedge.getType().name()) {
                         case "DIMINUENDO" -> target.get(MusicGroupType.DIM).put(wedge.getNumber(), new MusicGroupTuple(time, MusicGroupType.DIM));
                         case "CRESCENDO" -> target.get(MusicGroupType.CRESC).put(wedge.getNumber(), new MusicGroupTuple(time, MusicGroupType.CRESC));
@@ -577,6 +584,7 @@ public class Parser {
                                 if (target.get(type).containsKey(wedge.getNumber())) {
                                     var tuple = target.get(type).remove(wedge.getNumber());
                                     tuple.endTime = time;
+                                    tuple.aboveStave = direction.getPlacement() == AboveBelow.ABOVE || direction.getPlacement() == null;
                                     currentPart.musicGroups.add(tuple);
                                     break;
                                 }
@@ -591,8 +599,20 @@ public class Parser {
                                 var tuple = new MusicGroupTuple(time, MusicGroupType.DYNAMIC);
                                 tuple.endTime = time;
                                 tuple.text = element.getName().getLocalPart();
+                                tuple.aboveStave = direction.getPlacement() == AboveBelow.ABOVE || direction.getPlacement() == null;
                                 currentPart.musicGroups.add(tuple);
                             }
+                        }
+                    }
+                }
+                if (directionType.getWordsOrSymbol() != null) {
+                    for (var wordOrSymbol : directionType.getWordsOrSymbol()) {
+                        if (wordOrSymbol instanceof FormattedTextId text && !isDirective(text)) {
+                            var tuple = new MusicGroupTuple(time, MusicGroupType.TEXT);
+                            tuple.endTime = time;
+                            tuple.text = text.getValue();
+                            tuple.aboveStave = direction.getPlacement() == AboveBelow.ABOVE || direction.getPlacement() == null;
+                            currentPart.musicGroups.add(tuple);
                         }
                     }
                 }
@@ -874,7 +894,7 @@ public class Parser {
             target = args[0];
         }
 
-        Object mxl = null;
+        Object mxl;
         try {
             mxl = Parser.openMXL(target);
         } catch (IOException e) {
