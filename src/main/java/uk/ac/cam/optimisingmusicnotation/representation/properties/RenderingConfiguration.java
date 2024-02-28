@@ -66,7 +66,7 @@ public class RenderingConfiguration {
     // Tempo marking information
 
     public static float tempoNoteScale = 0.5f;
-    public static float tempoNoteTimeScale = 1f;
+    public static float tempoNoteTimeScale = 2.5f;
 
     static {
         try {
