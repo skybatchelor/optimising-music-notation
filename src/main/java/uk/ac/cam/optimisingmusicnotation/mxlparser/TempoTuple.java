@@ -2,6 +2,8 @@ package uk.ac.cam.optimisingmusicnotation.mxlparser;
 
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType;
 
+import java.util.TreeMap;
+
 class TempoTuple {
     float time;
     NoteType leftItem;
@@ -56,7 +58,7 @@ class TempoTuple {
         bpmValue = currentTempo / (leftItem.defaultLengthInCrotchets * dotsToFactor(leftDots)) * (rightItem.defaultLengthInCrotchets * dotsToFactor(rightDots));
     }
 
-    public InstantiatedTempoTuple toInstantiatedTempoTuple(float lineStart) {
-        return new InstantiatedTempoTuple(leftItem, leftDots, rightText, rightItem, rightDots, time - lineStart, bpmValue);
+    public InstantiatedTempoTuple toInstantiatedTempoTuple(float lineStart, TreeMap<Float, TempoChangeTuple> integratedTime) {
+        return new InstantiatedTempoTuple(leftItem, leftDots, rightText, rightItem, rightDots, Parser.normaliseTime(time, integratedTime) - lineStart, bpmValue);
     }
 }
