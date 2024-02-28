@@ -27,23 +27,23 @@ public class TextAnnotation extends MusicGroup {
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Map<Chord, ChordAnchors<Anchor>> chordAnchorsMap) {
         if (aboveStave) {
             Anchor anchor = canvas.getAnchor(musicalPosition);
-            Anchor lowestAnchor = anchor;
-            anchor = canvas.getTakeXTakeYAnchor(canvas.getAnchor(musicalPosition), lowestAnchor);
+            Anchor highestAnchor = canvas.getMinAnchor(chords.stream().map((chord) -> chordAnchorsMap.get(chord).getHighestAnchor(canvas, chord)).toList(), anchor, canvas::isAnchorAbove);
+            anchor = canvas.getTakeXTakeYAnchor(canvas.getAnchor(musicalPosition), highestAnchor);
             float width = text.length() * 1.5f;
             try {
                 canvas.drawText(RenderingConfiguration.defaultFontFilePath, text,10f, TextAlignment.LEFT, anchor,
-                        0, 5f, width, 5f);
+                        0, RenderingConfiguration.staveTextHeight, width, RenderingConfiguration.staveTextHeight);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         } else {
             Anchor anchor = canvas.getLowestStaveLineAnchor(musicalPosition);
-            Anchor lowestAnchor = canvas.getLowestAnchor(chords.stream().map((chord) -> chordAnchorsMap.get(chord).getLowestAnchor(canvas, chord)).toList(), anchor);
+            Anchor lowestAnchor = canvas.getMinAnchor(chords.stream().map((chord) -> chordAnchorsMap.get(chord).getLowestAnchor(canvas, chord)).toList(), anchor, canvas::isAnchorBelow);
             anchor = canvas.getTakeXTakeYAnchor(canvas.getAnchor(musicalPosition), lowestAnchor);
             float width = text.length() * 1.5f;
             try {
                 canvas.drawText(RenderingConfiguration.defaultFontFilePath, text,10f, TextAlignment.LEFT, anchor,
-                        0, 0, width, 5f);
+                        0, 0, width, RenderingConfiguration.staveTextHeight);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

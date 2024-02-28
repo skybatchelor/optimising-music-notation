@@ -6,6 +6,7 @@ import uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch;
 
 import java.awt.*;
 import java.io.IOException;
+import java.util.function.BiFunction;
 
 public interface MusicCanvas<Anchor> {
 
@@ -20,12 +21,13 @@ public interface MusicCanvas<Anchor> {
     Anchor offsetAnchor(Anchor anchor, float x, float y);
     Anchor interpolateAnchors(Anchor anchor1, Anchor anchor2, float t);
     Anchor getTakeXTakeYAnchor(Anchor anchorX, Anchor anchorY);
-    Anchor getLowestAnchor(java.util.List<Anchor> anchors, Anchor start);
+    Anchor getMinAnchor(java.util.List<Anchor> anchors, Anchor start, BiFunction<Anchor, Anchor, Boolean> lessThan);
     Anchor topLeftAnchor();
     Anchor topCentreAnchor();
     Anchor topRightAnchor();
 
     boolean isAnchorBelow(Anchor anchor1, Anchor anchor2);
+    boolean isAnchorAbove(Anchor anchor1, Anchor anchor2);
 
     void addLine();
     void addLine(float crotchetsOffset);
