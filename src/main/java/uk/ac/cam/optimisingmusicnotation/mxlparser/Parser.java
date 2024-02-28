@@ -607,12 +607,28 @@ public class Parser {
                     Metronome met = directionType.getMetronome();
                     uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType leftItem = uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.CROTCHET;
                     int leftDots = 0;
+                    boolean seenLeft = false;
+                    uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType rightItem = uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.CROTCHET;
+                    int rightDots = 0;
+                    boolean seenRight = false;
                     if (met.getBeatUnit() != null) {
                         for (var unit : met.getBeatUnit()) {
-                            if (unit instanceof String noteString) {
-                                leftItem = convertNoteType(noteString);
-                                leftDots = 0;
-                                break;
+                            if (!seenLeft) {
+                                if (unit instanceof String noteString) {
+                                    leftItem = convertNoteType(noteString);
+                                    seenLeft = true;
+                                }
+                            } else if (!seenRight) {
+                                if (unit instanceof Empty) {
+                                    leftDots += 1;
+                                } else if (unit instanceof String noteString) {
+                                    rightItem = convertNoteType(noteString);
+                                    seenRight = true;
+                                }
+                            } else {
+                                if (unit instanceof Empty) {
+                                    rightDots += 1;
+                                }
                             }
                         }
                     }
@@ -621,7 +637,9 @@ public class Parser {
                         tempoMarkings.put(time, tuple);
                         return tuple.bpmValue;
                     } else {
-
+                        TempoTuple tuple = new TempoTuple(leftItem, leftDots, rightItem, rightDots, currentTempo, time);
+                        tempoMarkings.put(time, tuple);
+                        return tuple.bpmValue;
                     }
                 }
             }

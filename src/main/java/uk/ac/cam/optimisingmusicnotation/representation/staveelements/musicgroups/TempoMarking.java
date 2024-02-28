@@ -14,14 +14,14 @@ import java.util.Map;
 
 public class TempoMarking extends MusicGroup {
 
-    private MusicalPosition position;
+    private final MusicalPosition position;
 
-    private NoteType leftItem;
-    private int leftDots;
+    private final NoteType leftItem;
+    private final int leftDots;
 
-    private String rightText;
-    private NoteType rightItem;
-    private int rightDots;
+    private final String rightText;
+    private final NoteType rightItem;
+    private final int rightDots;
 
     public TempoMarking(MusicalPosition position, NoteType leftItem, int leftDots, String rightText) {
         this.position = position;
@@ -53,6 +53,14 @@ public class TempoMarking extends MusicGroup {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
+        } else {
+            try {
+                canvas.drawText(RenderingConfiguration.defaultFontFilePath, "=",10f, TextAlignment.LEFT, anchor,
+                        0.75f, 2.5f, 1.5f, 5f);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            Chord.draw(canvas, canvas.offsetAnchor(anchor, 2.5f, 0f), rightItem, rightDots, RenderingConfiguration.tempoNoteTimeScale, RenderingConfiguration.tempoNoteScale);
         }
     }
 }

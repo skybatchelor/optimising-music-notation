@@ -23,8 +23,8 @@ public class InstantiatedTempoTuple {
         this.leftItem = leftItem;
         this.leftDots = leftDots;
         this.rightText = rightText;
-        this.rightItem = NoteType.MAXIMA;
-        this.rightDots = 0;
+        this.rightItem = rightItem;
+        this.rightDots = rightDots;
 
         this.bpmValue = bpmValue;
     }
