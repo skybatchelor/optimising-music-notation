@@ -254,7 +254,7 @@ public class Parser {
                 }
                 ++index;
             }
-            lineLengths.add(totalLength - prevLineStart);
+            lineLengths.add(normaliseTime(totalLength, integratedTime) - prevLineStart);
 
             var sectionIndices = createSectionIndices(nNewSections, partSections);
 
