@@ -244,11 +244,16 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
 
     @Override
     public void drawLine(Anchor anchor, float x1, float y1, float x2, float y2, float lineWidth) {
-        drawLine(anchor, x1, y1, x2, y2, lineWidth, Color.BLACK);
+        drawLine(anchor, x1, y1, x2, y2, lineWidth, Color.BLACK, true);
     }
 
     @Override
     public void drawLine(Anchor anchor, float x1, float y1, float x2, float y2, float lineWidth, Color color) {
+        drawLine(anchor, x1, y1, x2, y2, lineWidth, color, true);
+    }
+
+    @Override
+    public void drawLine(Anchor anchor, float x1, float y1, float x2, float y2, float lineWidth, Color color, boolean reserveHeight) {
         PdfCanvas canvas = new PdfCanvas(pdf.getPage(anchor.page + 1));
 
         canvas.setLineWidth(lineWidth * STAVE_SPACING);
@@ -257,18 +262,25 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
                 .lineTo((anchor.x + x2) * STAVE_SPACING, (anchor.y + y2) * STAVE_SPACING)
                 .stroke();
 
-        updateReservedHeight(anchor.page, anchor.y + y1);
-        updateReservedHeight(anchor.page, anchor.y + y2);
+        if (reserveHeight) {
+            updateReservedHeight(anchor.page, anchor.y + y1);
+            updateReservedHeight(anchor.page, anchor.y + y2);
+        }
     }
 
     @Override
     public void drawLine(Anchor anchor1, float x1, float y1, Anchor anchor2, float x2, float y2, float lineWidth) {
-        drawLine(anchor1, x1, y1, anchor2, x2, y2, lineWidth, Color.BLACK);
+        drawLine(anchor1, x1, y1, anchor2, x2, y2, lineWidth, Color.BLACK, true);
     }
 
     @Override
     public void drawLine(Anchor anchor1, float x1, float y1, Anchor anchor2, float x2, float y2, float lineWidth, Color color) {
-        drawLine(anchor1, x1, y1, anchor2.x + x2 - anchor1.x, anchor2.y + y2 - anchor1.y, lineWidth, color);
+        drawLine(anchor1, x1, y1, anchor2.x + x2 - anchor1.x, anchor2.y + y2 - anchor1.y, lineWidth, color, true);
+    }
+
+    @Override
+    public void drawLine(Anchor anchor1, float x1, float y1, Anchor anchor2, float x2, float y2, float lineWidth, Color color, boolean reserveHeight) {
+        drawLine(anchor1, x1, y1, anchor2.x + x2 - anchor1.x, anchor2.y + y2 - anchor1.y, lineWidth, color, reserveHeight);
     }
 
     @Override

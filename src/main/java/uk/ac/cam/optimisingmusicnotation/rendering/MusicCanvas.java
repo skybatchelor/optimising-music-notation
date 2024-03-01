@@ -38,8 +38,10 @@ public interface MusicCanvas<Anchor> {
 
     void drawLine(Anchor anchor, float x1, float y1, float x2, float y2, float lineWidth);
     void drawLine(Anchor anchor, float x1, float y1, float x2, float y2, float lineWidth, Color color);
+    void drawLine(Anchor anchor, float x1, float y1, float x2, float y2, float lineWidth, Color color, boolean reserveHeight);
     void drawLine(Anchor anchor1,  float x1, float y1, Anchor anchor2, float x2, float y2, float lineWidth);
     void drawLine(Anchor anchor1,  float x1, float y1, Anchor anchor2, float x2, float y2, float lineWidth, Color color);
+    void drawLine(Anchor anchor1,  float x1, float y1, Anchor anchor2, float x2, float y2, float lineWidth, Color color, boolean reserveHeight);
 
     void drawWhitespace(Anchor topLeftAnchor, float topLeftX, float topLeftY, float width, float height);
     void drawWhitespace(Anchor topLeftAnchor, float topLeftX, float topLeftY,
