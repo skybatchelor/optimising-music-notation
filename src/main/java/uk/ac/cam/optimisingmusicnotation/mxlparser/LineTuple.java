@@ -5,7 +5,7 @@ import java.util.List;
 
 class LineTuple {
     float startTime;
-    List<RestTuple> rests;
+    List<InstantiatedRestTuple> rests;
     List<InstantiatedPulseLineTuple> pulses;
     List<InstantiatedBeamGroupTuple> notes;
     List<InstantiatedMusicGroupTuple> musicGroups;

@@ -164,8 +164,8 @@ public class BeamGroup implements StaveElement {
                     }
                     if (RenderingConfiguration.hookAllBackward && beam.endIndex != chords.size() - 1) {
                         end = canvas.interpolateAnchors(
-                                chordAnchorsMap.get(chords.get(beam.startIndex)).stemEnd(),
-                                chordAnchorsMap.get(chords.get(beam.startIndex + 1)).stemEnd(),
+                                chordAnchorsMap.get(chords.get(beam.endIndex)).stemEnd(),
+                                chordAnchorsMap.get(chords.get(beam.endIndex + 1)).stemEnd(),
                                 RenderingConfiguration.hookRatio
                         );
                     }
