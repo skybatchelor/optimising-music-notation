@@ -31,13 +31,19 @@ public class Line {
     }
 
     private final int lineNumber;
-  
+
+    public float getEndInCrotchets() { return lengthInCrotchets + offsetInCrochets; }
+
     public float getLengthInCrotchets() {
         return lengthInCrotchets;
     }
   
     private final float lengthInCrotchets;
-  
+
+    public float getOffsetInCrotchets() {
+        return offsetInCrochets;
+    }
+
     private final float offsetInCrochets;
   
     public Line(List<Stave> staves, float lengthInCrochets, float offsetInCrochets, int lineNumber) {

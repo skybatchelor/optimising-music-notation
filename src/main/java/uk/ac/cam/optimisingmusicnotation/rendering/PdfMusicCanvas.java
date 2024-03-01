@@ -35,6 +35,7 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     private final float SPACE_ABOVE_LINE = 5f;
 
     private final float crotchetsPerLine;
+    private final float leftOffset;
 
     private float reservedHeight = MARGIN;
 
@@ -56,13 +57,14 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     private final Map<String, PdfFont> fonts;
     private final PdfDocument pdf;
 
-    public PdfMusicCanvas(PdfDocument pdf, float crotchetsPerLine) {
+    public PdfMusicCanvas(PdfDocument pdf, float crotchetsPerLine, float centreOffset) {
         lineAnchors = new ArrayList<>();
         leftLineAnchors = new ArrayList<>();
         images = new HashMap<>();
         fonts = new HashMap<>();
         this.pdf = pdf;
         this.crotchetsPerLine = crotchetsPerLine;
+        this.leftOffset = centreOffset;
     }
 
     @Override
@@ -87,7 +89,7 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
                 float leftX = (page.getPageSize().getWidth() * (1f - LINE_WIDTH) * 0.5f) / STAVE_SPACING;
                 leftLineAnchors.add(new Anchor(pageNum, leftX, y));
 
-                float x = leftX + (page.getPageSize().getWidth() * crotchetsOffset * (LINE_WIDTH / crotchetsPerLine)) / STAVE_SPACING;
+                float x = leftX + (page.getPageSize().getWidth() * (crotchetsOffset) * (LINE_WIDTH / crotchetsPerLine)) / STAVE_SPACING;
                 lineAnchors.add(new Anchor(pageNum, x, y));
             }
         }
@@ -107,7 +109,7 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
         float leftX = (page.getPageSize().getWidth() * (1f - LINE_WIDTH) * 0.5f) / STAVE_SPACING;
         leftLineAnchors.add(new Anchor(pageNum, leftX, y));
 
-        float x = leftX + (page.getPageSize().getWidth() * crotchetsOffset * (LINE_WIDTH / crotchetsPerLine)) / STAVE_SPACING;
+        float x = leftX + (page.getPageSize().getWidth() * (crotchetsOffset) * (LINE_WIDTH / crotchetsPerLine)) / STAVE_SPACING;
         lineAnchors.add(new Anchor(pageNum, x, y));
     }
 
@@ -127,7 +129,7 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
         PdfPage page = pdf.getPage(lineAnchor.page + 1);
 
         return new Anchor(lineAnchor.page,
-                lineAnchor.x + musicalPosition.crotchetsIntoLine()
+                lineAnchor.x + (musicalPosition.crotchetsIntoLine() - leftOffset)
                         * (LINE_WIDTH / crotchetsPerLine)
                         * page.getPageSize().getWidth() / STAVE_SPACING,
                 lineAnchor.y + 0.5f * (pitch.rootStaveLine() - 8));
@@ -144,9 +146,7 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
         PdfPage page = pdf.getPage(lineAnchor.page + 1);
 
         return new Anchor(lineAnchor.page,
-                lineAnchor.x + musicalPosition.crotchetsIntoLine()
-                        * (LINE_WIDTH / crotchetsPerLine)
-                        * page.getPageSize().getWidth() / STAVE_SPACING,
+                lineAnchor.x,
                 lineAnchor.y + 0.5f * (pitch.rootStaveLine() - 8));
     }
 

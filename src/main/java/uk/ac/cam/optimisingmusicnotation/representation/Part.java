@@ -76,6 +76,18 @@ public class Part {
         }
     }
 
+    public float getMinOffset() {
+        return sections.stream().map(Section::getMinOffset).min(Float::compareTo).orElse(0f);
+    }
+
+    public float getMaxEnd() {
+        return sections.stream().map(Section::getMaxEnd).max(Float::compareTo).orElse(0f);
+    }
+
+    public float getMaxWidth() {
+        return getMaxEnd() - getMinOffset();
+    }
+
     public float getMaxCrotchetsPerLine() {
         return sections.stream().map(Section::getMaxCrotchetsPerLine).max(Float::compareTo).orElse(0f);
     }
