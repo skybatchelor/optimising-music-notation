@@ -34,14 +34,16 @@ public class Main {
         } else {
             String outTarget = !args[1].equals("") ? args[1] : score.getWorkTitle();
             for (int i = 0; i < score.getParts().size(); ++i) {
-                drawPartToPDF(outTarget, i, score);
+                String filePath = drawPartToPDF(outTarget, i, score);
+                System.out.println(filePath);
             }
         }
     }
 
-    private static void drawPartToPDF(String outTarget, int partIndex, Score score) {
+    private static String drawPartToPDF(String outTarget, int partIndex, Score score) {
         Part part = score.getParts().get(partIndex);
-        try (PdfWriter writer = new PdfWriter(outTarget + "_" + score.getPartFilename(partIndex) + ".pdf")) {
+        String finalFileName = outTarget + "_" + score.getPartFilename(partIndex) + ".pdf";
+        try (PdfWriter writer = new PdfWriter(finalFileName)) {
             PdfDocument pdf = new PdfDocument(writer);
             PageSize ps = PageSize.A4;
             pdf.addNewPage(ps);
@@ -56,6 +58,8 @@ public class Main {
         } catch (IOException e) {
             System.err.println("Error while creating PDF for part \"" + part.getName() + "\". Close all output files before converting to PDF.");
         }
+
+        return finalFileName;
     }
 }
 

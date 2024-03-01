@@ -1,6 +1,7 @@
 package uk.ac.cam.optimisingmusicnotation.representation.staveelements;
 
 import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
+import uk.ac.cam.optimisingmusicnotation.representation.Line;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.*;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmarkings.ChordMarking;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.Flag;
@@ -38,6 +39,8 @@ public class Chord extends BeamGroup {
     protected final int dots;
     protected float noteScale = 1f;
 
+    protected boolean render = true;
+
     public Chord() {
         notes = new ArrayList<>();
         markings = new ArrayList<>();
@@ -57,6 +60,36 @@ public class Chord extends BeamGroup {
         this.noteType = noteType;
         this.dots = dots;
         this.markings = markings;
+    }
+
+    private Chord(List<Note> notes, MusicalPosition musicalPosition, float durationInCrochets, NoteType noteType, int dots, List<ChordMarking> markings, boolean render) {
+        this.notes = notes;
+        this.musicalPosition = musicalPosition;
+        this.durationInCrotchets = durationInCrochets;
+        this.noteType = noteType;
+        this.dots = dots;
+        this.markings = markings;
+        this.render = render;
+    }
+
+    public Chord moveToNextLine(Line nextLine) {
+        return new Chord(notes, new MusicalPosition(nextLine,
+                musicalPosition.crotchetsIntoLine() - musicalPosition.line().getLengthInCrotchets()),
+                durationInCrotchets,
+                noteType,
+                dots,
+                markings,
+                false);
+    }
+
+    public Chord moveToPrevLine(Line prevLine) {
+        return new Chord(notes, new MusicalPosition(prevLine,
+                musicalPosition.crotchetsIntoLine() + prevLine.getLengthInCrotchets()),
+                durationInCrotchets,
+                noteType,
+                dots,
+                markings,
+                false);
     }
 
     public void removeTiesTo() {
@@ -130,6 +163,7 @@ public class Chord extends BeamGroup {
 
     @Override
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Map<Chord, ChordAnchors<Anchor>> chordAnchorsMap) {
+
         int lowestLine = Integer.MAX_VALUE;
         int highestLine = Integer.MIN_VALUE;
         boolean fillInCircle = noteType.defaultLengthInCrotchets <= 1;
@@ -140,6 +174,8 @@ public class Chord extends BeamGroup {
             computeAnchors(canvas, chordAnchorsMap);
         }
         chordAnchors = chordAnchorsMap.get(this);
+
+        if (!render) return;
 
         if (drawStem) {
             drawStem(canvas, chordAnchors, RenderingConfiguration.upwardStems ? 1 : -1, noteScale);

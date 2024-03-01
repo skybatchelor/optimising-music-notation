@@ -450,6 +450,14 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     public void drawText(String fileName, String text, float fontSize, TextAlignment alignment,
                          Anchor topLeftAnchor, float topLeftX, float topLeftY, float width, float height)
             throws IOException {
+        drawText(fileName, text, fontSize, alignment, topLeftAnchor, topLeftX, topLeftY, width, height, Color.BLACK);
+
+    }
+
+    @Override
+    public void drawText(String fileName, String text, float fontSize, TextAlignment alignment,
+                         Anchor topLeftAnchor, float topLeftX, float topLeftY, float width, float height, Color color)
+            throws IOException {
         PdfFont font;
 
         // cache font if it's the first time loading it, since fonts are usually reused
@@ -473,7 +481,8 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
         ))) {
             canvas.setFont(font);
             canvas.setFontSize(fontSize);
-            canvas.setFontColor(ColorConstants.BLACK);
+            canvas.setFontColor(new DeviceRgb(color.getRed(), color.getGreen(), color.getBlue()));
+
             switch (alignment) {
                 case LEFT -> canvas.setTextAlignment(com.itextpdf.layout.properties.TextAlignment.LEFT);
                 case CENTRE -> canvas.setTextAlignment(com.itextpdf.layout.properties.TextAlignment.CENTER);

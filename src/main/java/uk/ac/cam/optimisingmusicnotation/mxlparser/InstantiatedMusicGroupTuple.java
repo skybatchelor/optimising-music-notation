@@ -6,6 +6,7 @@ import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.TreeMap;
 
@@ -16,15 +17,27 @@ class InstantiatedMusicGroupTuple {
     String text;
     boolean aboveStave;
 
-    public InstantiatedMusicGroupTuple(Float startTime, Float endTime, MusicGroupType type, String text, boolean aboveStave) {
+    int staff;
+    int voice;
+
+    public InstantiatedMusicGroupTuple(Float startTime, Float endTime, int staff, int voice, MusicGroupType type, String text, boolean aboveStave) {
         this.startTime = startTime;
         this.endTime = endTime;
+        this.staff = staff;
+        this.voice = voice;
         this.type = type;
         this.text = text;
         this.aboveStave = aboveStave;
     }
 
-    static List<Chord> getChordsInInterval(TreeMap<Float, Chord> chordMap, Float startTime, Float endTime) {
+    static List<Chord> getAllChordsInInterval(HashMap<Integer, TreeMap<Float, Chord>> chordMap, Float startTime, Float endTime) {
+        return chordMap.values()
+                .stream()
+                .map(floatChordTreeMap -> getVoiceChordsInInterval(floatChordTreeMap, startTime, endTime))
+                .reduce(new ArrayList<>(), (a, b) -> { a.addAll(b); return a; });
+    }
+
+    static List<Chord> getVoiceChordsInInterval(TreeMap<Float, Chord> chordMap, Float startTime, Float endTime) {
         if (chordMap.size() == 0) {
             return new ArrayList<>();
         }
@@ -53,11 +66,15 @@ class InstantiatedMusicGroupTuple {
         return chords;
     }
 
-    List<Chord> getChordsInInterval(TreeMap<Float, Chord> chordMap) {
-        return getChordsInInterval(chordMap, startTime, endTime);
+    List<Chord> getChordsInInterval(HashMap<Integer, HashMap<Integer, TreeMap<Float, Chord>>> chordMap) {
+        if (voice == -1) {
+            return getAllChordsInInterval(chordMap.get(staff), startTime, endTime);
+        } else {
+            return getVoiceChordsInInterval(chordMap.get(staff).get(voice), startTime, endTime);
+        }
     }
 
-    MusicGroup toMusicGroup(Line line, TreeMap<Float, Chord> chords) {
+    MusicGroup toMusicGroup(Line line, HashMap<Integer, HashMap<Integer, TreeMap<Float, Chord>>> chords) {
         switch (type) {
             case DIM -> {
                 MusicalPosition startPos = null;
@@ -84,11 +101,11 @@ class InstantiatedMusicGroupTuple {
             case SLUR -> {
                 Chord startChord = null;
                 Chord endChord = null;
-                if (startTime != null && chords.containsKey(startTime)) {
-                    startChord = chords.get(startTime);
+                if (startTime != null && chords.get(staff).get(voice).containsKey(startTime)) {
+                    startChord = chords.get(staff).get(voice).get(startTime);
                 }
-                if (endTime != null && chords.containsKey(endTime)) {
-                    endChord = chords.get(endTime);
+                if (endTime != null && chords.get(staff).get(voice).containsKey(endTime)) {
+                    endChord = chords.get(staff).get(voice).get(endTime);
                 }
                 return new Slur(getChordsInInterval(chords), startChord, endChord, line);
             }

@@ -46,12 +46,19 @@ public class Line {
 
     private final float offsetInCrochets;
 
+    public float getStartTimeInCrotchets() {
+        return startTimeInCrotchets;
+    }
+
+    private final float startTimeInCrotchets;
+  
     private final boolean extendPulseLinesUp;
     private final boolean extendPulseLinesDown;
 
-    public Line(List<Stave> staves, float lengthInCrochets, float offsetInCrochets, int lineNumber) {
+    public Line(List<Stave> staves, float startTimeInCrotchets, float lengthInCrochets, float offsetInCrochets, int lineNumber) {
         this.staves = staves;
         this.lineNumber = lineNumber;
+        this.startTimeInCrotchets = startTimeInCrotchets;
         this.lengthInCrotchets = lengthInCrochets;
         this.offsetInCrochets = offsetInCrochets;
         this.extendPulseLinesUp = true;
@@ -63,7 +70,7 @@ public class Line {
         for (PulseLine p: pulseLines) {
             p.drawAroundStave(canvas, extendPulseLinesUp, extendPulseLinesDown);
         }
-        for (Stave s: staves){
+        for (Stave s: staves) {
             s.draw(canvas,this);
         }
         drawTimeSignatures(canvas);

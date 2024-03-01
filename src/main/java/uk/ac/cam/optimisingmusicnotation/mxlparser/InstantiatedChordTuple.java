@@ -15,6 +15,11 @@ class InstantiatedChordTuple {
     List<Accidental> accidentals;
     List<Boolean> tiesFrom;
     List<Boolean> tiesTo;
+
+    public float getCrotchetsIntoLine() {
+        return crotchetsIntoLine;
+    }
+
     float crotchetsIntoLine;
     float duration;
     NoteType noteType;

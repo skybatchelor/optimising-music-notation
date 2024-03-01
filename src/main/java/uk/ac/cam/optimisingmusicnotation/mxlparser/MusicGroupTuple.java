@@ -10,10 +10,13 @@ class MusicGroupTuple {
     MusicGroupType type;
     String text = "";
     boolean aboveStave;
+    int staff;
+    int voice = -1;
 
-    public MusicGroupTuple(float startTime, MusicGroupType type) {
+    public MusicGroupTuple(float startTime, MusicGroupType type, int staff) {
         this.startTime = startTime;
         this.type = type;
+        this.staff = staff;
     }
 
     void splitToInstantiatedMusicGroupTuple(TreeMap<Float, Float> newlines, Map<Float, Integer> lineIndices, TreeMap<Float, TempoChangeTuple> integratedTime, List<LineTuple> target) {
@@ -21,7 +24,7 @@ class MusicGroupTuple {
         float endTime = Parser.normaliseTime(this.endTime, integratedTime);
         if (startTime == endTime) {
             float lineTime = newlines.floorKey(startTime);
-            target.get(lineIndices.get(lineTime)).musicGroups.add(new InstantiatedMusicGroupTuple(startTime - lineTime, endTime - lineTime, type, text, aboveStave));
+            target.get(lineIndices.get(lineTime)).addMusicGroup(new InstantiatedMusicGroupTuple(startTime - lineTime, endTime - lineTime, staff, voice, type, text, aboveStave));
             return;
         }
         boolean start = true;
@@ -38,7 +41,7 @@ class MusicGroupTuple {
             if (start) {
                 instantiatedEndTime = endTime - newEndTime;
             }
-            target.get(lineIndices.get(newEndTime)).musicGroups.add(new InstantiatedMusicGroupTuple(instantiatedStartTime, instantiatedEndTime, type, text, aboveStave));
+            target.get(lineIndices.get(newEndTime)).addMusicGroup(new InstantiatedMusicGroupTuple(instantiatedStartTime, instantiatedEndTime, staff, voice, type, text, aboveStave));
             endTime = newEndTime;
             start = false;
         }

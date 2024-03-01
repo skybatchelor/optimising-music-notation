@@ -39,22 +39,22 @@ public class BeatLine implements PulseLine {
 
         switch (beatWeight) {
             case 1 -> canvas.drawLine(startAnchor,0f, 0.25f, endAnchor,0f, 0f,
-                    RenderingConfiguration.beatLineWidth, new Color(0xCCCCCC), false);
+                    RenderingConfiguration.beatLineWidth, RenderingConfiguration.greyColor, false);
             case 2 -> canvas.drawLine(startAnchor,0f, 0.25f, endAnchor,0f, 0f,
-                    RenderingConfiguration.subBeatLineWidth, new Color(0xCCCCCC), false);
+                    RenderingConfiguration.subBeatLineWidth, RenderingConfiguration.greyColor, false);
             default -> canvas.drawLine(startAnchor,0f, 0.25f, endAnchor,0f, 0f,
-                    RenderingConfiguration.subBeatLineWidth / (beatWeight + 1), new Color(0xCCCCCC), false);
+                    RenderingConfiguration.subBeatLineWidth / (beatWeight + 1), RenderingConfiguration.greyColor, false);
         }
 
         if (extendDown) {
             startAnchor = canvas.getAnchor(musicalPosition, new Pitch(0, 0, 0));
             switch (beatWeight) {
                 case 1 -> canvas.drawLine(startAnchor,0f, -0.25f,0f, -10f,
-                        RenderingConfiguration.beatLineWidth, new Color(0xCCCCCC), false);
+                        RenderingConfiguration.beatLineWidth, RenderingConfiguration.greyColor, false);
                 case 2 -> canvas.drawLine(startAnchor,0f, -0.25f,0f, -10f,
-                        RenderingConfiguration.subBeatLineWidth, new Color(0xCCCCCC), false);
+                        RenderingConfiguration.subBeatLineWidth, RenderingConfiguration.greyColor, false);
                 default -> canvas.drawLine(startAnchor,0f, -0.25f,0f, -10f,
-                        RenderingConfiguration.subBeatLineWidth / (beatWeight + 1), new Color(0xCCCCCC), false);
+                        RenderingConfiguration.subBeatLineWidth / (beatWeight + 1), RenderingConfiguration.greyColor, false);
             }
         }
     }
@@ -62,9 +62,9 @@ public class BeatLine implements PulseLine {
     public <Anchor> void drawFull(MusicCanvas<Anchor> canvas) {
         Anchor startAnchor = canvas.getAnchor(musicalPosition);
         switch (beatWeight) {
-            case 1 -> canvas.drawLine(startAnchor,0f,0.25f,0f,-4.25f,RenderingConfiguration.beatLineWidth, new Color(0xCCCCCC));
-            case 2 -> canvas.drawLine(startAnchor,0f,0.25f,0f,-4.25f,RenderingConfiguration.subBeatLineWidth, new Color(0xCCCCCC));
-            default -> canvas.drawLine(startAnchor,0f,0.25f,0f,-4.25f,RenderingConfiguration.subBeatLineWidth / (beatWeight + 1), new Color(0xCCCCCC));
+            case 1 -> canvas.drawLine(startAnchor,0f,0.25f,0f,-4.25f,RenderingConfiguration.beatLineWidth, RenderingConfiguration.greyColor);
+            case 2 -> canvas.drawLine(startAnchor,0f,0.25f,0f,-4.25f,RenderingConfiguration.subBeatLineWidth, RenderingConfiguration.greyColor);
+            default -> canvas.drawLine(startAnchor,0f,0.25f,0f,-4.25f,RenderingConfiguration.subBeatLineWidth / (beatWeight + 1), RenderingConfiguration.greyColor);
         }
     }
 }

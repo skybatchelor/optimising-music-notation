@@ -65,4 +65,8 @@ public interface MusicCanvas<Anchor> {
     void drawText(String fileName, String text, float fontSize, TextAlignment alignment,
                   Anchor topLeftAnchor, float topLeftX, float topLeftY, float width, float height)
             throws IOException;
+
+    void drawText(String fileName, String text, float fontSize, TextAlignment alignment,
+                         Anchor topLeftAnchor, float topLeftX, float topLeftY, float width, float height, Color color)
+            throws IOException;
 }

@@ -6,10 +6,14 @@ import org.audiveris.proxymusic.Note;
 import java.util.*;
 
 class BeamGroupTuple {
+
     List<ChordTuple> chords;
 
     float startTime;
     float endTime;
+
+    int voice = 1;
+    int staff = 1;
 
     public BeamGroupTuple() {
         chords = new ArrayList<>();
@@ -25,13 +29,24 @@ class BeamGroupTuple {
         if (endTime == -1 || chord.crotchets + chord.duration > endTime) {
             endTime = chord.crotchets + chord.duration;
         }
+        if (chord.notes.size() > 0) {
+            String voice = chord.notes.get(0).getVoice();
+            int voiceVal = Parser.getVoice(voice);
+            var staff = chord.notes.get(0).getStaff();
+            int staffVal = 1;
+            if (staff != null) {
+                staffVal = staff.intValue();
+            }
+            this.voice = voiceVal;
+            this.staff = staffVal;
+        }
     }
 
     boolean isRest() {
         return (this.chords.get(0).notes.get(0).getRest() != null);
     }
 
-    void splitToInstantiatedBeamGroupTuple(TreeMap<Float, Float> newlines, Map<Float, Integer> lineIndices, TreeMap<Float, TempoChangeTuple> integratedTime, List<LineTuple> target) {
+    void splitToInstantiatedBeamGroupTuple(TreeSet<Float> beamBreaks, TreeMap<Float, Float> newlines, Map<Float, Integer> lineIndices, TreeMap<Float, TempoChangeTuple> integratedTime, List<LineTuple> target) {
         List<BeamTuple> beams = new ArrayList<>();
 
         Integer[] beaming = new Integer[10];
@@ -82,65 +97,50 @@ class BeamGroupTuple {
             }
         }
 
-        var split = new TreeMap<Integer, Integer>();
-        var lineStartTime = new ArrayList<Float>();
-        int lastLine = -1;
+        var split = new TreeMap<Integer, Float>();
+        var lineStartTimes = new ArrayList<Float>();
+        float lastSplit = -1f;
 
         for (int i = 0; i < chords.size(); ++i) {
-            float startTime = newlines.floorKey(Parser.normaliseTime(chords.get(i).crotchets, integratedTime));
-            lineStartTime.add(startTime);
-            int lineIndex = lineIndices.get(startTime);
-            if (lastLine != lineIndex) {
-                lastLine = lineIndex;
-                split.put(i, lineIndex);
+            float normalisedTime = Parser.normaliseTime(chords.get(i).crotchets, integratedTime);
+            float startTime = beamBreaks.floor(normalisedTime);
+            float lineStartTime = newlines.floorKey(normalisedTime);
+            lineStartTimes.add(lineStartTime);
+            if (lastSplit != startTime) {
+                lastSplit = startTime;
+                split.put(i, startTime);
             }
         }
 
         var splitBeams = splitBeams(beams, split);
 
-        TreeMap<Integer, List<InstantiatedChordTuple>> iChords = new TreeMap<>();
+        TreeMap<Float, List<InstantiatedChordTuple>> iChords = new TreeMap<>();
 
         for (int i = 0; i < chords.size(); ++i) {
-            addToListInMap(iChords, split.floorEntry(i).getValue(), chords.get(i).toInstantiatedChordTuple(lineStartTime.get(i), integratedTime));
+            Util.addToListInMap(iChords, split.floorEntry(i).getValue(), chords.get(i).toInstantiatedChordTuple(lineStartTimes.get(i), integratedTime));
         }
 
         for (var entry : iChords.entrySet()) {
-            var tuple = new InstantiatedBeamGroupTuple();
+            var tuple = new InstantiatedBeamGroupTuple(staff, voice);
             tuple.chords = entry.getValue();
-            tuple.beams = getListInMap(splitBeams, entry.getKey());
-            target.get(entry.getKey()).notes.add(tuple);
+            tuple.beams = Util.getListInMap(splitBeams, entry.getKey());
+            target.get(lineIndices.get(newlines.floorKey(entry.getKey()))).addBeamGroup(tuple);
         }
     }
 
-    static <K, V> void addToListInMap(Map<K, List<V>> map, K key, V value) {
-        if (map.containsKey(key)) {
-            map.get(key).add(value);
-        } else {
-            map.put(key, new ArrayList<>() {{ add(value); }});
-        }
-    }
-
-    static <K, V> List<V> getListInMap(Map<K, List<V>> map, K key) {
-        if (map.containsKey(key)) {
-            return map.get(key);
-        } else {
-            return new ArrayList<>();
-        }
-    }
-
-    static HashMap<Integer, List<BeamTuple>> splitBeams(List<BeamTuple> beams, TreeMap<Integer, Integer> split) {
-        HashMap<Integer, List<BeamTuple>> splitResult = new HashMap<>();
+    static HashMap<Float, List<BeamTuple>> splitBeams(List<BeamTuple> beams, TreeMap<Integer, Float> split) {
+        HashMap<Float, List<BeamTuple>> splitResult = new HashMap<>();
 
         for (var beam : beams) {
             int startIndex = beam.start;
             int endIndex = beam.end;
             if (startIndex == endIndex) {
                 var newEndIndex = split.floorEntry(endIndex);
-                addToListInMap(splitResult, newEndIndex.getValue(), new BeamTuple(startIndex - newEndIndex.getKey(), endIndex - newEndIndex.getKey(), beam.number));
+                Util.addToListInMap(splitResult, newEndIndex.getValue(), new BeamTuple(startIndex - newEndIndex.getKey(), endIndex - newEndIndex.getKey(), beam.number));
             }
             while (startIndex < endIndex) {
                 var newEndIndex = split.floorEntry(endIndex);
-                addToListInMap(splitResult, newEndIndex.getValue(), new BeamTuple(Math.max(startIndex, newEndIndex.getKey()) - newEndIndex.getKey(), endIndex - newEndIndex.getKey(), beam.number));
+                Util.addToListInMap(splitResult, newEndIndex.getValue(), new BeamTuple(Math.max(startIndex, newEndIndex.getKey()) - newEndIndex.getKey(), endIndex - newEndIndex.getKey(), beam.number));
                 endIndex = newEndIndex.getKey() - 1;
             }
         }
@@ -157,7 +157,7 @@ class BeamGroupTuple {
             if (newEndTime < lowestLineStart) {
                 break;
             }
-            target.get(lineIndices.get(newEndTime)).rests.add(new InstantiatedRestTuple(Math.max(newEndTime, startTime) - newEndTime, endTime - newEndTime));
+            target.get(lineIndices.get(newEndTime)).addRest(new InstantiatedRestTuple(staff, voice, Math.max(newEndTime, startTime) - newEndTime, endTime - newEndTime));
             endTime = newEndTime;
         }
     }
