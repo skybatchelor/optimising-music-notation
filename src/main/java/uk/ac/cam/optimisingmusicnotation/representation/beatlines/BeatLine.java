@@ -22,7 +22,7 @@ public class BeatLine implements PulseLine {
     }
 
 
-    public <Anchor> void drawAboveStave(MusicCanvas<Anchor> canvas) {
+    public <Anchor> void drawAroundStave(MusicCanvas<Anchor> canvas, boolean extendUp, boolean extendDown) {
         Anchor startAnchor = canvas.getAnchor(musicalPosition);
         switch (beatWeight) {
             case 1 -> canvas.drawLine(startAnchor,0f, RenderingConfiguration.pulseLineHeight,0f,0.25f,

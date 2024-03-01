@@ -29,7 +29,7 @@ public class BarLine implements PulseLine {
         this.timeSignature = timeSignature;
     }
 
-    public <Anchor> void drawAboveStave(MusicCanvas<Anchor> canvas) {
+    public <Anchor> void drawAroundStave(MusicCanvas<Anchor> canvas, boolean extendUp, boolean extendDown) {
         Anchor startAnchor = canvas.getAnchor(musicalPosition);
         canvas.drawLine(startAnchor,0f,RenderingConfiguration.pulseLineHeight,0f,0.25f,
                 RenderingConfiguration.barLineWidth, new Color(0xCCCCCC));
