@@ -188,14 +188,14 @@ public class Parser {
                                 offset = direction.getOffset().getValue().intValue() / (float) divisions;
                             }
                             if (isNewline(direction)) {
-                                if (measureStartTime + offset == 0) {
+                                if (measureTime + offset == 0) {
                                     addNewline.accept(measureStartTime + measureTime + offset, 0f);
                                 } else {
                                     addNewline.accept(measureStartTime + measureTime + offset, measureTime + offset - measureLength);
                                 }
                             }
                             if (isNewSection(direction)) {
-                                if (measureStartTime + offset == 0) {
+                                if (measureTime + offset == 0) {
                                     addNewSection.accept(measureStartTime + measureTime + offset, 0f);
                                 } else {
                                     addNewSection.accept(measureStartTime + measureTime + offset, measureTime + offset - measureLength);
@@ -511,7 +511,7 @@ public class Parser {
             if (timeEntry != null) {
                 return (time - timeEntry.getKey()) * timeEntry.getValue().factor() + timeEntry.getValue().time();
             } else {
-                return time;
+                return (time - integratedTime.firstKey()) * integratedTime.firstEntry().getValue().factor() + integratedTime.firstEntry().getValue().time();
             }
         } else {
             return time;
@@ -1013,7 +1013,7 @@ public class Parser {
                     PageSize ps = PageSize.A4;
                     pdf.addNewPage(ps);
 
-                    PdfMusicCanvas canvas = new PdfMusicCanvas(pdf, part.getMaxCrotchetsPerLine());
+                    PdfMusicCanvas canvas = new PdfMusicCanvas(pdf, part.getMaxWidth(), part.getMinOffset());
                     part.draw(canvas, score.getWorkTitle(), score.getComposer());
                     pdf.close();
                 }
@@ -1029,7 +1029,7 @@ public class Parser {
                 pdf.addNewPage(ps);
 
                 Part testPart = score.getParts().get(targetPart);
-                PdfMusicCanvas canvas = new PdfMusicCanvas(pdf, testPart.getMaxCrotchetsPerLine());
+                PdfMusicCanvas canvas = new PdfMusicCanvas(pdf, testPart.getMaxWidth(), testPart.getMinOffset());
                 testPart.draw(canvas, score.getWorkTitle(), score.getComposer());
                 pdf.close();
             }

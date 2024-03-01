@@ -44,7 +44,7 @@ public class Main {
             PdfDocument pdf = new PdfDocument(writer);
             PageSize ps = PageSize.A4;
             pdf.addNewPage(ps);
-            PdfMusicCanvas canvas = new PdfMusicCanvas(pdf, part.getMaxCrotchetsPerLine());
+            PdfMusicCanvas canvas = new PdfMusicCanvas(pdf, part.getMaxWidth(), part.getMinOffset());
             part.draw(canvas, score.getWorkTitle(), score.getComposer());
             pdf.close();
         }

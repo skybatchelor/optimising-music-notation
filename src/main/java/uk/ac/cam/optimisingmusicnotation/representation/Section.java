@@ -33,11 +33,11 @@ public class Section {
     }
 
     public <Anchor> void draw(MusicCanvas<Anchor> canvas) {
-        canvas.addLine();
+        canvas.addLine(lines.get(0).getOffsetInCrotchets());
         drawClefAndKey(canvas);
         lines.get(0).draw(canvas);
         for (Line l: lines.subList(1, lines.size())){
-            canvas.addLine();
+            canvas.addLine(l.getOffsetInCrotchets());
             l.draw(canvas);
         }
         canvas.reserveHeight(RenderingConfiguration.postSectionHeight);
@@ -50,6 +50,14 @@ public class Section {
             clef.draw(canvas,firstLine,keySignature.getAlterations().size());
             keySignature.draw(canvas,firstLine,clef);
         }
+    }
+
+    public float getMinOffset() {
+        return lines.stream().map(Line::getOffsetInCrotchets).min(Float::compareTo).orElse(0f);
+    }
+
+    public float getMaxEnd() {
+        return lines.stream().map(Line::getEndInCrotchets).max(Float::compareTo).orElse(0f);
     }
 
     public float getMaxCrotchetsPerLine() {
