@@ -35,8 +35,6 @@ public class Parser {
     public static final boolean TIME_NORMALISED_PARSING = true;
     public static final float TIME_NORMALISATION_FACTOR = 60 * 12;
     public static float startBpm = 120f;
-    public static HashSet<String> escapedDirectives = new HashSet<>() {{ add("\\n"); add("\\s"); add("\\w"); }};
-    public static HashSet<String> boxedDirectives = new HashSet<>() {{ add("n"); add("s"); add("w"); }};
 
     public static Score parseToScore(Object mxl) {
         if (mxl instanceof ScorePartwise partwise) {
@@ -47,6 +45,8 @@ public class Parser {
             TreeMap<Float, TempoTuple> tempoMarkings = new TreeMap<>();
 
             TreeMap<Float, Float> tempoChanges = new TreeMap<>() {{ put(0f, startBpm); }};
+
+            TreeMap<Float, List<TimeSignature.BeatTuple>> beatChanges = new TreeMap<>();
 
             BiConsumer<Float, Float> addNewSection = ((time, offset) -> { newSections.add(time); newlines.put(time, offset); });
             BiConsumer<Float, Float> addNewline = newlines::put;
@@ -189,42 +189,38 @@ public class Parser {
                             if (direction.getOffset() != null) {
                                 offset = direction.getOffset().getValue().intValue() / (float) divisions;
                             }
-                            if (isNewline(direction)) {
-                                if (measureTime + offset == 0) {
-                                    addNewline.accept(measureStartTime + measureTime + offset, 0f);
-                                } else {
-                                    addNewline.accept(measureStartTime + measureTime + offset, measureTime + offset - measureLength);
-                                }
+                            float newlineOffset = 0;
+
+                            if (measureTime + offset != 0) {
+                                newlineOffset = measureTime + offset - measureLength;
                             }
-                            if (isNewSection(direction)) {
-                                if (measureTime + offset == 0) {
-                                    addNewSection.accept(measureStartTime + measureTime + offset, 0f);
-                                } else {
-                                    addNewSection.accept(measureStartTime + measureTime + offset, measureTime + offset - measureLength);
-                                }
-                            }
-                            int artisticWhitespaceVoice = isArtisticWhitespace(direction);
-                            if (artisticWhitespaceVoice != -1) {
-                                currentPart.putInArtisticWhitespace(getStaff(direction.getStaff()), artisticWhitespaceVoice, measureStartTime + measureTime + offset);
-                                var whitespace = new BeamGroupTuple();
-                                whitespace.startTime = (measureStartTime + measureTime + offset) - RenderingConfiguration.artisticWhitespaceWidth;
-                                whitespace.endTime = (measureStartTime + measureTime + offset);
-                                var restChord = new ChordTuple(whitespace.startTime, 0, currentKeySignature);
-                                restChord.duration = RenderingConfiguration.artisticWhitespaceWidth;
-                                var restNote = new Note();
-                                restNote.setRest(new org.audiveris.proxymusic.Rest());
-                                restChord.notes.add(restNote);
-                                whitespace.addChord(restChord);
-                                whitespace.staff = getStaff(direction.getStaff());
-                                whitespace.voice = artisticWhitespaceVoice;
-                                currentPart.putInBeamGroup(whitespace);
-                            }
-                            parseMusicDirective(musicGroupTuples, currentPart, direction, measureStartTime + measureTime + offset);
+                            final KeySignature tempKeySig = currentKeySignature;
+                            parseMusicDirective(musicGroupTuples, currentPart, direction,
+                                    measureStartTime + measureTime + offset, newlineOffset,
+                                    beatChanges, currentTimeSignature,
+                                    addNewline, addNewSection, (voice, time) -> {
+                                        currentPart.putInArtisticWhitespace(getStaff(direction.getStaff()), voice, time);
+                                        var whitespace = new BeamGroupTuple();
+                                        whitespace.startTime = (time) - RenderingConfiguration.artisticWhitespaceWidth;
+                                        whitespace.endTime = (time);
+                                        var restChord = new ChordTuple(whitespace.startTime, 0, tempKeySig);
+                                        restChord.duration = RenderingConfiguration.artisticWhitespaceWidth;
+                                        var restNote = new Note();
+                                        restNote.setRest(new org.audiveris.proxymusic.Rest());
+                                        restChord.notes.add(restNote);
+                                        whitespace.addChord(restChord);
+                                        whitespace.staff = getStaff(direction.getStaff());
+                                        whitespace.voice = voice;
+                                        currentPart.putInBeamGroup(whitespace); });
                             currentTempo = parseTempoMarking(tempoMarkings, tempoChanges, currentTempo, direction, measureStartTime + measureTime + offset);
                             currentPart.directions.put(measureStartTime + measureTime + offset, direction);
                         }
                     }
 
+                    var beatChange = beatChanges.lowerEntry(measureStartTime + measureTime);
+                    if (beatChange != null && beatChange.getKey() >= measureStartTime) {
+                        currentTimeSignature.setBeatPattern(beatChange.getValue());
+                    }
                     if (newTimeSignature) {
                         addPulseLines(currentTimeSignature, measureStartTime, currentPart.pulseLines,
                                 measure.getText() == null ? measure.getNumber() == null ? "" : measure.getNumber() : measure.getText(), currentTimeSignature);
@@ -559,7 +555,7 @@ public class Parser {
                                     postRest = postRestEntry.getValue().moveToPrevLine(tempLine);
                                 }
                             }
-                            if (postRestEntry != null && postChord != null && postRestEntry.getValue().getStartCrotchets() < postChord.getCrotchetsIntoLine()) {
+                            if (postRest != null && postChord != null && postRest.getStartCrotchets() < postChord.getCrotchetsIntoLine()) {
                                 postChord = null;
                             }
                             if (postChord != null && nextLine) {
@@ -700,88 +696,102 @@ public class Parser {
         };
     }
 
-    static boolean isNewline(Direction direction) {
-        if (direction.getDirectionType() != null) {
-            for (var directionType : direction.getDirectionType()) {
-                if (directionType.getWordsOrSymbol() != null) {
-                    for (var wordOrSymbol : directionType.getWordsOrSymbol()) {
-                        if (wordOrSymbol instanceof FormattedTextId formattedText) {
-                            if (formattedText.getValue().equals("n") && formattedText.getEnclosure() == EnclosureShape.RECTANGLE) {
-                                return true;
-                            }
-                            if (formattedText.getValue().equals("\\n")) {
-                                return true;
-                            }
-                        }
-                    }
-                }
-            }
+    static boolean isNewline(FormattedTextId formattedText, float time, float offset, BiConsumer<Float, Float> addNewline) {
+        if (formattedText.getValue().equals("n") && formattedText.getEnclosure() == EnclosureShape.RECTANGLE) {
+            addNewline.accept(time, offset);
+            return true;
+        } else if (formattedText.getValue().equals("\\n")) {
+            addNewline.accept(time, offset);
+            return true;
         }
         return false;
     }
 
-    static boolean isNewSection(Direction direction) {
-        if (direction.getDirectionType() != null) {
-            for (var directionType : direction.getDirectionType()) {
-                if (directionType.getWordsOrSymbol() != null) {
-                    for (var wordOrSymbol : directionType.getWordsOrSymbol()) {
-                        if (wordOrSymbol instanceof FormattedTextId formattedText) {
-                            if (formattedText.getValue().equals("s") && formattedText.getEnclosure() == EnclosureShape.RECTANGLE) {
-                                return true;
-                            }
-                            if (formattedText.getValue().equals("\\s")) {
-                                return true;
-                            }
-                        }
-                    }
-                }
-            }
+    static boolean isNewSection(FormattedTextId formattedText, float time, float offset, BiConsumer<Float, Float> addNewSection) {
+        if (formattedText.getValue().equals("s") && formattedText.getEnclosure() == EnclosureShape.RECTANGLE) {
+            addNewSection.accept(time, offset);
+            return true;
+        } else if (formattedText.getValue().equals("\\s")) {
+            addNewSection.accept(time, offset);
+            return true;
         }
         return false;
     }
 
-    static int isArtisticWhitespace(Direction direction) {
-        if (direction.getDirectionType() != null) {
-            for (var directionType : direction.getDirectionType()) {
-                if (directionType.getWordsOrSymbol() != null) {
-                    for (var wordOrSymbol : directionType.getWordsOrSymbol()) {
-                        if (wordOrSymbol instanceof FormattedTextId formattedText) {
-                            String text = formattedText.getValue();
-                            if (text.startsWith("w") && formattedText.getEnclosure() == EnclosureShape.RECTANGLE) {
-                                try {
-                                    if (text.length() == 1) {
-                                        return 1;
-                                    }
-                                    return Integer.parseInt(formattedText.getValue().substring(1));
-                                } catch (NumberFormatException e) {
-                                    return -1;
-                                }
-                            }
-                            if (text.startsWith(("\\w"))) {
-                                try {
-                                    if (text.length() == 2) {
-                                        return 1;
-                                    }
-                                    return Integer.parseInt(formattedText.getValue().substring(2));
-                                } catch (NumberFormatException e) {
-                                    return -1;
-                                }
-                            }
-                        }
+    static boolean isPulseDirective(FormattedTextId formattedText, float time, TreeMap<Float, List<TimeSignature.BeatTuple>> beatChanges, TimeSignature timeSig) {
+        String text = formattedText.getValue();
+        String pulseRules;
+        if (text.startsWith("t") && formattedText.getEnclosure() == EnclosureShape.RECTANGLE) {
+            pulseRules = text.substring(1);
+        } else if (text.startsWith("\\t")) {
+            pulseRules = text.substring(2);
+        } else {
+            return false;
+        }
+        try {
+            var beats = new ArrayList<TimeSignature.BeatTuple>();
+            String[] beatInfos = pulseRules.split("\\|");
+            for (var beatInfo : beatInfos) {
+                String[] splitBeat = beatInfo.split("/");
+                if (splitBeat.length == 1) {
+                    if (splitBeat[0].equals("")) {
+                        return false;
+                    } else {
+                        beats.add(new TimeSignature.BeatTuple(Integer.parseInt(splitBeat[0]),
+                                timeSig.getBeatType(), 1));
                     }
+                } else if (splitBeat.length == 2) {
+                    beats.add(new TimeSignature.BeatTuple(Integer.parseInt(splitBeat[0]),
+                            timeSig.getBeatType(),
+                            Integer.parseInt(splitBeat[1])));
+                } else if (splitBeat.length == 3) {
+                    beats.add(new TimeSignature.BeatTuple(Integer.parseInt(splitBeat[0]),
+                            Integer.parseInt(splitBeat[2]),
+                            Integer.parseInt(splitBeat[1])));
                 }
             }
+            beatChanges.put(time, beats);
+            timeSig.setBeatPattern(beats);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
         }
-        return -1;
     }
 
-    static boolean isDirective(FormattedTextId text) {
-        return escapedDirectives.contains(text.getValue())
-                || (text.getEnclosure() == EnclosureShape.RECTANGLE && boxedDirectives.contains(text.getValue()));
+    static boolean isArtisticWhitespace(FormattedTextId formattedText, float time, BiConsumer<Integer, Float> addArtisticWhitespace) {
+        String text = formattedText.getValue();
+        if (text.startsWith("w") && formattedText.getEnclosure() == EnclosureShape.RECTANGLE) {
+            try {
+                if (text.length() == 1) {
+                    addArtisticWhitespace.accept(1, time);
+                    return true;
+                }
+                addArtisticWhitespace.accept(Integer.parseInt(formattedText.getValue().substring(1)), time);
+                return true;
+            } catch (NumberFormatException e) {
+                return false;
+            }
+        }
+        if (text.startsWith(("\\w"))) {
+            try {
+                if (text.length() == 2) {
+                    addArtisticWhitespace.accept(1, time);
+                    return true;
+                }
+                addArtisticWhitespace.accept(Integer.parseInt(formattedText.getValue().substring(2)), time);
+                return true;
+            } catch (NumberFormatException e) {
+                return false;
+            }
+        }
+        return false;
     }
 
     static List<MusicGroupType> wedgeGroups = new ArrayList<>(2) {{ add(MusicGroupType.DIM); add(MusicGroupType.CRESC); }};
-    static void parseMusicDirective(TreeMap<MusicGroupType, TreeMap<Integer, MusicGroupTuple>> target, ParsingPartTuple currentPart, Direction direction, float time) {
+    static void parseMusicDirective(TreeMap<MusicGroupType, TreeMap<Integer, MusicGroupTuple>> target, ParsingPartTuple currentPart, Direction direction,
+                                    float time, float newlineOffset,
+                                    TreeMap<Float, List<TimeSignature.BeatTuple>> beatChanges, TimeSignature timeSig,
+                                    BiConsumer<Float, Float> addNewline, BiConsumer<Float, Float> addNewSection, BiConsumer<Integer, Float> addArtisticWhitespace) {
         if (direction.getDirectionType() != null) {
             for (DirectionType directionType : direction.getDirectionType()) {
                 if (directionType.getWedge() != null) {
@@ -817,12 +827,17 @@ public class Parser {
                 }
                 if (directionType.getWordsOrSymbol() != null) {
                     for (var wordOrSymbol : directionType.getWordsOrSymbol()) {
-                        if (wordOrSymbol instanceof FormattedTextId text && !isDirective(text)) {
-                            var tuple = new MusicGroupTuple(time, MusicGroupType.TEXT, getStaff(direction.getStaff()));
-                            tuple.endTime = time;
-                            tuple.text = text.getValue();
-                            tuple.aboveStave = direction.getPlacement() == AboveBelow.ABOVE || direction.getPlacement() == null;
-                            currentPart.putInMusicGroup(tuple);
+                        if (wordOrSymbol instanceof FormattedTextId text) {
+                            if (!isPulseDirective(text, time, beatChanges, timeSig)
+                                    && !isNewline(text, time, newlineOffset, addNewline)
+                                    && !isNewSection(text, time, newlineOffset, addNewSection)
+                                    && !isArtisticWhitespace(text, time, addArtisticWhitespace)) {
+                                var tuple = new MusicGroupTuple(time, MusicGroupType.TEXT, getStaff(direction.getStaff()));
+                                tuple.endTime = time;
+                                tuple.text = text.getValue();
+                                tuple.aboveStave = direction.getPlacement() == AboveBelow.ABOVE || direction.getPlacement() == null;
+                                currentPart.putInMusicGroup(tuple);
+                            }
                         }
                     }
                 }
@@ -916,6 +931,7 @@ public class Parser {
                     ret.setBeatType(Integer.parseInt(timeElement.getValue()));
                 }
             }
+            ret.setBeatPatternToDefault();
             return ret;
         }
         return null;
@@ -1009,78 +1025,19 @@ public class Parser {
         throw new IllegalArgumentException("Unknown clef symbol");
     }
 
-    static void addPulseLines(TimeSignature time, float measureStartTime, List<PulseLineTuple> pulseLines, String measureName, TimeSignature timeSig) {
-        switch (time.getBeatNum()) {
-            case 2 -> {
-                pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 4f / time.getBeatType(), measureName, 1, timeSig));
+    static void addPulseLines(TimeSignature timeSig, float measureStartTime, List<PulseLineTuple> pulseLines, String measureName, TimeSignature displaySig) {
+        float fromStartTime = 0;
+        for (var beatTuple : timeSig.getBeatPattern()) {
+            float duration = beatTuple.durationInUnits() * 4f / beatTuple.beatType();
+            if (fromStartTime == 0) {
+                pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0, displaySig));
+            } else {
+                pulseLines.add(new PulseLineTuple(measureStartTime + fromStartTime, measureName, 1, displaySig));
             }
-            case 3 -> {
-                pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 4f / time.getBeatType(), measureName, 1, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 2 * 4f / time.getBeatType(), measureName, 1, timeSig));
+            for (int i = 0; i < beatTuple.subBeats(); ++i) {
+                pulseLines.add(new PulseLineTuple(measureStartTime + fromStartTime + duration * i / beatTuple.subBeats(), measureName, 2, displaySig));
             }
-            case 4 -> {
-                pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 4f / time.getBeatType(), measureName, 1, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 2 * 4f / time.getBeatType(), measureName, 1, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 3 * 4f / time.getBeatType(), measureName, 1, timeSig));
-            }
-            case 5 -> {
-                pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 4f / time.getBeatType(), measureName, 2, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 2 * 4f / time.getBeatType(), measureName, 2, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 3 * 4f / time.getBeatType(), measureName, 1, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 4 * 4f / time.getBeatType(), measureName, 2, timeSig));
-            }
-            case 6 -> {
-                pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 4f / time.getBeatType(), measureName, 2, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 2 * 4f / time.getBeatType(), measureName, 2, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 3 * 4f / time.getBeatType(), measureName, 1, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 4 * 4f / time.getBeatType(), measureName, 2, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 5 * 4f / time.getBeatType(), measureName, 2, timeSig));
-            }
-            case 7 -> {
-                pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 4f / time.getBeatType(), measureName, 2, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 2 * 4f / time.getBeatType(), measureName, 1, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 3 * 4f / time.getBeatType(), measureName, 2, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 4 * 4f / time.getBeatType(), measureName, 1, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 5 * 4f / time.getBeatType(), measureName, 2, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 6 * 4f / time.getBeatType(), measureName, 2, timeSig));
-            }
-            case 9 -> {
-                pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 4f / time.getBeatType(), measureName, 2, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 2 * 4f / time.getBeatType(), measureName, 2, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 3 * 4f / time.getBeatType(), measureName, 1, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 4 * 4f / time.getBeatType(), measureName, 2, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 5 * 4f / time.getBeatType(), measureName, 2, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 6 * 4f / time.getBeatType(), measureName, 1, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 7 * 4f / time.getBeatType(), measureName, 2, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 8 * 4f / time.getBeatType(), measureName, 2, timeSig));
-            }
-            case 12 -> {
-                pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 4f / time.getBeatType(), measureName, 2, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 2 * 4f / time.getBeatType(), measureName, 2, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 3 * 4f / time.getBeatType(), measureName, 1, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 4 * 4f / time.getBeatType(), measureName, 2, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 5 * 4f / time.getBeatType(), measureName, 2, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 6 * 4f / time.getBeatType(), measureName, 1, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 7 * 4f / time.getBeatType(), measureName, 2, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 8 * 4f / time.getBeatType(), measureName, 2, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 9 * 4f / time.getBeatType(), measureName, 1, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 10 * 4f / time.getBeatType(), measureName, 2, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 11 * 4f / time.getBeatType(), measureName, 2, timeSig));
-            }
-            default -> {
-                pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0, timeSig));
-                for (int i = 1; i < time.getBeatNum(); i++) {
-                    pulseLines.add(new PulseLineTuple(measureStartTime + i * 4f / time.getBeatType(), measureName, 2, timeSig));
-                }
-            }
+            fromStartTime += duration;
         }
     }
 
