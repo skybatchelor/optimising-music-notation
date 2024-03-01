@@ -46,7 +46,7 @@ class BeamGroupTuple {
         return (this.chords.get(0).notes.get(0).getRest() != null);
     }
 
-    void splitToInstantiatedBeamGroupTuple(TreeMap<Float, Float> newlines, Map<Float, Integer> lineIndices, TreeMap<Float, TempoChangeTuple> integratedTime, List<LineTuple> target) {
+    void splitToInstantiatedBeamGroupTuple(TreeSet<Float> beamBreaks, TreeMap<Float, Float> newlines, Map<Float, Integer> lineIndices, TreeMap<Float, TempoChangeTuple> integratedTime, List<LineTuple> target) {
         List<BeamTuple> beams = new ArrayList<>();
 
         Integer[] beaming = new Integer[10];
@@ -97,38 +97,39 @@ class BeamGroupTuple {
             }
         }
 
-        var split = new TreeMap<Integer, Integer>();
-        var lineStartTime = new ArrayList<Float>();
-        int lastLine = -1;
+        var split = new TreeMap<Integer, Float>();
+        var lineStartTimes = new ArrayList<Float>();
+        float lastSplit = -1f;
 
         for (int i = 0; i < chords.size(); ++i) {
-            float startTime = newlines.floorKey(Parser.normaliseTime(chords.get(i).crotchets, integratedTime));
-            lineStartTime.add(startTime);
-            int lineIndex = lineIndices.get(startTime);
-            if (lastLine != lineIndex) {
-                lastLine = lineIndex;
-                split.put(i, lineIndex);
+            float normalisedTime = Parser.normaliseTime(chords.get(i).crotchets, integratedTime);
+            float startTime = beamBreaks.floor(normalisedTime);
+            float lineStartTime = newlines.floorKey(normalisedTime);
+            lineStartTimes.add(lineStartTime);
+            if (lastSplit != startTime) {
+                lastSplit = startTime;
+                split.put(i, startTime);
             }
         }
 
         var splitBeams = splitBeams(beams, split);
 
-        TreeMap<Integer, List<InstantiatedChordTuple>> iChords = new TreeMap<>();
+        TreeMap<Float, List<InstantiatedChordTuple>> iChords = new TreeMap<>();
 
         for (int i = 0; i < chords.size(); ++i) {
-            Util.addToListInMap(iChords, split.floorEntry(i).getValue(), chords.get(i).toInstantiatedChordTuple(lineStartTime.get(i), integratedTime));
+            Util.addToListInMap(iChords, split.floorEntry(i).getValue(), chords.get(i).toInstantiatedChordTuple(lineStartTimes.get(i), integratedTime));
         }
 
         for (var entry : iChords.entrySet()) {
             var tuple = new InstantiatedBeamGroupTuple(staff, voice);
             tuple.chords = entry.getValue();
             tuple.beams = Util.getListInMap(splitBeams, entry.getKey());
-            target.get(entry.getKey()).addBeamGroup(tuple);
+            target.get(lineIndices.get(newlines.floorKey(entry.getKey()))).addBeamGroup(tuple);
         }
     }
 
-    static HashMap<Integer, List<BeamTuple>> splitBeams(List<BeamTuple> beams, TreeMap<Integer, Integer> split) {
-        HashMap<Integer, List<BeamTuple>> splitResult = new HashMap<>();
+    static HashMap<Float, List<BeamTuple>> splitBeams(List<BeamTuple> beams, TreeMap<Integer, Float> split) {
+        HashMap<Float, List<BeamTuple>> splitResult = new HashMap<>();
 
         for (var beam : beams) {
             int startIndex = beam.start;

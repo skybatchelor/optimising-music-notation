@@ -203,7 +203,9 @@ public class Parser {
                                     addNewSection.accept(measureStartTime + measureTime + offset, measureTime + offset - measureLength);
                                 }
                             }
-                            if (isArtisticWhitespace(direction)) {
+                            int artisticWhitespaceVoice = isArtisticWhitespace(direction);
+                            if (artisticWhitespaceVoice != -1) {
+                                currentPart.putInArtisticWhitespace(getStaff(direction.getStaff()), artisticWhitespaceVoice, measureStartTime + measureTime + offset);
                                 var whitespace = new BeamGroupTuple();
                                 whitespace.startTime = (measureStartTime + measureTime + offset) - RenderingConfiguration.artisticWhitespaceWidth;
                                 whitespace.endTime = (measureStartTime + measureTime + offset);
@@ -214,6 +216,7 @@ public class Parser {
                                 restChord.notes.add(restNote);
                                 whitespace.addChord(restChord);
                                 whitespace.staff = getStaff(direction.getStaff());
+                                whitespace.voice = artisticWhitespaceVoice;
                                 currentPart.putInBeamGroup(whitespace);
                             }
                             parseMusicDirective(musicGroupTuples, currentPart, direction, measureStartTime + measureTime + offset);
@@ -349,13 +352,24 @@ public class Parser {
                                                               Map<Float, Integer> lineIndices,
                                                               TreeMap<Float, TempoChangeTuple> integratedTime) {
         for (Map.Entry<String, ParsingPartTuple> part : parsingParts.entrySet()) {
+
             for (var staffEntry : part.getValue().staveBeamGroups.entrySet()) {
                 for (var voiceEntry : staffEntry.getValue().entrySet()) {
+                    TreeSet<Float> beamBreaks = new TreeSet<>(newlines.keySet());
+
+                    if (part.getValue().artisticWhitespace.containsKey(staffEntry.getKey())
+                            && part.getValue().artisticWhitespace.get(staffEntry.getKey()).containsKey(voiceEntry.getKey())) {
+                        for (var time : part.getValue().artisticWhitespace.get(staffEntry.getKey()).get(voiceEntry.getKey())) {
+                            float newTime = normaliseTime(time, integratedTime);
+                            beamBreaks.add(newTime);
+                        }
+                    }
+
                     for (BeamGroupTuple beam : voiceEntry.getValue()) {
                         if (beam.isRest()) {
                             beam.splitToInstantiatedRestTuple(newlines, lineIndices, integratedTime, partLines.get(part.getKey()));
                         } else {
-                            beam.splitToInstantiatedBeamGroupTuple(newlines, lineIndices, integratedTime, partLines.get(part.getKey()));
+                            beam.splitToInstantiatedBeamGroupTuple(beamBreaks, newlines, lineIndices, integratedTime, partLines.get(part.getKey()));
                         }
                     }
                 }
@@ -465,7 +479,7 @@ public class Parser {
                             var preEntry = chords.get(staffEntry.getKey()).get(voiceEntry.getKey()).lowerEntry(entry.getKey().getCrotchetsIntoLine());
                             var preChord = preEntry == null ? null : preEntry.getValue();
                             var preRestEntry = rests.get(staffEntry.getKey()).get(voiceEntry.getKey()).floorEntry(entry.getKey().getCrotchetsIntoLine());
-                            if (preRestEntry != null && preRestEntry.getValue().getEndCrotchets() > preChord.getCrotchetsIntoLine()) {
+                            if (preRestEntry != null && preChord != null && preRestEntry.getValue().getEndCrotchets() > preChord.getCrotchetsIntoLine()) {
                                 preChord = null;
                             }
                             tempLine.getStaves().get(staffEntry.getKey() - 1).addMusicGroup(new Flag(preChord, entry.getKey(), tempLine, entry.getValue()));
@@ -480,7 +494,7 @@ public class Parser {
                             var postEntry = chords.get(staffEntry.getKey()).get(voiceEntry.getKey()).higherEntry(entry.getKey().getCrotchetsIntoLine());
                             var postChord = postEntry == null ? null : postEntry.getValue();
                             var postRestEntry = rests.get(staffEntry.getKey()).get(voiceEntry.getKey()).ceilingEntry(entry.getKey().getCrotchetsIntoLine());
-                            if (postRestEntry != null && postRestEntry.getValue().getStartCrotchets() < postChord.getCrotchetsIntoLine()) {
+                            if (postRestEntry != null && postChord != null && postRestEntry.getValue().getStartCrotchets() < postChord.getCrotchetsIntoLine()) {
                                 postChord = null;
                             }
                             tempLine.getStaves().get(staffEntry.getKey() - 1).addMusicGroup(new Beamlet(postChord, entry.getKey(), tempLine, entry.getValue()));
@@ -674,24 +688,39 @@ public class Parser {
         return false;
     }
 
-    static boolean isArtisticWhitespace(Direction direction) {
+    static int isArtisticWhitespace(Direction direction) {
         if (direction.getDirectionType() != null) {
             for (var directionType : direction.getDirectionType()) {
                 if (directionType.getWordsOrSymbol() != null) {
                     for (var wordOrSymbol : directionType.getWordsOrSymbol()) {
                         if (wordOrSymbol instanceof FormattedTextId formattedText) {
-                            if (formattedText.getValue().equals("w") && formattedText.getEnclosure() == EnclosureShape.RECTANGLE) {
-                                return true;
+                            String text = formattedText.getValue();
+                            if (text.startsWith("w") && formattedText.getEnclosure() == EnclosureShape.RECTANGLE) {
+                                try {
+                                    if (text.length() == 1) {
+                                        return 1;
+                                    }
+                                    return Integer.parseInt(formattedText.getValue().substring(1));
+                                } catch (NumberFormatException e) {
+                                    return -1;
+                                }
                             }
-                            if (formattedText.getValue().equals("\\w")) {
-                                return true;
+                            if (text.startsWith(("\\w"))) {
+                                try {
+                                    if (text.length() == 2) {
+                                        return 1;
+                                    }
+                                    return Integer.parseInt(formattedText.getValue().substring(2));
+                                } catch (NumberFormatException e) {
+                                    return -1;
+                                }
                             }
                         }
                     }
                 }
             }
         }
-        return false;
+        return -1;
     }
 
     static boolean isDirective(FormattedTextId text) {
