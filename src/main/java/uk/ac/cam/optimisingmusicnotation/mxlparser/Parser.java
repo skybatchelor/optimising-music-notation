@@ -10,10 +10,11 @@ import uk.ac.cam.optimisingmusicnotation.rendering.PdfMusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.*;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.*;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
+import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.Beamlet;
+import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.Flag;
 
 import javax.xml.bind.JAXBElement;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.String;
 import java.nio.file.Files;
@@ -26,12 +27,24 @@ import java.util.zip.ZipInputStream;
 
 public class Parser {
     public static final boolean NEW_SECTION_FOR_KEY_SIGNATURE = true;
+    public static final float EPSILON = 0.001f;
+    public static final boolean END_BAR_LINE_TIME_SIGNATURE = false;
+    public static final boolean END_BAR_LINE_NAME = false;
+    public static final boolean TIME_NORMALISED_PARSING = true;
+    public static final float TIME_NORMALISATION_FACTOR = 60 * 12;
+    public static float startBpm = 120f;
+    public static HashSet<String> escapedDirectives = new HashSet<>() {{ add("\\n"); add("\\s"); add("\\w"); }};
+    public static HashSet<String> boxedDirectives = new HashSet<>() {{ add("n"); add("s"); add("w"); }};
 
     public static Score parseToScore(Object mxl) {
         if (mxl instanceof ScorePartwise partwise) {
             TreeMap<Float, Float> newlines = new TreeMap<>() {{ put(0f, 0f); }};
             TreeSet<Float> newSections = new TreeSet<>() {{ add(0f); }};
             TreeMap<String, Part> parts = new TreeMap<>();
+
+            TreeMap<Float, TempoTuple> tempoMarkings = new TreeMap<>();
+
+            TreeMap<Float, Float> tempoChanges = new TreeMap<>() {{ put(0f, startBpm); }};
 
             BiConsumer<Float, Float> addNewSection = ((time, offset) -> { newSections.add(time); newlines.put(time, offset); });
             BiConsumer<Float, Float> addNewline = newlines::put;
@@ -59,6 +72,8 @@ public class Parser {
             List<ScorePartwise.Part> musicParts = partwise.getPart();
 
             for (ScorePartwise.Part part : musicParts) {
+                float currentTempo = startBpm;
+
                 TreeMap<MusicGroupType, TreeMap<Integer, MusicGroupTuple>> musicGroupTuples = new TreeMap<>();
                 for (MusicGroupType musicGroupType : MusicGroupType.values()) {
                     musicGroupTuples.put(musicGroupType, new TreeMap<>());
@@ -78,7 +93,7 @@ public class Parser {
                 int divisions = 0;
                 float prevChange;
                 int lowestLineGrandStaveLine = 0;
-                ChordTuple currentChord = new ChordTuple(0, 0);
+                ChordTuple currentChord = new ChordTuple(0, 0, currentKeySignature);
                 BeamGroupTuple beamGroup = new BeamGroupTuple();
                 List<ScorePartwise.Part.Measure> measures = part.getMeasure();
 
@@ -134,7 +149,7 @@ public class Parser {
                                 prevChange = 0;
                             }
                             if (note.getChord() == null) {
-                                currentChord = new ChordTuple(measureStartTime + measureTime, lowestLineGrandStaveLine);
+                                currentChord = new ChordTuple(measureStartTime + measureTime, lowestLineGrandStaveLine, currentKeySignature);
                                 measureTime += prevChange;
                             }
                             currentChord.notes.add(note);
@@ -190,7 +205,7 @@ public class Parser {
                                 var whitespace = new BeamGroupTuple();
                                 whitespace.startTime = (measureStartTime + measureTime + offset) - RenderingConfiguration.artisticWhitespaceWidth;
                                 whitespace.endTime = (measureStartTime + measureTime + offset);
-                                var restChord = new ChordTuple(whitespace.startTime, 0);
+                                var restChord = new ChordTuple(whitespace.startTime, 0, currentKeySignature);
                                 restChord.duration = RenderingConfiguration.artisticWhitespaceWidth;
                                 var restNote = new Note();
                                 restNote.setRest(new org.audiveris.proxymusic.Rest());
@@ -199,30 +214,37 @@ public class Parser {
                                 currentPart.beamGroups.add(whitespace);
                             }
                             parseMusicDirective(musicGroupTuples, currentPart, direction, measureStartTime + measureTime + offset);
+                            currentTempo = parseTempoMarking(tempoMarkings, tempoChanges, currentTempo, direction, measureStartTime + measureTime + offset);
                             currentPart.directions.put(measureStartTime + measureTime + offset, direction);
                         }
                     }
 
                     if (newTimeSignature) {
-                        addPulseLines(currentTimeSignature, measureStartTime, currentPart.pulseLines, measure.getText(), currentTimeSignature);
+                        addPulseLines(currentTimeSignature, measureStartTime, currentPart.pulseLines,
+                                measure.getText() == null ? measure.getNumber() == null ? "" : measure.getNumber() : measure.getText(), currentTimeSignature);
                     } else {
-                        addPulseLines(currentTimeSignature, measureStartTime, currentPart.pulseLines, measure.getText(), null);
+                        addPulseLines(currentTimeSignature, measureStartTime, currentPart.pulseLines,
+                                measure.getText() == null ? measure.getNumber() == null ? "" : measure.getNumber() : measure.getText(), null);
                     }
-
                     measureStartTime += measureLength;
                 }
                 totalLength = Math.max(measureStartTime, totalLength);
                 currentPart.pulseLines.add(new PulseLineTuple(measureStartTime, "", 0, null));
             }
 
+            var integratedTime = integrateTime(tempoChanges);
+
+            var nNewlines = normalisedNewlines(newlines, integratedTime);
+            var nNewSections = normalisedSections(newSections, integratedTime);
+
             Map<Float, Integer> lineIndices = new HashMap<>();
             List<Float> lineLengths = new ArrayList<>();
             List<Float> lineOffsets = new ArrayList<>();
             int index = 0;
             float prevLineStart = 0;
-            for (Float newline : newlines.keySet()) {
+            for (Float newline : nNewlines.keySet()) {
                 lineIndices.put(newline, index);
-                lineOffsets.add(newlines.get(newline));
+                lineOffsets.add(nNewlines.get(newline));
                 if (index != 0) {
                     lineLengths.add(newline - prevLineStart);
                     prevLineStart = newline;
@@ -232,115 +254,245 @@ public class Parser {
                 }
                 ++index;
             }
-            lineLengths.add(totalLength - prevLineStart);
+            lineLengths.add(normaliseTime(totalLength, integratedTime) - prevLineStart);
 
-            Map<Float, Integer> sectionIndices = new HashMap<>();
-            index = 0;
-            for (Float newSection : newSections) {
-                sectionIndices.put(newSection, index);
-                for (List<TreeMap<Float, Line>> lineList : partSections.values()) {
-                    lineList.add(new TreeMap<>());
-                }
-                ++index;
-            }
+            var sectionIndices = createSectionIndices(nNewSections, partSections);
 
-            for (Map.Entry<String, ParsingPartTuple> part : parsingParts.entrySet()) {
-                for (BeamGroupTuple beam : part.getValue().beamGroups) {
-                    float lineStart = newlines.floorKey(beam.chords.get(0).crotchets);
-                    int lineNum = lineIndices.get(lineStart);
-                    if (beam.isRest()) {
-                        beam.splitToRestTuple(newlines, lineIndices, partLines.get(part.getKey()));
-                    } else {
-                        partLines.get(part.getKey()).get(lineNum).notes.add(beam.toInstantiatedBeamTuple(lineStart, lineNum));
-                    }
-                }
-                for (MusicGroupTuple musicGroup : part.getValue().musicGroups) {
-                    musicGroup.splitToInstantiatedMusicGroupTuple(newlines, lineIndices, partLines.get(part.getKey()));
-                }
-                for (PulseLineTuple pulseLine : part.getValue().pulseLines) {
-                    float lineStart = newlines.floorKey(pulseLine.time);
-                    int lineNum = lineIndices.get(lineStart);
-                    partLines.get(part.getKey()).get(lineNum).pulses.add(pulseLine.toInstantiatedPulseTuple(lineStart, lineNum));
-                    Float lowerLineStart = newlines.lowerKey(pulseLine.time);
-                    if (lowerLineStart != null) {
-                        int lowerLineNum = lineIndices.get(lowerLineStart);
-                        if (lowerLineNum != lineNum) {
-                            partLines.get(part.getKey()).get(lowerLineNum).pulses.add(pulseLine.toInstantiatedPulseTuple(lowerLineStart, lowerLineNum));
-                        }
-                    }
-                }
-            }
 
-            TreeMap<String, List<InstantiatedLineTuple>> finalLines = new TreeMap<>();
-            List<Float> newlinesList = newlines.keySet().stream().toList();
-
-            for (Map.Entry<String, List<LineTuple>> part : partLines.entrySet()) {
-                finalLines.put(part.getKey(), new ArrayList<>());
-                for (int i = 0; i < part.getValue().size(); ++i) {
-                    var chords = new TreeMap<Float, Chord>();
-                    Stave stave = new Stave(new ArrayList<>(), new ArrayList<>(),new ArrayList<>());
-
-                    Line tempLine = new Line(new ArrayList<>() {{ add(stave); }}, lineLengths.get(i), lineOffsets.get(i), i);
-                    finalLines.get(part.getKey()).add(new InstantiatedLineTuple(newlinesList.get(i), tempLine));
-
-                    var fusedRests = RestTuple.fuseRestTuples(part.getValue().get(i).rests);
-                    for (RestTuple restTuple : fusedRests) {
-                        tempLine.getStaves().get(0).addWhiteSpace(restTuple.toRest(tempLine));
-                    }
-
-                    for (InstantiatedBeamGroupTuple beamTuple : part.getValue().get(i).notes) {
-                        tempLine.getStaves().get(0).addStaveElement(beamTuple.toBeamGroup(tempLine, chords));
-                    }
-
-                    for (InstantiatedPulseLineTuple pulseTuple : part.getValue().get(i).pulses) {
-                        tempLine.addPulseLine(pulseTuple.toPulseLine(tempLine));
-                    }
-
-                    for (InstantiatedMusicGroupTuple musicGroupTuple : part.getValue().get(i).musicGroups) {
-                        tempLine.getStaves().get(0).addMusicGroup(musicGroupTuple.toMusicGroup(tempLine, chords));
-                    }
-                }
-            }
-
-            for (Map.Entry<String, List<InstantiatedLineTuple>> part : finalLines.entrySet()) {
-                for (InstantiatedLineTuple instantiatedLineTuple : part.getValue()) {
-                    float sectionStart = newSections.floor(instantiatedLineTuple.startTime);
-                    int sectionNum = sectionIndices.get(sectionStart);
-                    partSections.get(part.getKey()).get(sectionNum).put(instantiatedLineTuple.startTime, instantiatedLineTuple.line);
-                }
-            }
-
-            TreeMap<String, List<Section>> finalSections = new TreeMap<>();
-
-            for (Map.Entry<String, List<TreeMap<Float, Line>>> part : partSections.entrySet()) {
-                List<Section> sections = new ArrayList<>();
-                for (TreeMap<Float, Line> lines : part.getValue()) {
-                    if (lines.size() != 0) {
-                        sections.add(new Section(lines.values().stream().toList(),
-                                parsingParts.get(part.getKey()).clefs.floorEntry(lines.firstKey()).getValue(),
-                                parsingParts.get(part.getKey()).keySignatures.floorEntry(lines.firstKey()).getValue()));
-                    }
-                }
-                finalSections.put(part.getKey(), sections);
-            }
+            var finalSections = finaliseSections(
+                    populatePartSections(
+                            partSections,
+                            instantiateLines(
+                                    nNewlines,
+                                    populatePartLines(
+                                            partLines, parsingParts, tempoMarkings, nNewlines, lineIndices, integratedTime),
+                                    lineLengths, lineOffsets, parsingParts),
+                            nNewSections, sectionIndices),
+                    parsingParts);
 
             for (Map.Entry<String, List<Section>> part : finalSections.entrySet()) {
                 parts.get(part.getKey()).setSections(part.getValue());
+                parts.get(part.getKey()).setUpwardsStems(parsingParts.get(part.getKey()).upwardsStems);
             }
-
-            return new Score(getWorkTitle(partwise), parts.values().stream().toList());
+            return new Score(getWorkTitle(partwise), getComposer(partwise), parts.values().stream().toList());
         }
         return null;
+    }
+
+    static TreeMap<Float, TempoChangeTuple> integrateTime(TreeMap<Float, Float> tempoChanges) {
+        TreeMap<Float, TempoChangeTuple> integratedTime = new TreeMap<>() {{ put(0f, new TempoChangeTuple(0f, TIME_NORMALISATION_FACTOR / tempoChanges.firstEntry().getValue())); }};
+        if (TIME_NORMALISED_PARSING) {
+            for (Map.Entry<Float, Float> entry : tempoChanges.entrySet()) {
+                var timeEntry = integratedTime.lowerEntry(entry.getKey());
+                var tempoEntry = tempoChanges.lowerEntry(entry.getKey());
+                if (timeEntry != null && tempoEntry != null) {
+                    integratedTime.put(entry.getKey(), new TempoChangeTuple(
+                            timeEntry.getValue().time() + (entry.getKey() - timeEntry.getKey()) * (TIME_NORMALISATION_FACTOR / tempoEntry.getValue()),
+                            TIME_NORMALISATION_FACTOR / entry.getValue()));
+                }
+            }
+        } else {
+            integratedTime.clear();
+            integratedTime.put(0f, new TempoChangeTuple(0f, 1));
+        }
+        return integratedTime;
+    }
+
+    static TreeMap<Float, Float> normalisedNewlines(TreeMap<Float, Float> newlines, TreeMap<Float, TempoChangeTuple> integratedTime) {
+        var normalisedNewlines = new TreeMap<Float, Float>();
+        for (var newline : newlines.entrySet()) {
+            normalisedNewlines.put(normaliseTime(newline.getKey(), integratedTime), normaliseDuration(newline.getKey(), newline.getValue(), integratedTime));
+        }
+        return normalisedNewlines;
+    }
+
+    static TreeSet<Float> normalisedSections(TreeSet<Float> newSections, TreeMap<Float, TempoChangeTuple> integratedTime) {
+        var normalisedSections = new TreeSet<Float>();
+        for (var newSection : newSections) {
+            normalisedSections.add(normaliseTime(newSection, integratedTime));
+        }
+        return normalisedSections;
+    }
+
+    static Map<Float, Integer> createSectionIndices(TreeSet<Float> newSections, TreeMap<String, List<TreeMap<Float, Line>>> partSections) {
+        Map<Float, Integer> sectionIndices = new HashMap<>();
+        int index = 0;
+        for (Float newSection : newSections) {
+            sectionIndices.put(newSection, index);
+            for (List<TreeMap<Float, Line>> lineList : partSections.values()) {
+                lineList.add(new TreeMap<>());
+            }
+            ++index;
+        }
+        return sectionIndices;
+    }
+
+    static TreeMap<String, List<LineTuple>> populatePartLines(TreeMap<String, List<LineTuple>> partLines,
+                                                              TreeMap<String, ParsingPartTuple> parsingParts,
+                                                              TreeMap<Float, TempoTuple> tempoMarkings,
+                                                              TreeMap<Float, Float> newlines,
+                                                              Map<Float, Integer> lineIndices,
+                                                              TreeMap<Float, TempoChangeTuple> integratedTime) {
+        for (Map.Entry<String, ParsingPartTuple> part : parsingParts.entrySet()) {
+            for (BeamGroupTuple beam : part.getValue().beamGroups) {
+                float lineStart = newlines.floorKey(normaliseTime(beam.chords.get(0).crotchets, integratedTime));
+                int lineNum = lineIndices.get(lineStart);
+                if (beam.isRest()) {
+                    beam.splitToRestTuple(newlines, lineIndices, integratedTime, partLines.get(part.getKey()));
+                } else {
+                    partLines.get(part.getKey()).get(lineNum).notes.add(beam.toInstantiatedBeamTuple(lineStart, integratedTime));
+                }
+            }
+            for (MusicGroupTuple musicGroup : part.getValue().musicGroups) {
+                musicGroup.splitToInstantiatedMusicGroupTuple(newlines, lineIndices, integratedTime, partLines.get(part.getKey()));
+            }
+            for (Map.Entry<Float, TempoTuple> entry : tempoMarkings.entrySet()) {
+                float lineStart = newlines.floorKey(normaliseTime(entry.getValue().time, integratedTime));
+                int lineNum = lineIndices.get(lineStart);
+                partLines.get(part.getKey()).get(lineNum).tempoMarkings.add(entry.getValue().toInstantiatedTempoTuple(lineStart, integratedTime));
+            }
+            for (PulseLineTuple pulseLine : part.getValue().pulseLines) {
+                float lineStart = newlines.floorKey(normaliseTime(pulseLine.time, integratedTime));
+                int lineNum = lineIndices.get(lineStart);
+                partLines.get(part.getKey()).get(lineNum).pulses.add(pulseLine.toInstantiatedPulseTuple(lineStart, integratedTime));
+                Float lowerLineStart = newlines.lowerKey(normaliseTime(pulseLine.time, integratedTime));
+                if (lowerLineStart != null) {
+                    int lowerLineNum = lineIndices.get(lowerLineStart);
+                    if (lowerLineNum != lineNum) {
+                        var pulseTuple = pulseLine.toInstantiatedPulseTuple(lowerLineStart, integratedTime);
+                        if (!END_BAR_LINE_NAME) {
+                            pulseTuple.name = "";
+                        }
+                        if (!END_BAR_LINE_TIME_SIGNATURE) {
+                            pulseTuple.timeSig = null;
+                        }
+                        partLines.get(part.getKey()).get(lowerLineNum).pulses.add(pulseTuple);
+                    }
+                }
+            }
+        }
+        return partLines;
+    }
+
+    static TreeMap<String, List<InstantiatedLineTuple>> instantiateLines(TreeMap<Float, Float> newlines, TreeMap<String, List<LineTuple>> partLines,
+                                                                         List<Float> lineLengths, List<Float> lineOffsets, TreeMap<String, ParsingPartTuple> parsingPart) {
+        TreeMap<String, List<InstantiatedLineTuple>> finalLines = new TreeMap<>();
+        List<Float> newlinesList = newlines.keySet().stream().toList();
+
+        StaveLineAverager averager = new MeanAverager();
+
+        for (Map.Entry<String, List<LineTuple>> part : partLines.entrySet()) {
+            finalLines.put(part.getKey(), new ArrayList<>());
+            averager.reset();
+            for (int i = 0; i < part.getValue().size(); ++i) {
+                var chords = new TreeMap<Float, Chord>();
+                var needsFlag = new HashMap<Chord, Integer>();
+                var needsBeamlet = new HashMap<Chord, Integer>();
+                Stave stave = new Stave(new ArrayList<>(), new ArrayList<>(),new ArrayList<>());
+
+                Line tempLine = new Line(new ArrayList<>() {{ add(stave); }}, lineLengths.get(i), lineOffsets.get(i), i);
+                finalLines.get(part.getKey()).add(new InstantiatedLineTuple(newlinesList.get(i), tempLine));
+
+                var fusedRests = RestTuple.fuseRestTuples(part.getValue().get(i).rests);
+                for (RestTuple restTuple : fusedRests) {
+                    tempLine.getStaves().get(0).addWhiteSpace(restTuple.toRest(tempLine));
+                }
+
+                for (InstantiatedBeamGroupTuple beamTuple : part.getValue().get(i).notes) {
+                    beamTuple.addToAverager(averager);
+                    tempLine.getStaves().get(0).addStaveElement(beamTuple.toBeamGroup(tempLine, chords, needsFlag, needsBeamlet));
+                }
+
+                for (var chordEntry : chords.entrySet()) {
+                    if (chordEntry.getKey() > chords.firstKey()) {
+                        chordEntry.getValue().removeTiesTo();
+                    }
+                }
+
+                for (var entry : needsFlag.entrySet()) {
+                    var preEntry = chords.lowerEntry(entry.getKey().getCrotchetsIntoLine());
+                    var preChord = preEntry == null ? null : preEntry.getValue();
+                    if (preChord != null && preChord.getEndCrotchetsIntoLine() + EPSILON < entry.getKey().getCrotchetsIntoLine()) {
+                        preChord = null;
+                    }
+                    tempLine.getStaves().get(0).addMusicGroup(new Flag(preChord, entry.getKey(), tempLine, entry.getValue()));
+                }
+
+                for (var entry : needsBeamlet.entrySet()) {
+                    var postEntry = chords.higherEntry(entry.getKey().getCrotchetsIntoLine());
+                    var postChord = postEntry == null ? null : postEntry.getValue();
+                    if (postChord != null && entry.getKey().getEndCrotchetsIntoLine() + EPSILON < postChord.getCrotchetsIntoLine()) {
+                        postChord = null;
+                    }
+                    tempLine.getStaves().get(0).addMusicGroup(new Beamlet(postChord, entry.getKey(), tempLine, entry.getValue()));
+                }
+
+                for (InstantiatedPulseLineTuple pulseTuple : part.getValue().get(i).pulses) {
+                    tempLine.addPulseLine(pulseTuple.toPulseLine(tempLine));
+                }
+
+                for (InstantiatedMusicGroupTuple musicGroupTuple : part.getValue().get(i).musicGroups) {
+                    tempLine.getStaves().get(0).addMusicGroup(musicGroupTuple.toMusicGroup(tempLine, chords));
+                }
+
+                for (InstantiatedTempoTuple tempoTuple : part.getValue().get(i).tempoMarkings) {
+                    tempLine.getStaves().get(0).addMusicGroup(tempoTuple.toMusicGroup(tempLine, chords));
+                }
+            }
+            parsingPart.get(part.getKey()).upwardsStems = averager.getAverageStaveLine() < 4;
+        }
+        return finalLines;
+    }
+
+    static TreeMap<String, List<TreeMap<Float, Line>>> populatePartSections(TreeMap<String, List<TreeMap<Float, Line>>> partSections,
+                                                                            TreeMap<String, List<InstantiatedLineTuple>> finalLines,
+                                                                            TreeSet<Float> newSections, Map<Float, Integer> sectionIndices) {
+        for (Map.Entry<String, List<InstantiatedLineTuple>> part : finalLines.entrySet()) {
+            for (InstantiatedLineTuple instantiatedLineTuple : part.getValue()) {
+                float sectionStart = newSections.floor(instantiatedLineTuple.startTime);
+                int sectionNum = sectionIndices.get(sectionStart);
+                partSections.get(part.getKey()).get(sectionNum).put(instantiatedLineTuple.startTime, instantiatedLineTuple.line);
+            }
+        }
+        return partSections;
+    }
+
+    static TreeMap<String, List<Section>> finaliseSections(TreeMap<String, List<TreeMap<Float, Line>>> partSections, TreeMap<String, ParsingPartTuple> parsingParts) {
+        TreeMap<String, List<Section>> finalSections = new TreeMap<>();
+
+        for (Map.Entry<String, List<TreeMap<Float, Line>>> part : partSections.entrySet()) {
+            List<Section> sections = new ArrayList<>();
+            for (TreeMap<Float, Line> lines : part.getValue()) {
+                if (lines.size() != 0) {
+                    sections.add(new Section(lines.values().stream().toList(),
+                            parsingParts.get(part.getKey()).clefs.floorEntry(lines.firstKey()).getValue(),
+                            parsingParts.get(part.getKey()).keySignatures.floorEntry(lines.firstKey()).getValue()));
+                }
+            }
+            finalSections.put(part.getKey(), sections);
+        }
+        return finalSections;
     }
 
     static String getWorkTitle(ScorePartwise score) {
         if (score.getWork() != null && score.getWork().getWorkTitle() != null) {
             return score.getWork().getWorkTitle();
-        } else {
-            return "";
         }
+        return "";
     }
 
+    static String getComposer(ScorePartwise score) {
+        if (score.getIdentification() != null && score.getIdentification().getCreator() != null) {
+            var composers = new ArrayList<String>();
+            for (TypedText text : score.getIdentification().getCreator()) {
+                if (text.getType().equals("composer")) {
+                    composers.add(text.getValue());
+                }
+            }
+            return String.join(", ", composers);
+        }
+        return "";
+    }
 
     static SplitChordTuple splitInstantiatedChordTuple(InstantiatedChordTuple tuple, float newLine) {
         SplitChordTuple res = new SplitChordTuple();
@@ -350,6 +502,25 @@ public class Parser {
 
     static List<InstantiatedBeamGroupTuple> splitInstantiatedBeamTuple(InstantiatedBeamGroupTuple tuple, TreeMap<Float, Float> newlines, TreeMap<Float, Integer> lineIndices) {
         return null;
+    }
+
+    static float normaliseTime(float time, TreeMap<Float, TempoChangeTuple> integratedTime) {
+        if (TIME_NORMALISED_PARSING) {
+            var timeEntry = integratedTime.floorEntry(time);
+            if (timeEntry != null) {
+                return (time - timeEntry.getKey()) * timeEntry.getValue().factor() + timeEntry.getValue().time();
+            } else {
+                return time;
+            }
+        } else {
+            return time;
+        }
+    }
+
+    static float normaliseDuration(float time, float duration, TreeMap<Float, TempoChangeTuple> integratedTime) {
+        var startTime = normaliseTime(time, integratedTime);
+        var endTime = normaliseTime(time + duration, integratedTime);
+        return endTime - startTime;
     }
 
     // translates a pitch into the number of lines above the root of C0.
@@ -365,6 +536,19 @@ public class Parser {
         } + 7 * pitch.getOctave();
     }
 
+    // translates a pitch into the number of lines above the root of C0.
+    static int pitchToGrandStaveLine(Unpitched unpitched) {
+        return switch (unpitched.getDisplayStep()) {
+            case C -> 0;
+            case D -> 1;
+            case E -> 2;
+            case F -> 3;
+            case G -> 4;
+            case A -> 5;
+            case B -> 6;
+        } + 7 * unpitched.getDisplayOctave();
+    }
+
     static int pitchToGrandStaveLine(Step step, int octave) {
         return switch (step) {
             case C -> 0;
@@ -375,6 +559,25 @@ public class Parser {
             case A -> 5;
             case B -> 6;
         } + 7 * octave;
+    }
+
+    static uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType convertNoteType(NoteType noteType) {
+        return convertNoteType(noteType.getValue());
+    }
+
+    static uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType convertNoteType(String noteType) {
+        return switch (noteType) {
+            case "maxima" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.MAXIMA;
+            case "long" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.BREVE;
+            case "whole" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.SEMIBREVE;
+            case "half" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.MINIM;
+            case "quarter" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.CROTCHET;
+            case "eighth" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.QUAVER;
+            case "16th" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.SQUAVER;
+            case "32nd" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.DSQUAVER;
+            case "64th" -> uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.HDSQUAVER;
+            default -> throw new IllegalArgumentException();
+        };
     }
 
     static boolean isNewline(Direction direction) {
@@ -437,12 +640,17 @@ public class Parser {
         return false;
     }
 
+    static boolean isDirective(FormattedTextId text) {
+        return escapedDirectives.contains(text.getValue())
+                || (text.getEnclosure() == EnclosureShape.RECTANGLE && boxedDirectives.contains(text.getValue()));
+    }
+
     static List<MusicGroupType> wedgeGroups = new ArrayList<>(2) {{ add(MusicGroupType.DIM); add(MusicGroupType.CRESC); }};
     static void parseMusicDirective(TreeMap<MusicGroupType, TreeMap<Integer, MusicGroupTuple>> target, ParsingPartTuple currentPart, Direction direction, float time) {
         if (direction.getDirectionType() != null) {
             for (DirectionType directionType : direction.getDirectionType()) {
-                Wedge wedge = directionType.getWedge();
-                if (wedge != null) {
+                if (directionType.getWedge() != null) {
+                    Wedge wedge = directionType.getWedge();
                     switch (wedge.getType().name()) {
                         case "DIMINUENDO" -> target.get(MusicGroupType.DIM).put(wedge.getNumber(), new MusicGroupTuple(time, MusicGroupType.DIM));
                         case "CRESCENDO" -> target.get(MusicGroupType.CRESC).put(wedge.getNumber(), new MusicGroupTuple(time, MusicGroupType.CRESC));
@@ -451,6 +659,7 @@ public class Parser {
                                 if (target.get(type).containsKey(wedge.getNumber())) {
                                     var tuple = target.get(type).remove(wedge.getNumber());
                                     tuple.endTime = time;
+                                    tuple.aboveStave = direction.getPlacement() == AboveBelow.ABOVE || direction.getPlacement() == null;
                                     currentPart.musicGroups.add(tuple);
                                     break;
                                 }
@@ -458,8 +667,81 @@ public class Parser {
                         }
                     }
                 }
+                if (directionType.getDynamics() != null) {
+                    for (var dynamics : directionType.getDynamics()) {
+                        if (dynamics.getPOrPpOrPpp() != null) {
+                            for (var element : dynamics.getPOrPpOrPpp()) {
+                                var tuple = new MusicGroupTuple(time, MusicGroupType.DYNAMIC);
+                                tuple.endTime = time;
+                                tuple.text = element.getName().getLocalPart();
+                                tuple.aboveStave = direction.getPlacement() == AboveBelow.ABOVE || direction.getPlacement() == null;
+                                currentPart.musicGroups.add(tuple);
+                            }
+                        }
+                    }
+                }
+                if (directionType.getWordsOrSymbol() != null) {
+                    for (var wordOrSymbol : directionType.getWordsOrSymbol()) {
+                        if (wordOrSymbol instanceof FormattedTextId text && !isDirective(text)) {
+                            var tuple = new MusicGroupTuple(time, MusicGroupType.TEXT);
+                            tuple.endTime = time;
+                            tuple.text = text.getValue();
+                            tuple.aboveStave = direction.getPlacement() == AboveBelow.ABOVE || direction.getPlacement() == null;
+                            currentPart.musicGroups.add(tuple);
+                        }
+                    }
+                }
             }
         }
+    }
+
+    static float parseTempoMarking(TreeMap<Float, TempoTuple> tempoMarkings, TreeMap<Float, Float> tempoChanges, float currentTempo, Direction direction, float time) {
+        if (direction.getDirectionType() != null) {
+            for (DirectionType directionType : direction.getDirectionType()) {
+                if (directionType.getMetronome() != null) {
+                    Metronome met = directionType.getMetronome();
+                    uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType leftItem = uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.CROTCHET;
+                    int leftDots = 0;
+                    boolean seenLeft = false;
+                    uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType rightItem = uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType.CROTCHET;
+                    int rightDots = 0;
+                    boolean seenRight = false;
+                    if (met.getBeatUnit() != null) {
+                        for (var unit : met.getBeatUnit()) {
+                            if (!seenLeft) {
+                                if (unit instanceof String noteString) {
+                                    leftItem = convertNoteType(noteString);
+                                    seenLeft = true;
+                                }
+                            } else if (!seenRight) {
+                                if (unit instanceof Empty) {
+                                    leftDots += 1;
+                                } else if (unit instanceof String noteString) {
+                                    rightItem = convertNoteType(noteString);
+                                    seenRight = true;
+                                }
+                            } else {
+                                if (unit instanceof Empty) {
+                                    rightDots += 1;
+                                }
+                            }
+                        }
+                    }
+                    if (met.getPerMinute() != null) {
+                        TempoTuple tuple = new TempoTuple(leftItem, leftDots, met.getPerMinute().getValue(), time);
+                        tempoMarkings.put(time, tuple);
+                        tempoChanges.put(time, tuple.bpmValue);
+                        return tuple.bpmValue;
+                    } else {
+                        TempoTuple tuple = new TempoTuple(leftItem, leftDots, rightItem, rightDots, currentTempo, time);
+                        tempoMarkings.put(time, tuple);
+                        tempoChanges.put(time, tuple.bpmValue);
+                        return tuple.bpmValue;
+                    }
+                }
+            }
+        }
+        return currentTempo;
     }
 
     static void parseSlurs(TreeMap<MusicGroupType, TreeMap<Integer, MusicGroupTuple>> target, ParsingPartTuple currentPart, Note note, float time) {
@@ -553,8 +835,8 @@ public class Parser {
         return switch (clef.getSign()) {
             case C -> pitchToGrandStaveLine(Step.C, 4);
             case F -> pitchToGrandStaveLine(Step.F, 3);
-            case G -> pitchToGrandStaveLine(Step.G, 4);
-            case PERCUSSION, TAB -> 0;
+            case G, PERCUSSION -> pitchToGrandStaveLine(Step.G, 4);
+            case TAB -> 0;
         } + 7 * clef.getOctaveChange() - clef.getLine();
     }
 
@@ -622,12 +904,12 @@ public class Parser {
             }
             case 7 -> {
                 pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 4f / time.getBeatType(), measureName, 1, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 2 * 4f / time.getBeatType(), measureName, 2, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 3 * 4f / time.getBeatType(), measureName, 1, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 4 * 4f / time.getBeatType(), measureName, 2, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 5 * 4f / time.getBeatType(), measureName, 1, timeSig));
-                pulseLines.add(new PulseLineTuple(measureStartTime + 6 * 4f / time.getBeatType(), measureName, 1, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 4f / time.getBeatType(), measureName, 2, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 2 * 4f / time.getBeatType(), measureName, 1, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 3 * 4f / time.getBeatType(), measureName, 2, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 4 * 4f / time.getBeatType(), measureName, 1, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 5 * 4f / time.getBeatType(), measureName, 2, timeSig));
+                pulseLines.add(new PulseLineTuple(measureStartTime + 6 * 4f / time.getBeatType(), measureName, 2, timeSig));
             }
             case 9 -> {
                 pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0, timeSig));
@@ -654,7 +936,12 @@ public class Parser {
                 pulseLines.add(new PulseLineTuple(measureStartTime + 10 * 4f / time.getBeatType(), measureName, 2, timeSig));
                 pulseLines.add(new PulseLineTuple(measureStartTime + 11 * 4f / time.getBeatType(), measureName, 2, timeSig));
             }
-            default -> pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0, timeSig));
+            default -> {
+                pulseLines.add(new PulseLineTuple(measureStartTime, measureName, 0, timeSig));
+                for (int i = 1; i < time.getBeatNum(); i++) {
+                    pulseLines.add(new PulseLineTuple(measureStartTime + i * 4f / time.getBeatType(), measureName, 2, timeSig));
+                }
+            }
         }
     }
 
@@ -662,10 +949,13 @@ public class Parser {
         try (FileInputStream xml = new FileInputStream(input)) {
             return Marshalling.unmarshal(xml);
         } catch (Marshalling.UnmarshallingException e) {
+            String[] splitPath = input.split("[/\\\\]");
+            String scoreMxlName = splitPath[splitPath.length - 1];
+            String scoreXmlName = scoreMxlName.split("\\.")[0] + ".xml";
             try (ZipInputStream xml = new ZipInputStream(new FileInputStream(input))) {
                 ZipEntry zipEntry = xml.getNextEntry();
                 while (zipEntry != null) {
-                    if(zipEntry.getName().equals("score.xml")) {
+                    if(zipEntry.getName().equals(scoreXmlName) || zipEntry.getName().equals("score.xml")) {
                         return Marshalling.unmarshal(xml);
                     }
                     zipEntry = xml.getNextEntry();
@@ -686,7 +976,7 @@ public class Parser {
             target = args[0];
         }
 
-        Object mxl = null;
+        Object mxl;
         try {
             mxl = Parser.openMXL(target);
         } catch (IOException e) {
@@ -722,8 +1012,8 @@ public class Parser {
                     PageSize ps = PageSize.A4;
                     pdf.addNewPage(ps);
 
-                    PdfMusicCanvas canvas = new PdfMusicCanvas(pdf);
-                    part.draw(canvas, score.getWorkTitle());
+                    PdfMusicCanvas canvas = new PdfMusicCanvas(pdf, part.getMaxCrotchetsPerLine());
+                    part.draw(canvas, score.getWorkTitle(), score.getComposer());
                     pdf.close();
                 }
                 catch (Exception e) {
@@ -737,9 +1027,9 @@ public class Parser {
                 PageSize ps = PageSize.A4;
                 pdf.addNewPage(ps);
 
-                PdfMusicCanvas canvas = new PdfMusicCanvas(pdf);
                 Part testPart = score.getParts().get(targetPart);
-                testPart.draw(canvas, score.getWorkTitle());
+                PdfMusicCanvas canvas = new PdfMusicCanvas(pdf, testPart.getMaxCrotchetsPerLine());
+                testPart.draw(canvas, score.getWorkTitle(), score.getComposer());
                 pdf.close();
             }
             catch (IOException e) {

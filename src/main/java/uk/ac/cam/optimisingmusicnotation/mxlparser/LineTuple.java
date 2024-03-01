@@ -9,6 +9,7 @@ class LineTuple {
     List<InstantiatedPulseLineTuple> pulses;
     List<InstantiatedBeamGroupTuple> notes;
     List<InstantiatedMusicGroupTuple> musicGroups;
+    List<InstantiatedTempoTuple> tempoMarkings;
 
     LineTuple(float startTime) {
         this.startTime = startTime;
@@ -16,5 +17,6 @@ class LineTuple {
         pulses = new ArrayList<>();
         notes = new ArrayList<>();
         musicGroups = new ArrayList<>();
+        tempoMarkings = new ArrayList<>();
     }
 }

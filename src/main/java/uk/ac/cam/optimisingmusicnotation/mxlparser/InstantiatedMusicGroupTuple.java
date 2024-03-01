@@ -3,10 +3,7 @@ package uk.ac.cam.optimisingmusicnotation.mxlparser;
 import uk.ac.cam.optimisingmusicnotation.representation.Line;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
-import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.Crescendo;
-import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.Diminuendo;
-import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.MusicGroup;
-import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.Slur;
+import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,14 +13,18 @@ class InstantiatedMusicGroupTuple {
     Float startTime;
     Float endTime;
     MusicGroupType type;
+    String text;
+    boolean aboveStave;
 
-    public InstantiatedMusicGroupTuple(Float startTime, Float endTime, MusicGroupType type) {
+    public InstantiatedMusicGroupTuple(Float startTime, Float endTime, MusicGroupType type, String text, boolean aboveStave) {
         this.startTime = startTime;
         this.endTime = endTime;
         this.type = type;
+        this.text = text;
+        this.aboveStave = aboveStave;
     }
 
-    List<Chord> getChordsInInterval(TreeMap<Float, Chord> chordMap) {
+    static List<Chord> getChordsInInterval(TreeMap<Float, Chord> chordMap, Float startTime, Float endTime) {
         if (chordMap.size() == 0) {
             return new ArrayList<>();
         }
@@ -34,14 +35,14 @@ class InstantiatedMusicGroupTuple {
         } else {
             currentTime = endTime;
         }
-        if (chordMap.containsKey(endTime)) {
-            chords.add(chordMap.get(endTime));
+        if (chordMap.containsKey(currentTime)) {
+            chords.add(chordMap.get(currentTime));
         }
-        float startTime = 0;
-        if (this.startTime != null) {
-            startTime = this.startTime;
+        float newStartTime = 0;
+        if (startTime != null) {
+            newStartTime = startTime;
         }
-        while (currentTime > startTime) {
+        while (currentTime > newStartTime) {
             Float nextTime = chordMap.lowerKey(currentTime);
             if (nextTime == null) {
                 break;
@@ -50,6 +51,10 @@ class InstantiatedMusicGroupTuple {
             currentTime = nextTime;
         }
         return chords;
+    }
+
+    List<Chord> getChordsInInterval(TreeMap<Float, Chord> chordMap) {
+        return getChordsInInterval(chordMap, startTime, endTime);
     }
 
     MusicGroup toMusicGroup(Line line, TreeMap<Float, Chord> chords) {
@@ -63,7 +68,7 @@ class InstantiatedMusicGroupTuple {
                 if (endTime != null) {
                     endPos = new MusicalPosition(line, endTime);
                 }
-                return new Diminuendo(getChordsInInterval(chords), startPos, endPos);
+                return new Diminuendo(getChordsInInterval(chords), line, startPos, endPos);
             }
             case CRESC -> {
                 MusicalPosition startPos = null;
@@ -74,7 +79,7 @@ class InstantiatedMusicGroupTuple {
                 if (endTime != null) {
                     endPos = new MusicalPosition(line, endTime);
                 }
-                return new Crescendo(getChordsInInterval(chords), startPos, endPos);
+                return new Crescendo(getChordsInInterval(chords), line, startPos, endPos);
             }
             case SLUR -> {
                 Chord startChord = null;
@@ -86,6 +91,12 @@ class InstantiatedMusicGroupTuple {
                     endChord = chords.get(endTime);
                 }
                 return new Slur(getChordsInInterval(chords), startChord, endChord, line);
+            }
+            case DYNAMIC -> {
+                return new Dynamic(getChordsInInterval(chords), text, new MusicalPosition(line, startTime));
+            }
+            case TEXT -> {
+                return new TextAnnotation(getChordsInInterval(chords), text, new MusicalPosition(line, startTime), aboveStave);
             }
         }
         throw new IllegalArgumentException();

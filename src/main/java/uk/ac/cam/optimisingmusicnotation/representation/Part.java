@@ -25,6 +25,16 @@ public class Part {
     private String name;
     private String abbreviation;
 
+    public boolean getUpwardsStems() {
+        return upwardsStems;
+    }
+
+    public void setUpwardsStems(boolean upwardsStems) {
+        this.upwardsStems = upwardsStems;
+    }
+
+    private boolean upwardsStems;
+
     public Part() {
         this.sections = new ArrayList<>();
         name = "";
@@ -48,18 +58,25 @@ public class Part {
         sections.add(s);
     }
 
-    public <Anchor> void draw(MusicCanvas<Anchor> canvas, String workTitle) {
-        canvas.reserveHeight(20f);
+    public <Anchor> void draw(MusicCanvas<Anchor> canvas, String workTitle, String composer) {
+        RenderingConfiguration.upwardStems = upwardsStems;
+        canvas.reserveHeight(15f);
         try {
-            canvas.drawText(RenderingConfiguration.fontFilePath,workTitle,24f,
+            canvas.drawText(RenderingConfiguration.defaultFontFilePath,workTitle,24f,
                     TextAlignment.CENTRE, canvas.topCentreAnchor(), -60f,-7f,120f,20f);
-            canvas.drawText(RenderingConfiguration.fontFilePath,name,16f,
+            canvas.drawText(RenderingConfiguration.defaultFontFilePath,name,16f,
                     TextAlignment.LEFT, canvas.topLeftAnchor(), 6f,-15f,100f,20f);
+            canvas.drawText(RenderingConfiguration.defaultFontFilePath,composer,16f,
+                    TextAlignment.RIGHT, canvas.topRightAnchor(), -106f,-15f,100f,20f);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         for (Section s: sections) {
             s.draw(canvas);
         }
+    }
+
+    public float getMaxCrotchetsPerLine() {
+        return sections.stream().map(Section::getMaxCrotchetsPerLine).max(Float::compareTo).orElse(0f);
     }
 }

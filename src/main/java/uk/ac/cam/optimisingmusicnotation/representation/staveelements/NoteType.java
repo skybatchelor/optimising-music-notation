@@ -9,4 +9,22 @@ public enum NoteType {
     NoteType(float defaultLengthInCrotchets) {
         this.defaultLengthInCrotchets = defaultLengthInCrotchets;
     }
+
+    public boolean isBeamed() {
+        switch (this) {
+            case MAXIMA, BREVE, SEMIBREVE, MINIM, CROTCHET -> { return false; }
+            case QUAVER, SQUAVER, DSQUAVER, HDSQUAVER -> { return true; }
+        }
+        return false;
+    }
+
+    public int beamNumber() {
+        return switch (this) {
+            case MAXIMA, BREVE, SEMIBREVE, MINIM, CROTCHET -> -1;
+            case QUAVER -> 0;
+            case SQUAVER -> 1;
+            case DSQUAVER -> 2;
+            case HDSQUAVER -> 3;
+        };
+    }
 }

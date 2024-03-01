@@ -39,13 +39,13 @@ public class Main {
         }
     }
 
-    private static void drawPartToPDF(String outTarget, Part part, Score score){
+    private static void drawPartToPDF(String outTarget, Part part, Score score) {
         try (PdfWriter writer = new PdfWriter(outTarget + "_" + part.getName() + ".pdf")) {
             PdfDocument pdf = new PdfDocument(writer);
             PageSize ps = PageSize.A4;
             pdf.addNewPage(ps);
-            PdfMusicCanvas canvas = new PdfMusicCanvas(pdf);
-            part.draw(canvas, score.getWorkTitle());
+            PdfMusicCanvas canvas = new PdfMusicCanvas(pdf, part.getMaxCrotchetsPerLine());
+            part.draw(canvas, score.getWorkTitle(), score.getComposer());
             pdf.close();
         }
         catch (FileNotFoundException e) {

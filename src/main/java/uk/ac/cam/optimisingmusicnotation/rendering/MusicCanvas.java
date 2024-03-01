@@ -1,22 +1,36 @@
 package uk.ac.cam.optimisingmusicnotation.rendering;
 
+import uk.ac.cam.optimisingmusicnotation.representation.Line;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch;
 
 import java.awt.*;
 import java.io.IOException;
+import java.util.function.BiFunction;
 
 public interface MusicCanvas<Anchor> {
 
     Anchor getAnchor(MusicalPosition musicalPosition);
     Anchor getAnchor(MusicalPosition musicalPosition, Pitch pitch);
+    Anchor getLineStartAnchor(MusicalPosition musicalPosition);
+    Anchor getLineStartAnchor(MusicalPosition musicalPosition, Pitch pitch);
+    Anchor getLowestStaveLineAnchor(MusicalPosition musicalPosition);
+    Anchor getLowestStaveLineStartOfLineAnchor(Line line);
+    Anchor getStartOfLineAnchor(Line line);
+    Anchor getEndOfLineAnchor(Line line);
     Anchor offsetAnchor(Anchor anchor, float x, float y);
     Anchor interpolateAnchors(Anchor anchor1, Anchor anchor2, float t);
+    Anchor getTakeXTakeYAnchor(Anchor anchorX, Anchor anchorY);
+    Anchor getMinAnchor(java.util.List<Anchor> anchors, Anchor start, BiFunction<Anchor, Anchor, Boolean> lessThan);
     Anchor topLeftAnchor();
     Anchor topCentreAnchor();
     Anchor topRightAnchor();
 
+    boolean isAnchorBelow(Anchor anchor1, Anchor anchor2);
+    boolean isAnchorAbove(Anchor anchor1, Anchor anchor2);
+
     void addLine();
+    void addLine(float crotchetsOffset);
     void reserveHeight(float height);
 
     void drawCircle(Anchor anchor, float x, float y, float r);

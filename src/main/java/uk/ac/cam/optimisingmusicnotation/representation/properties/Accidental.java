@@ -6,5 +6,15 @@ public enum Accidental {
     DOUBLE_SHARP,
     DOUBLE_FLAT,
     NATURAL,
-    NONE
+    NONE;
+
+    public int getSemitoneOffset() {
+        return switch (this) {
+            case SHARP -> 1;
+            case FLAT -> -1;
+            case DOUBLE_SHARP -> 2;
+            case DOUBLE_FLAT -> -2;
+            case NATURAL, NONE -> 0;
+        };
+    }
 }

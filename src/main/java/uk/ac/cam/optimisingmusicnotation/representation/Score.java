@@ -9,14 +9,21 @@ public class Score {
 
     private String workTitle;
 
+    public String getComposer() {
+        return composer;
+    }
+
+    private String composer;
+
     public List<Part> getParts() {
         return parts;
     }
 
     private List<Part> parts;
 
-    public Score(String workTitle, List<Part> parts) {
+    public Score(String workTitle, String composer, List<Part> parts) {
         this.workTitle = workTitle;
+        this.composer = composer;
         this.parts = parts;
     }
 

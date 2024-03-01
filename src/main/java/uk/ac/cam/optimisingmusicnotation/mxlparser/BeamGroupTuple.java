@@ -7,6 +7,7 @@ import java.util.*;
 
 class BeamGroupTuple {
     List<ChordTuple> chords;
+
     float startTime;
     float endTime;
 
@@ -30,10 +31,10 @@ class BeamGroupTuple {
         return (this.chords.get(0).notes.get(0).getRest() != null);
     }
 
-    InstantiatedBeamGroupTuple toInstantiatedBeamTuple(float lineTime, int lineNum) {
+    InstantiatedBeamGroupTuple toInstantiatedBeamTuple(float lineTime, TreeMap<Float, TempoChangeTuple> integratedTime) {
         InstantiatedBeamGroupTuple beamTuple = new InstantiatedBeamGroupTuple();
         for (ChordTuple chordTuple : chords) {
-            beamTuple.chords.add(chordTuple.toInstantiatedChordTuple(lineTime, lineNum));
+            beamTuple.chords.add(chordTuple.toInstantiatedChordTuple(lineTime, integratedTime));
         }
 
         Integer[] beaming = new Integer[10];
@@ -86,8 +87,9 @@ class BeamGroupTuple {
         return beamTuple;
     }
 
-    void splitToRestTuple(TreeMap<Float, Float> newlines, Map<Float, Integer> lineIndices, List<LineTuple> target) {
-        float endTime = this.endTime;
+    void splitToRestTuple(TreeMap<Float, Float> newlines, Map<Float, Integer> lineIndices, TreeMap<Float, TempoChangeTuple> integratedTime, List<LineTuple> target) {
+        float endTime = Parser.normaliseTime(this.endTime, integratedTime);
+        float startTime = Parser.normaliseTime(this.startTime, integratedTime);
         while (endTime > startTime) {
             float newEndTime = newlines.lowerKey(endTime);
             if (newEndTime < newlines.floorKey(startTime)) {

@@ -6,9 +6,11 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="Optimising Music Notation" />
         <module name="optimisingmusicnotation" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="Optimising Music Notation" target="19" />
+    </bytecodeTargetLevel>
   </component>
 </project>

@@ -2,8 +2,7 @@ package uk.ac.cam.optimisingmusicnotation.representation.staveelements;
 
 import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.ChordAnchors;
-import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
-import uk.ac.cam.optimisingmusicnotation.representation.staveelements.StaveElement;
+import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +42,148 @@ public class BeamGroup implements StaveElement {
 
     @Override
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Map<Chord, ChordAnchors<Anchor>> chordAnchorsMap) {
+        // decide to draw the not stem upwards or downwards
+        int sign = RenderingConfiguration.upwardStems ? 1 : -1;
+        for (Chord chord : chords) {
+            chord.computeAnchors(canvas, chordAnchorsMap);
+        }
+        if (chords.size() > 1) {
+            // draw the implicit first level beam
+            Chord firstChord = chords.get(0);
+            ChordAnchors<Anchor> firstChordAnchors = chordAnchorsMap.get(firstChord);
+            Chord lastChord = chords.get(chords.size() - 1);
+            ChordAnchors<Anchor> lastChordAnchors = chordAnchorsMap.get(lastChord);
+            // dividing the beam width by two to align the beams with the stems
+            // adjust middle chord anchors to account for the beam
+            for (Chord chord : chords.subList(1, chords.size() - 1)) {
+                ChordAnchors<Anchor> chordAnchors = chordAnchorsMap.get(chord);
+                float interpolatePos = (chord.getMusicalPosition().crotchetsIntoLine()
+                        - firstChord.getMusicalPosition().crotchetsIntoLine())
+                        / (lastChord.getMusicalPosition().crotchetsIntoLine()
+                        - firstChord.getMusicalPosition().crotchetsIntoLine());
+
+                Anchor interpolatedAnchor = canvas.interpolateAnchors(firstChordAnchors.stemEnd(), lastChordAnchors.stemEnd(), interpolatePos);
+                ChordAnchors<Anchor> middleChordAnchors = new ChordAnchors<>(chordAnchors.lowestNotehead(), chordAnchors.highestNotehead(),
+                        interpolatedAnchor, chordAnchors.noteheadOffset(), chordAnchors.stemEndOffset());
+                chordAnchorsMap.put(chord, middleChordAnchors);
+            }
+
+            // draw chords now to avoid beams being covered by whitespace
+            for (Chord chord : chords) {
+                chord.draw(canvas, chordAnchorsMap);
+            }
+
+            canvas.drawBeam(
+                    firstChordAnchors.stemEnd(),
+                    0, -sign * RenderingConfiguration.beamOffset,
+                    lastChordAnchors.stemEnd(),
+                    0, -sign * RenderingConfiguration.beamOffset,
+                    RenderingConfiguration.beamWidth);
+
+            for (Beam beam : beams) {
+                float beamOffset = -(sign * beam.number * RenderingConfiguration.beamWidth
+                        + sign * RenderingConfiguration.gapBetweenBeams * beam.number + sign * RenderingConfiguration.beamOffset);
+                if (beam.startIndex == beam.endIndex) {
+                    // canvas.drawBeam(chordAnchorsMap.get(chords.get(beam.startIndex)).stemEnd(),
+                    // -1, 3.125f - 1f * beam.number,
+                    // chordAnchorsMap.get(chords.get(beam.endIndex)).stemEnd(), 0, 3.125f - 0.8f *
+                    // beam.number,
+                    // 0.75f);
+                    if (beam.startIndex == 0) {
+                        if (RenderingConfiguration.hookStart) {
+                            canvas.drawBeam(
+                                    canvas.interpolateAnchors(
+                                            chordAnchorsMap.get(chords.get(beam.startIndex)).stemEnd(),
+                                            chordAnchorsMap.get(chords.get(beam.startIndex + 1)).stemEnd(),
+                                            RenderingConfiguration.hookRatio
+                                    ),
+                                    0,
+                                    beamOffset,
+                                    chordAnchorsMap.get(chords.get(beam.startIndex)).stemEnd(),
+                                    0,
+                                    beamOffset,
+                                    RenderingConfiguration.beamWidth);
+                        }
+                    } else if (beam.startIndex == chords.size() - 1) {
+                        if (RenderingConfiguration.hookEnd) {
+                            canvas.drawBeam(
+                                    canvas.interpolateAnchors(
+                                            chordAnchorsMap.get(chords.get(beam.startIndex)).stemEnd(),
+                                            chordAnchorsMap.get(chords.get(beam.startIndex - 1)).stemEnd(),
+                                            RenderingConfiguration.hookRatio * chords.get(beam.startIndex).getDurationInCrotchets()
+                                                    / chords.get(beam.startIndex - 1).getDurationInCrotchets()
+                                    ),
+                                    0,
+                                    beamOffset,
+                                    chordAnchorsMap.get(chords.get(beam.startIndex)).stemEnd(),
+                                    0,
+                                    beamOffset,
+                                    RenderingConfiguration.beamWidth);
+                        }
+                    } else {
+                        if (RenderingConfiguration.hookSingleForward) {
+                            canvas.drawBeam(
+                                    canvas.interpolateAnchors(
+                                            chordAnchorsMap.get(chords.get(beam.startIndex)).stemEnd(),
+                                            chordAnchorsMap.get(chords.get(beam.startIndex - 1)).stemEnd(),
+                                            RenderingConfiguration.hookRatio * chords.get(beam.startIndex).getDurationInCrotchets()
+                                                    / chords.get(beam.startIndex - 1).getDurationInCrotchets()
+                                    ),
+                                    0,
+                                    beamOffset,
+                                    chordAnchorsMap.get(chords.get(beam.startIndex)).stemEnd(),
+                                    0,
+                                    beamOffset,
+                                    RenderingConfiguration.beamWidth);
+                        }
+                        if (RenderingConfiguration.hookSingleBackward) {
+                            canvas.drawBeam(
+                                    canvas.interpolateAnchors(
+                                            chordAnchorsMap.get(chords.get(beam.startIndex)).stemEnd(),
+                                            chordAnchorsMap.get(chords.get(beam.startIndex + 1)).stemEnd(),
+                                            RenderingConfiguration.hookRatio
+                                    ),
+                                    0,
+                                    beamOffset,
+                                    chordAnchorsMap.get(chords.get(beam.startIndex)).stemEnd(),
+                                    0,
+                                    beamOffset,
+                                    RenderingConfiguration.beamWidth);
+                        }
+                    }
+                } else {
+                    Anchor start = chordAnchorsMap.get(chords.get(beam.startIndex)).stemEnd();
+                    Anchor end = chordAnchorsMap.get(chords.get(beam.endIndex)).stemEnd();
+                    if (RenderingConfiguration.hookAllForward && beam.startIndex != 0) {
+                        start = canvas.interpolateAnchors(
+                                chordAnchorsMap.get(chords.get(beam.startIndex)).stemEnd(),
+                                chordAnchorsMap.get(chords.get(beam.startIndex - 1)).stemEnd(),
+                                RenderingConfiguration.hookRatio * chords.get(beam.startIndex).getDurationInCrotchets()
+                                        / chords.get(beam.startIndex - 1).getDurationInCrotchets()
+                        );
+                    }
+                    if (RenderingConfiguration.hookAllBackward && beam.endIndex != chords.size() - 1) {
+                        end = canvas.interpolateAnchors(
+                                chordAnchorsMap.get(chords.get(beam.startIndex)).stemEnd(),
+                                chordAnchorsMap.get(chords.get(beam.startIndex + 1)).stemEnd(),
+                                RenderingConfiguration.hookRatio
+                        );
+                    }
+                    canvas.drawBeam(
+                            start,
+                            0,
+                            beamOffset,
+                            end,
+                            0,
+                            beamOffset,
+                            RenderingConfiguration.beamWidth);
+                }
+            }
+        }
+        else {
+            chords.get(0).draw(canvas, chordAnchorsMap);
+        }
+
 //        if (chords.size() == 1) {
 //            Anchor note = chords.get(0).drawRetAnchor(canvas);
 //            canvas.drawBeam(note, -1, 3, 0, 3, 0.75f);
