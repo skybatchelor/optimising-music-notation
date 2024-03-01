@@ -29,18 +29,19 @@ public class Main {
             throw new RuntimeException();
         }
         Score score = Parser.parseToScore(mxl);
-        if (score == null){
+        if (score == null) {
             System.err.println("xml parsing failed");
-        }else{
+        } else {
             String outTarget = !args[1].equals("") ? args[1] : score.getWorkTitle();
-            for (Part part : score.getParts()) {
-                drawPartToPDF(outTarget, part, score);
+            for (int i = 0; i < score.getParts().size(); ++i) {
+                drawPartToPDF(outTarget, i, score);
             }
         }
     }
 
-    private static void drawPartToPDF(String outTarget, Part part, Score score) {
-        try (PdfWriter writer = new PdfWriter(outTarget + "_" + part.getName() + ".pdf")) {
+    private static void drawPartToPDF(String outTarget, int partIndex, Score score) {
+        Part part = score.getParts().get(partIndex);
+        try (PdfWriter writer = new PdfWriter(outTarget + "_" + score.getPartFilename(partIndex) + ".pdf")) {
             PdfDocument pdf = new PdfDocument(writer);
             PageSize ps = PageSize.A4;
             pdf.addNewPage(ps);
