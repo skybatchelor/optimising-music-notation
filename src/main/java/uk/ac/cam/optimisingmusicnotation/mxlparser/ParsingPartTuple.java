@@ -6,8 +6,8 @@ import uk.ac.cam.optimisingmusicnotation.representation.properties.KeySignature;
 import java.util.*;
 
 class ParsingPartTuple {
-    HashMap<Integer, HashMap<Integer, List<BeamGroupTuple>>> staveBeamGroups;
-    HashMap<Integer,  List<MusicGroupTuple>> staveMusicGroups;
+    HashMap<Integer, HashMap<Integer, TreeMap<Float, BeamGroupTuple>>> staveBeamGroups;
+    HashMap<Integer, List<MusicGroupTuple>> staveMusicGroups;
     //List<BeamGroupTuple> beamGroups;
     List<PulseLineTuple> pulseLines;
     //List<MusicGroupTuple> musicGroups;
@@ -21,8 +21,8 @@ class ParsingPartTuple {
 
     boolean upwardsStems;
     public ParsingPartTuple() {
-        staveBeamGroups = new HashMap<>() {{ put(1, new HashMap<>() {{ put(1, new ArrayList<>()); }}); }};
-        staveMusicGroups = new HashMap<>() {{ put(1, new ArrayList<>()); }};
+        staveBeamGroups = new HashMap<>();
+        staveMusicGroups = new HashMap<>();
         //beamGroups = new ArrayList<>();
         pulseLines = new ArrayList<>();
         //musicGroups = new ArrayList<>();
@@ -35,7 +35,7 @@ class ParsingPartTuple {
     }
 
     public void putInBeamGroup(BeamGroupTuple beamGroup) {
-        Util.addToListInMapMap(staveBeamGroups, HashMap::new, beamGroup.staff, beamGroup.voice, beamGroup);
+        Util.putInMapInMapMap(staveBeamGroups, HashMap::new, TreeMap::new, beamGroup.staff, beamGroup.voice, beamGroup.startTime, beamGroup);
     }
 
     public void putInMusicGroup(MusicGroupTuple musicGroup) {

@@ -3,22 +3,23 @@ package uk.ac.cam.optimisingmusicnotation.mxlparser;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.TreeMap;
 
 class LineTuple {
     float startTime;
 
     void addRest(InstantiatedRestTuple rest) {
-        Util.addToListInMapMap(rests, HashMap::new, rest.staff, rest.voice, rest);
+        Util.putInMapInMapMap(rests, HashMap::new, TreeMap::new, rest.staff, rest.voice, rest.startTime, rest);
     }
 
-    HashMap<Integer, HashMap<Integer, List<InstantiatedRestTuple>>> rests;
+    HashMap<Integer, HashMap<Integer, TreeMap<Float, InstantiatedRestTuple>>> rests;
     List<InstantiatedPulseLineTuple> pulses;
 
     void addBeamGroup(InstantiatedBeamGroupTuple beamGroup) {
-        Util.addToListInMapMap(notes, HashMap::new, beamGroup.staff, beamGroup.voice, beamGroup);
+        Util.putInMapInMapMap(notes, HashMap::new, TreeMap::new, beamGroup.staff, beamGroup.voice, beamGroup.getStartTime(), beamGroup);
     }
 
-    HashMap<Integer, HashMap<Integer, List<InstantiatedBeamGroupTuple>>> notes;
+    HashMap<Integer, HashMap<Integer, TreeMap<Float, InstantiatedBeamGroupTuple>>> notes;
 
     void addMusicGroup(InstantiatedMusicGroupTuple musicGroupTuple) {
         Util.addToListInMap(musicGroups, musicGroupTuple.staff, musicGroupTuple);

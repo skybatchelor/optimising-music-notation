@@ -2,10 +2,10 @@ package uk.ac.cam.optimisingmusicnotation.mxlparser;
 
 import uk.ac.cam.optimisingmusicnotation.representation.Line;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
-import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
 import uk.ac.cam.optimisingmusicnotation.representation.whitespaces.Rest;
 import uk.ac.cam.optimisingmusicnotation.representation.whitespaces.Whitespace;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.TreeMap;
 
@@ -55,7 +55,7 @@ class InstantiatedRestTuple {
         return fusedRests.values().stream().toList();
     }
 
-    Whitespace toRest(Line line, TreeMap<Integer, TreeMap<Integer, TreeMap<Float, Whitespace>>> rests) {
+    Whitespace toRest(Line line, HashMap<Integer, HashMap<Integer, TreeMap<Float, Whitespace>>> rests) {
         Whitespace whitespace = new Rest(new MusicalPosition(line, startTime), new MusicalPosition(line, endTime));
         rests.get(staff).get(voice).put(whitespace.getStartCrotchets(), whitespace);
         return whitespace;

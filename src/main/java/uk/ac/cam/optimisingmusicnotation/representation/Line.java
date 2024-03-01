@@ -45,10 +45,17 @@ public class Line {
     }
 
     private final float offsetInCrochets;
+
+    public float getStartTimeInCrotchets() {
+        return startTimeInCrotchets;
+    }
+
+    private final float startTimeInCrotchets;
   
-    public Line(List<Stave> staves, float lengthInCrochets, float offsetInCrochets, int lineNumber) {
+    public Line(List<Stave> staves, float startTimeInCrotchets, float lengthInCrochets, float offsetInCrochets, int lineNumber) {
         this.staves = staves;
         this.lineNumber = lineNumber;
+        this.startTimeInCrotchets = startTimeInCrotchets;
         this.lengthInCrotchets = lengthInCrochets;
         this.offsetInCrochets = offsetInCrochets;
         pulseLines = new ArrayList<>();

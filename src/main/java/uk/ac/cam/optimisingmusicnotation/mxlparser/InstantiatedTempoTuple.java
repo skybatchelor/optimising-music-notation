@@ -6,6 +6,7 @@ import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.*;
 
+import java.util.HashMap;
 import java.util.TreeMap;
 
 public class InstantiatedTempoTuple {
@@ -29,7 +30,7 @@ public class InstantiatedTempoTuple {
         this.bpmValue = bpmValue;
     }
 
-    MusicGroup toMusicGroup(Line line, TreeMap<Integer, TreeMap<Integer, TreeMap<Float, Chord>>> chords) {
+    MusicGroup toMusicGroup(Line line, HashMap<Integer, HashMap<Integer, TreeMap<Float, Chord>>> chords) {
         MusicalPosition position = new MusicalPosition(line, time);
         if (rightText != null) {
             return new TempoMarking(position, leftItem, leftDots, rightText);

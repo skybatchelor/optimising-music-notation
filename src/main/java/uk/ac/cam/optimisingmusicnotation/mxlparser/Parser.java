@@ -365,7 +365,7 @@ public class Parser {
                         }
                     }
 
-                    for (BeamGroupTuple beam : voiceEntry.getValue()) {
+                    for (BeamGroupTuple beam : voiceEntry.getValue().values()) {
                         if (beam.isRest()) {
                             beam.splitToInstantiatedRestTuple(newlines, lineIndices, integratedTime, partLines.get(part.getKey()));
                         } else {
@@ -418,86 +418,52 @@ public class Parser {
         for (Map.Entry<String, List<LineTuple>> part : partLines.entrySet()) {
             finalLines.put(part.getKey(), new ArrayList<>());
             averager.reset();
-            for (int i = 0; i < part.getValue().size(); ++i) {
-                var chords = new TreeMap<Integer, TreeMap<Integer, TreeMap<Float, Chord>>>();
-                var rests = new TreeMap<Integer, TreeMap<Integer, TreeMap<Float, Whitespace>>>();
-                var needsFlag = new TreeMap<Integer, TreeMap<Integer, Map<Chord, Integer>>>();
-                var needsBeamlet = new TreeMap<Integer, TreeMap<Integer, Map<Chord, Integer>>>();
-                Stave stave = new Stave();
 
-                Line tempLine = new Line(new ArrayList<>() {{ add(stave); }}, lineLengths.get(i), lineOffsets.get(i), i);
+            List<HashMap<Integer, HashMap<Integer, TreeMap<Float, Chord>>>> chords = new ArrayList<>();
+            List<HashMap<Integer, HashMap<Integer, TreeMap<Float, Whitespace>>>> rests = new ArrayList<>();
+            List<HashMap<Integer, HashMap<Integer, Map<Chord, Integer>>>> needsFlag = new ArrayList<>();
+            List<HashMap<Integer, HashMap<Integer, Map<Chord, Integer>>>> needsBeamlet = new ArrayList<>();
+            for (int i = 0; i < part.getValue().size(); ++i) {
+
+                chords.add(new HashMap<>());
+                rests.add(new HashMap<>());
+                needsFlag.add(new HashMap<>());
+                needsBeamlet.add(new HashMap<>());
+
+                Line tempLine = new Line(new ArrayList<>(), newlinesList.get(i), lineLengths.get(i), lineOffsets.get(i), i);
                 finalLines.get(part.getKey()).add(new InstantiatedLineTuple(newlinesList.get(i), tempLine));
                 for (var staffEntry : part.getValue().get(i).rests.entrySet()) {
                     Util.ensureCapacity(tempLine.getStaves(), Stave::new, staffEntry.getKey() - 1);
-                    Util.ensureKey(chords, TreeMap::new, staffEntry.getKey());
-                    Util.ensureKey(rests, TreeMap::new, staffEntry.getKey());
-                    Util.ensureKey(needsFlag, TreeMap::new, staffEntry.getKey());
-                    Util.ensureKey(needsBeamlet, TreeMap::new, staffEntry.getKey());
+                    Util.ensureKey(chords.get(i), HashMap::new, staffEntry.getKey());
+                    Util.ensureKey(rests.get(i), HashMap::new, staffEntry.getKey());
+                    Util.ensureKey(needsFlag.get(i), HashMap::new, staffEntry.getKey());
+                    Util.ensureKey(needsBeamlet.get(i), HashMap::new, staffEntry.getKey());
                     for (var voiceEntry : staffEntry.getValue().entrySet()) {
-                        Util.ensureKey(chords.get(staffEntry.getKey()), TreeMap::new, voiceEntry.getKey());
-                        Util.ensureKey(rests.get(staffEntry.getKey()), TreeMap::new, voiceEntry.getKey());
-                        Util.ensureKey(needsFlag.get(staffEntry.getKey()), HashMap::new, voiceEntry.getKey());
-                        Util.ensureKey(needsBeamlet.get(staffEntry.getKey()), HashMap::new, voiceEntry.getKey());
-                        var fusedRests = InstantiatedRestTuple.fuseRestTuples(voiceEntry.getValue());
+                        Util.ensureKey(chords.get(i).get(staffEntry.getKey()), TreeMap::new, voiceEntry.getKey());
+                        Util.ensureKey(rests.get(i).get(staffEntry.getKey()), TreeMap::new, voiceEntry.getKey());
+                        Util.ensureKey(needsFlag.get(i).get(staffEntry.getKey()), HashMap::new, voiceEntry.getKey());
+                        Util.ensureKey(needsBeamlet.get(i).get(staffEntry.getKey()), HashMap::new, voiceEntry.getKey());
+                        var fusedRests = InstantiatedRestTuple.fuseRestTuples(voiceEntry.getValue().values().stream().toList());
                         for (InstantiatedRestTuple restTuple : fusedRests) {
-                            tempLine.getStaves().get(staffEntry.getKey() - 1).addWhiteSpace(restTuple.toRest(tempLine, rests));
+                            tempLine.getStaves().get(staffEntry.getKey() - 1).addWhiteSpace(restTuple.toRest(tempLine, rests.get(i)));
                         }
                     }
                 }
 
                 for (var staffEntry : part.getValue().get(i).notes.entrySet()) {
                     Util.ensureCapacity(tempLine.getStaves(), Stave::new, staffEntry.getKey() - 1);
-                    Util.ensureKey(chords, TreeMap::new, staffEntry.getKey());
-                    Util.ensureKey(rests, TreeMap::new, staffEntry.getKey());
-                    Util.ensureKey(needsFlag, TreeMap::new, staffEntry.getKey());
-                    Util.ensureKey(needsBeamlet, TreeMap::new, staffEntry.getKey());
+                    Util.ensureKey(chords.get(i), HashMap::new, staffEntry.getKey());
+                    Util.ensureKey(rests.get(i), HashMap::new, staffEntry.getKey());
+                    Util.ensureKey(needsFlag.get(i), HashMap::new, staffEntry.getKey());
+                    Util.ensureKey(needsBeamlet.get(i), HashMap::new, staffEntry.getKey());
                     for (var voiceEntry : staffEntry.getValue().entrySet()) {
-                        Util.ensureKey(chords.get(staffEntry.getKey()), TreeMap::new, voiceEntry.getKey());
-                        Util.ensureKey(rests.get(staffEntry.getKey()), TreeMap::new, voiceEntry.getKey());
-                        Util.ensureKey(needsFlag.get(staffEntry.getKey()), HashMap::new, voiceEntry.getKey());
-                        Util.ensureKey(needsBeamlet.get(staffEntry.getKey()), HashMap::new, voiceEntry.getKey());
-                        for (var beamTuple : voiceEntry.getValue()) {
+                        Util.ensureKey(chords.get(i).get(staffEntry.getKey()), TreeMap::new, voiceEntry.getKey());
+                        Util.ensureKey(rests.get(i).get(staffEntry.getKey()), TreeMap::new, voiceEntry.getKey());
+                        Util.ensureKey(needsFlag.get(i).get(staffEntry.getKey()), HashMap::new, voiceEntry.getKey());
+                        Util.ensureKey(needsBeamlet.get(i).get(staffEntry.getKey()), HashMap::new, voiceEntry.getKey());
+                        for (var beamTuple : voiceEntry.getValue().values()) {
                             beamTuple.addToAverager(averager);
-                            tempLine.getStaves().get(staffEntry.getKey() - 1).addStaveElement(beamTuple.toBeamGroup(tempLine, chords, needsFlag, needsBeamlet));
-                        }
-                    }
-                }
-
-                for (var staffEntry : chords.entrySet()) {
-                    for (var voiceEntry : staffEntry.getValue().entrySet()) {
-                        for (var chordEntry : voiceEntry.getValue().entrySet()) {
-                            if (chordEntry.getKey() > chords.firstKey()) {
-                                chordEntry.getValue().removeTiesTo();
-                            }
-                        }
-                    }
-                }
-
-                for (var staffEntry : needsFlag.entrySet()) {
-                    for (var voiceEntry : staffEntry.getValue().entrySet()) {
-                        for (var entry : voiceEntry.getValue().entrySet()) {
-                            var preEntry = chords.get(staffEntry.getKey()).get(voiceEntry.getKey()).lowerEntry(entry.getKey().getCrotchetsIntoLine());
-                            var preChord = preEntry == null ? null : preEntry.getValue();
-                            var preRestEntry = rests.get(staffEntry.getKey()).get(voiceEntry.getKey()).floorEntry(entry.getKey().getCrotchetsIntoLine());
-                            if (preRestEntry != null && preChord != null && preRestEntry.getValue().getEndCrotchets() > preChord.getCrotchetsIntoLine()) {
-                                preChord = null;
-                            }
-                            tempLine.getStaves().get(staffEntry.getKey() - 1).addMusicGroup(new Flag(preChord, entry.getKey(), tempLine, entry.getValue()));
-                        }
-                    }
-                }
-
-
-                for (var staffEntry : needsBeamlet.entrySet()) {
-                    for (var voiceEntry : staffEntry.getValue().entrySet()) {
-                        for (var entry : voiceEntry.getValue().entrySet()) {
-                            var postEntry = chords.get(staffEntry.getKey()).get(voiceEntry.getKey()).higherEntry(entry.getKey().getCrotchetsIntoLine());
-                            var postChord = postEntry == null ? null : postEntry.getValue();
-                            var postRestEntry = rests.get(staffEntry.getKey()).get(voiceEntry.getKey()).ceilingEntry(entry.getKey().getCrotchetsIntoLine());
-                            if (postRestEntry != null && postChord != null && postRestEntry.getValue().getStartCrotchets() < postChord.getCrotchetsIntoLine()) {
-                                postChord = null;
-                            }
-                            tempLine.getStaves().get(staffEntry.getKey() - 1).addMusicGroup(new Beamlet(postChord, entry.getKey(), tempLine, entry.getValue()));
+                            tempLine.getStaves().get(staffEntry.getKey() - 1).addStaveElement(beamTuple.toBeamGroup(tempLine, chords.get(i), needsFlag.get(i), needsBeamlet.get(i)));
                         }
                     }
                 }
@@ -509,15 +475,101 @@ public class Parser {
                 for (var staffEntry : part.getValue().get(i).musicGroups.entrySet()) {
                     Util.ensureCapacity(tempLine.getStaves(), Stave::new, staffEntry.getKey() - 1);
                     for (InstantiatedMusicGroupTuple musicGroupTuple : staffEntry.getValue()) {
-                        tempLine.getStaves().get(staffEntry.getKey() - 1).addMusicGroup(musicGroupTuple.toMusicGroup(tempLine, chords));
+                        tempLine.getStaves().get(staffEntry.getKey() - 1).addMusicGroup(musicGroupTuple.toMusicGroup(tempLine, chords.get(i)));
                     }
                 }
 
                 for (InstantiatedTempoTuple tempoTuple : part.getValue().get(i).tempoMarkings) {
-                    tempLine.getStaves().get(0).addMusicGroup(tempoTuple.toMusicGroup(tempLine, chords));
+                    tempLine.getStaves().get(0).addMusicGroup(tempoTuple.toMusicGroup(tempLine, chords.get(i)));
                 }
             }
             parsingPart.get(part.getKey()).upwardsStems = averager.getAverageStaveLine() < 4;
+
+            for (var lineEntry : chords) {
+                for (var staffEntry : lineEntry.entrySet()) {
+                    for (var voiceEntry : staffEntry.getValue().entrySet()) {
+                        for (var chordEntry : voiceEntry.getValue().entrySet()) {
+                            if (chordEntry.getKey() > voiceEntry.getValue().firstKey()) {
+                                chordEntry.getValue().removeTiesTo();
+                            }
+                        }
+                    }
+                }
+            }
+
+            HashMap<Integer, TreeMap<Float, Chord>> emptyStaffChords = new HashMap<>();
+            HashMap<Integer, TreeMap<Float, Whitespace>> emptyStaffRests = new HashMap<>();
+            TreeMap<Float, Chord> emptyVoiceChords = new TreeMap<>();
+            TreeMap<Float, Whitespace> emptyVoiceRests = new TreeMap<>();
+            for (int i = 0; i < needsFlag.size(); ++i) {
+                for (var staffEntry : needsFlag.get(i).entrySet()) {
+                    for (var voiceEntry : staffEntry.getValue().entrySet()) {
+                        for (var entry : voiceEntry.getValue().entrySet()) {
+                            Line tempLine = finalLines.get(part.getKey()).get(i).line;
+                            boolean prevLine = false;
+                            var preEntry = chords.get(i).get(staffEntry.getKey()).get(voiceEntry.getKey()).lowerEntry(entry.getKey().getCrotchetsIntoLine());
+                            var preChord = preEntry == null ? null : preEntry.getValue();
+                            var preRestEntry = rests.get(i).get(staffEntry.getKey()).get(voiceEntry.getKey()).floorEntry(entry.getKey().getCrotchetsIntoLine());
+                            var preRest = preRestEntry == null ? null : preRestEntry.getValue();
+                            if (preChord == null && i > 0) {
+                                preEntry = chords.get(i-1).getOrDefault(staffEntry.getKey(), emptyStaffChords).getOrDefault(voiceEntry.getKey(), emptyVoiceChords).lastEntry();
+                                if (preEntry != null) {
+                                    preChord = preEntry.getValue().moveToNextLine(tempLine);
+                                    prevLine = true;
+                                }
+                            }
+                            if (preRest == null && i > 0) {
+                                preRestEntry = rests.get(i-1).getOrDefault(staffEntry.getKey(), emptyStaffRests).getOrDefault(voiceEntry.getKey(), emptyVoiceRests).lastEntry();
+                                if (preRestEntry != null) {
+                                    preRest = preRestEntry.getValue().moveToNextLine(tempLine);
+                                }
+                            }
+                            if (preRest != null && preChord != null && preRest.getEndCrotchets() > preChord.getCrotchetsIntoLine()) {
+                                preChord = null;
+                            }
+                            if (preChord != null && prevLine) {
+                                tempLine.getStaves().get(staffEntry.getKey() - 1).addStaveElement(preChord);
+                            }
+                            tempLine.getStaves().get(staffEntry.getKey() - 1).addMusicGroup(new Flag(preChord, entry.getKey(), tempLine, entry.getValue()));
+                        }
+                    }
+                }
+            }
+
+            for (int i = 0; i < needsFlag.size(); ++i) {
+                for (var staffEntry : needsBeamlet.get(i).entrySet()) {
+                    for (var voiceEntry : staffEntry.getValue().entrySet()) {
+                        for (var entry : voiceEntry.getValue().entrySet()) {
+                            Line tempLine = finalLines.get(part.getKey()).get(i).line;
+                            boolean nextLine = false;
+                            var postEntry = chords.get(i).get(staffEntry.getKey()).get(voiceEntry.getKey()).higherEntry(entry.getKey().getCrotchetsIntoLine());
+                            var postChord = postEntry == null ? null : postEntry.getValue();
+                            var postRestEntry = rests.get(i).get(staffEntry.getKey()).get(voiceEntry.getKey()).ceilingEntry(entry.getKey().getCrotchetsIntoLine());
+                            var postRest = postRestEntry == null ? null : postRestEntry.getValue();
+                            if (postChord == null && i < chords.size() - 1) {
+                                postEntry = chords.get(i+1).getOrDefault(staffEntry.getKey(), emptyStaffChords).getOrDefault(voiceEntry.getKey(), emptyVoiceChords).firstEntry();
+                                if (postEntry != null) {
+                                    postChord = postEntry.getValue().moveToPrevLine(tempLine);
+                                    nextLine = true;
+                                }
+                            }
+                            if (postRest == null && i < chords.size() - 1) {
+                                postRestEntry = rests.get(i+1).getOrDefault(staffEntry.getKey(), emptyStaffRests).getOrDefault(voiceEntry.getKey(), emptyVoiceRests).firstEntry();
+                                if (postRestEntry != null) {
+                                    postRest = postRestEntry.getValue().moveToPrevLine(tempLine);
+                                }
+                            }
+                            if (postRestEntry != null && postChord != null && postRestEntry.getValue().getStartCrotchets() < postChord.getCrotchetsIntoLine()) {
+                                postChord = null;
+                            }
+                            if (postChord != null && nextLine) {
+                                tempLine.getStaves().get(staffEntry.getKey() - 1).addStaveElement(postChord);
+                            }
+                            tempLine.getStaves().get(staffEntry.getKey() - 1).addMusicGroup(new Beamlet(postChord, entry.getKey(), tempLine, entry.getValue()));
+                        }
+                    }
+                }
+            }
         }
         return finalLines;
     }

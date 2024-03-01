@@ -5,10 +5,7 @@ import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConf
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.BeamGroup;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 class InstantiatedBeamGroupTuple {
 
@@ -17,6 +14,8 @@ class InstantiatedBeamGroupTuple {
 
     int staff;
     int voice;
+
+    public float getStartTime() { return chords.stream().map(InstantiatedChordTuple::getCrotchetsIntoLine).min(Float::compareTo).orElse(0f); }
 
     public InstantiatedBeamGroupTuple(int staff, int voice) { this.staff = staff; this.voice = voice; chords = new ArrayList<>(); beams = new ArrayList<>(); }
 
@@ -45,9 +44,9 @@ class InstantiatedBeamGroupTuple {
     }
 
     BeamGroup toBeamGroup(Line line,
-                          TreeMap<Integer, TreeMap<Integer, TreeMap<Float, Chord>>> chordMap,
-                          TreeMap<Integer, TreeMap<Integer, Map<Chord, Integer>>> needsFlag,
-                          TreeMap<Integer, TreeMap<Integer, Map<Chord, Integer>>> needsBeamlet) {
+                          HashMap<Integer, HashMap<Integer, TreeMap<Float, Chord>>> chordMap,
+                          HashMap<Integer, HashMap<Integer, Map<Chord, Integer>>> needsFlag,
+                          HashMap<Integer, HashMap<Integer, Map<Chord, Integer>>> needsBeamlet) {
         if (chords.size() == 1) {
             if (!chords.get(0).noteType.isBeamed()) {
                 var chord = chords.get(0).toChord(line);

@@ -6,10 +6,9 @@ import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 class InstantiatedMusicGroupTuple {
     Float startTime;
@@ -31,10 +30,10 @@ class InstantiatedMusicGroupTuple {
         this.aboveStave = aboveStave;
     }
 
-    static List<Chord> getAllChordsInInterval(TreeMap<Integer, TreeMap<Float, Chord>> chordMap, Float startTime, Float endTime) {
-        return chordMap.entrySet()
+    static List<Chord> getAllChordsInInterval(HashMap<Integer, TreeMap<Float, Chord>> chordMap, Float startTime, Float endTime) {
+        return chordMap.values()
                 .stream()
-                .map((entry) -> getVoiceChordsInInterval(entry.getValue(), startTime, endTime))
+                .map(floatChordTreeMap -> getVoiceChordsInInterval(floatChordTreeMap, startTime, endTime))
                 .reduce(new ArrayList<>(), (a, b) -> { a.addAll(b); return a; });
     }
 
@@ -67,7 +66,7 @@ class InstantiatedMusicGroupTuple {
         return chords;
     }
 
-    List<Chord> getChordsInInterval(TreeMap<Integer, TreeMap<Integer, TreeMap<Float, Chord>>> chordMap) {
+    List<Chord> getChordsInInterval(HashMap<Integer, HashMap<Integer, TreeMap<Float, Chord>>> chordMap) {
         if (voice == -1) {
             return getAllChordsInInterval(chordMap.get(staff), startTime, endTime);
         } else {
@@ -75,7 +74,7 @@ class InstantiatedMusicGroupTuple {
         }
     }
 
-    MusicGroup toMusicGroup(Line line, TreeMap<Integer, TreeMap<Integer, TreeMap<Float, Chord>>> chords) {
+    MusicGroup toMusicGroup(Line line, HashMap<Integer, HashMap<Integer, TreeMap<Float, Chord>>> chords) {
         switch (type) {
             case DIM -> {
                 MusicalPosition startPos = null;
