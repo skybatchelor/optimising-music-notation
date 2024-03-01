@@ -36,7 +36,7 @@ public class RenderingConfiguration {
     public static boolean hookSingleForward = false;
     public static boolean hookAllForward = false;
     public static boolean hookSingleBackward = true;
-    public static boolean hookAllBackward = true;
+    public static boolean hookAllBackward = false;
     public static boolean hookStart = true;
     public static boolean hookEnd = true;
     public static boolean allFlagged = false;

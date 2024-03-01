@@ -338,9 +338,10 @@ public class Parser {
                 float lineStart = newlines.floorKey(normaliseTime(beam.chords.get(0).crotchets, integratedTime));
                 int lineNum = lineIndices.get(lineStart);
                 if (beam.isRest()) {
-                    beam.splitToRestTuple(newlines, lineIndices, integratedTime, partLines.get(part.getKey()));
+                    beam.splitToInstantiatedRestTuple(newlines, lineIndices, integratedTime, partLines.get(part.getKey()));
                 } else {
-                    partLines.get(part.getKey()).get(lineNum).notes.add(beam.toInstantiatedBeamTuple(lineStart, integratedTime));
+                    beam.splitToInstantiatedBeamGroupTuple(newlines, lineIndices, integratedTime, partLines.get(part.getKey()));
+                    // partLines.get(part.getKey()).get(lineNum).notes.add(beam.toInstantiatedBeamTuple(lineStart, integratedTime));
                 }
             }
             for (MusicGroupTuple musicGroup : part.getValue().musicGroups) {
@@ -393,8 +394,8 @@ public class Parser {
                 Line tempLine = new Line(new ArrayList<>() {{ add(stave); }}, lineLengths.get(i), lineOffsets.get(i), i);
                 finalLines.get(part.getKey()).add(new InstantiatedLineTuple(newlinesList.get(i), tempLine));
 
-                var fusedRests = RestTuple.fuseRestTuples(part.getValue().get(i).rests);
-                for (RestTuple restTuple : fusedRests) {
+                var fusedRests = InstantiatedRestTuple.fuseRestTuples(part.getValue().get(i).rests);
+                for (InstantiatedRestTuple restTuple : fusedRests) {
                     tempLine.getStaves().get(0).addWhiteSpace(restTuple.toRest(tempLine));
                 }
 
