@@ -6,10 +6,14 @@ import org.audiveris.proxymusic.Note;
 import java.util.*;
 
 class BeamGroupTuple {
+
     List<ChordTuple> chords;
 
     float startTime;
     float endTime;
+
+    int voice = 1;
+    int staff = 1;
 
     public BeamGroupTuple() {
         chords = new ArrayList<>();
@@ -24,6 +28,17 @@ class BeamGroupTuple {
         }
         if (endTime == -1 || chord.crotchets + chord.duration > endTime) {
             endTime = chord.crotchets + chord.duration;
+        }
+        if (chord.notes.size() > 0) {
+            String voice = chord.notes.get(0).getVoice();
+            int voiceVal = Parser.getVoice(voice);
+            var staff = chord.notes.get(0).getStaff();
+            int staffVal = 1;
+            if (staff != null) {
+                staffVal = staff.intValue();
+            }
+            this.voice = voiceVal;
+            this.staff = staffVal;
         }
     }
 
@@ -101,30 +116,14 @@ class BeamGroupTuple {
         TreeMap<Integer, List<InstantiatedChordTuple>> iChords = new TreeMap<>();
 
         for (int i = 0; i < chords.size(); ++i) {
-            addToListInMap(iChords, split.floorEntry(i).getValue(), chords.get(i).toInstantiatedChordTuple(lineStartTime.get(i), integratedTime));
+            Util.addToListInMap(iChords, split.floorEntry(i).getValue(), chords.get(i).toInstantiatedChordTuple(lineStartTime.get(i), integratedTime));
         }
 
         for (var entry : iChords.entrySet()) {
-            var tuple = new InstantiatedBeamGroupTuple();
+            var tuple = new InstantiatedBeamGroupTuple(staff, voice);
             tuple.chords = entry.getValue();
-            tuple.beams = getListInMap(splitBeams, entry.getKey());
-            target.get(entry.getKey()).notes.add(tuple);
-        }
-    }
-
-    static <K, V> void addToListInMap(Map<K, List<V>> map, K key, V value) {
-        if (map.containsKey(key)) {
-            map.get(key).add(value);
-        } else {
-            map.put(key, new ArrayList<>() {{ add(value); }});
-        }
-    }
-
-    static <K, V> List<V> getListInMap(Map<K, List<V>> map, K key) {
-        if (map.containsKey(key)) {
-            return map.get(key);
-        } else {
-            return new ArrayList<>();
+            tuple.beams = Util.getListInMap(splitBeams, entry.getKey());
+            target.get(entry.getKey()).addBeamGroup(tuple);
         }
     }
 
@@ -136,11 +135,11 @@ class BeamGroupTuple {
             int endIndex = beam.end;
             if (startIndex == endIndex) {
                 var newEndIndex = split.floorEntry(endIndex);
-                addToListInMap(splitResult, newEndIndex.getValue(), new BeamTuple(startIndex - newEndIndex.getKey(), endIndex - newEndIndex.getKey(), beam.number));
+                Util.addToListInMap(splitResult, newEndIndex.getValue(), new BeamTuple(startIndex - newEndIndex.getKey(), endIndex - newEndIndex.getKey(), beam.number));
             }
             while (startIndex < endIndex) {
                 var newEndIndex = split.floorEntry(endIndex);
-                addToListInMap(splitResult, newEndIndex.getValue(), new BeamTuple(Math.max(startIndex, newEndIndex.getKey()) - newEndIndex.getKey(), endIndex - newEndIndex.getKey(), beam.number));
+                Util.addToListInMap(splitResult, newEndIndex.getValue(), new BeamTuple(Math.max(startIndex, newEndIndex.getKey()) - newEndIndex.getKey(), endIndex - newEndIndex.getKey(), beam.number));
                 endIndex = newEndIndex.getKey() - 1;
             }
         }
@@ -157,7 +156,7 @@ class BeamGroupTuple {
             if (newEndTime < lowestLineStart) {
                 break;
             }
-            target.get(lineIndices.get(newEndTime)).rests.add(new InstantiatedRestTuple(Math.max(newEndTime, startTime) - newEndTime, endTime - newEndTime));
+            target.get(lineIndices.get(newEndTime)).addRest(new InstantiatedRestTuple(staff, voice, Math.max(newEndTime, startTime) - newEndTime, endTime - newEndTime));
             endTime = newEndTime;
         }
     }

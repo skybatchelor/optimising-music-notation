@@ -29,7 +29,7 @@ public class InstantiatedTempoTuple {
         this.bpmValue = bpmValue;
     }
 
-    MusicGroup toMusicGroup(Line line, TreeMap<Float, Chord> chords) {
+    MusicGroup toMusicGroup(Line line, TreeMap<Integer, TreeMap<Integer, TreeMap<Float, Chord>>> chords) {
         MusicalPosition position = new MusicalPosition(line, time);
         if (rightText != null) {
             return new TempoMarking(position, leftItem, leftDots, rightText);

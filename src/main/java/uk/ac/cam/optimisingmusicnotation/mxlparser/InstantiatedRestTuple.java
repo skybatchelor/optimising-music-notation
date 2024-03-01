@@ -12,9 +12,14 @@ class InstantiatedRestTuple {
     float startTime;
     float endTime;
 
-    public InstantiatedRestTuple(float startTime, float endTime) {
+    int staff;
+    int voice;
+
+    public InstantiatedRestTuple(int staff, int voice, float startTime, float endTime) {
         this.startTime = startTime;
         this.endTime = endTime;
+        this.staff = staff;
+        this.voice = voice;
     }
 
     static List<InstantiatedRestTuple> fuseRestTuples(List<InstantiatedRestTuple> rests) {
@@ -30,14 +35,14 @@ class InstantiatedRestTuple {
                     changed = false;
                     var entry = fusedRests.floorEntry(currentRest.startTime);
                     if (entry != null && entry.getValue().endTime >= currentRest.startTime) {
-                        currentRest = new InstantiatedRestTuple(entry.getKey(), Math.max(currentRest.endTime, entry.getValue().endTime));
+                        currentRest = new InstantiatedRestTuple(currentRest.staff, currentRest.voice, entry.getKey(), Math.max(currentRest.endTime, entry.getValue().endTime));
                         fusedRests.remove(entry.getKey());
                         changed = true;
                         continue;
                     }
                     entry = fusedRests.floorEntry(currentRest.endTime);
                     if (entry != null && entry.getValue().startTime >= currentRest.startTime) {
-                        currentRest = new InstantiatedRestTuple(currentRest.startTime, Math.max(currentRest.endTime, entry.getValue().endTime));
+                        currentRest = new InstantiatedRestTuple(currentRest.staff, currentRest.voice, currentRest.startTime, Math.max(currentRest.endTime, entry.getValue().endTime));
                         fusedRests.remove(entry.getKey());
                         changed = true;
                     }

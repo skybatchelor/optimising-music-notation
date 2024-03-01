@@ -17,6 +17,7 @@ import javax.xml.bind.JAXBElement;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.String;
+import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -167,7 +168,7 @@ public class Parser {
                                             }
                                             case END, FORWARD_HOOK, BACKWARD_HOOK -> {
                                                 beamGroup.addChord(currentChord);
-                                                currentPart.beamGroups.add(beamGroup);
+                                                currentPart.putInBeamGroup(beamGroup);
                                                 beamGroup = new BeamGroupTuple();
                                                 addedToBeamGroup = true;
                                             }
@@ -177,7 +178,7 @@ public class Parser {
                             }
                             if (!addedToBeamGroup && note.getChord() == null) {
                                 beamGroup.addChord(currentChord);
-                                currentPart.beamGroups.add(beamGroup);
+                                currentPart.putInBeamGroup(beamGroup);
                                 beamGroup = new BeamGroupTuple();
                             }
                         } else if (component instanceof Backup backup) {
@@ -211,7 +212,8 @@ public class Parser {
                                 restNote.setRest(new org.audiveris.proxymusic.Rest());
                                 restChord.notes.add(restNote);
                                 whitespace.addChord(restChord);
-                                currentPart.beamGroups.add(whitespace);
+                                whitespace.staff = getStaff(direction.getStaff());
+                                currentPart.putInBeamGroup(whitespace);
                             }
                             parseMusicDirective(musicGroupTuples, currentPart, direction, measureStartTime + measureTime + offset);
                             currentTempo = parseTempoMarking(tempoMarkings, tempoChanges, currentTempo, direction, measureStartTime + measureTime + offset);
@@ -258,7 +260,6 @@ public class Parser {
 
             var sectionIndices = createSectionIndices(nNewSections, partSections);
 
-
             var finalSections = finaliseSections(
                     populatePartSections(
                             partSections,
@@ -277,6 +278,18 @@ public class Parser {
             return new Score(getWorkTitle(partwise), getComposer(partwise), parts.values().stream().toList());
         }
         return null;
+    }
+
+    static int getStaff(BigInteger staff) {
+        return staff == null ? 1 : staff.intValue();
+    }
+
+
+    static int getVoice(String voice) {
+        if (voice != null) {
+            return Integer.parseInt(voice);
+        }
+        return 1;
     }
 
     static TreeMap<Float, TempoChangeTuple> integrateTime(TreeMap<Float, Float> tempoChanges) {
@@ -335,18 +348,22 @@ public class Parser {
                                                               Map<Float, Integer> lineIndices,
                                                               TreeMap<Float, TempoChangeTuple> integratedTime) {
         for (Map.Entry<String, ParsingPartTuple> part : parsingParts.entrySet()) {
-            for (BeamGroupTuple beam : part.getValue().beamGroups) {
-                float lineStart = newlines.floorKey(normaliseTime(beam.chords.get(0).crotchets, integratedTime));
-                int lineNum = lineIndices.get(lineStart);
-                if (beam.isRest()) {
-                    beam.splitToInstantiatedRestTuple(newlines, lineIndices, integratedTime, partLines.get(part.getKey()));
-                } else {
-                    beam.splitToInstantiatedBeamGroupTuple(newlines, lineIndices, integratedTime, partLines.get(part.getKey()));
-                    // partLines.get(part.getKey()).get(lineNum).notes.add(beam.toInstantiatedBeamTuple(lineStart, integratedTime));
+            for (var staffEntry : part.getValue().staveBeamGroups.entrySet()) {
+                for (var voiceEntry : staffEntry.getValue().entrySet()) {
+                    for (BeamGroupTuple beam : voiceEntry.getValue()) {
+                        if (beam.isRest()) {
+                            beam.splitToInstantiatedRestTuple(newlines, lineIndices, integratedTime, partLines.get(part.getKey()));
+                        } else {
+                            beam.splitToInstantiatedBeamGroupTuple(newlines, lineIndices, integratedTime, partLines.get(part.getKey()));
+                        }
+                    }
                 }
             }
-            for (MusicGroupTuple musicGroup : part.getValue().musicGroups) {
-                musicGroup.splitToInstantiatedMusicGroupTuple(newlines, lineIndices, integratedTime, partLines.get(part.getKey()));
+
+            for (var staffEntry : part.getValue().staveMusicGroups.entrySet()) {
+                for (MusicGroupTuple musicGroup : staffEntry.getValue()) {
+                    musicGroup.splitToInstantiatedMusicGroupTuple(newlines, lineIndices, integratedTime, partLines.get(part.getKey()));
+                }
             }
             for (Map.Entry<Float, TempoTuple> entry : tempoMarkings.entrySet()) {
                 float lineStart = newlines.floorKey(normaliseTime(entry.getValue().time, integratedTime));
@@ -387,54 +404,91 @@ public class Parser {
             finalLines.put(part.getKey(), new ArrayList<>());
             averager.reset();
             for (int i = 0; i < part.getValue().size(); ++i) {
-                var chords = new TreeMap<Float, Chord>();
-                var needsFlag = new HashMap<Chord, Integer>();
-                var needsBeamlet = new HashMap<Chord, Integer>();
-                Stave stave = new Stave(new ArrayList<>(), new ArrayList<>(),new ArrayList<>());
+                var chords = new TreeMap<Integer, TreeMap<Integer, TreeMap<Float, Chord>>>();
+                var needsFlag = new TreeMap<Integer, TreeMap<Integer, Map<Chord, Integer>>>();
+                var needsBeamlet = new TreeMap<Integer, TreeMap<Integer, Map<Chord, Integer>>>();
+                Stave stave = new Stave();
 
                 Line tempLine = new Line(new ArrayList<>() {{ add(stave); }}, lineLengths.get(i), lineOffsets.get(i), i);
                 finalLines.get(part.getKey()).add(new InstantiatedLineTuple(newlinesList.get(i), tempLine));
-
-                var fusedRests = InstantiatedRestTuple.fuseRestTuples(part.getValue().get(i).rests);
-                for (InstantiatedRestTuple restTuple : fusedRests) {
-                    tempLine.getStaves().get(0).addWhiteSpace(restTuple.toRest(tempLine));
-                }
-
-                for (InstantiatedBeamGroupTuple beamTuple : part.getValue().get(i).notes) {
-                    beamTuple.addToAverager(averager);
-                    tempLine.getStaves().get(0).addStaveElement(beamTuple.toBeamGroup(tempLine, chords, needsFlag, needsBeamlet));
-                }
-
-                for (var chordEntry : chords.entrySet()) {
-                    if (chordEntry.getKey() > chords.firstKey()) {
-                        chordEntry.getValue().removeTiesTo();
+                for (var staffEntry : part.getValue().get(i).rests.entrySet()) {
+                    Util.ensureCapacity(tempLine.getStaves(), Stave::new, staffEntry.getKey() - 1);
+                    Util.ensureKey(chords, TreeMap::new, staffEntry.getKey());
+                    Util.ensureKey(needsFlag, TreeMap::new, staffEntry.getKey());
+                    Util.ensureKey(needsBeamlet, TreeMap::new, staffEntry.getKey());
+                    for (var voiceEntry : staffEntry.getValue().entrySet()) {
+                        Util.ensureKey(chords.get(staffEntry.getKey()), TreeMap::new, voiceEntry.getKey());
+                        Util.ensureKey(needsFlag.get(staffEntry.getKey()), HashMap::new, voiceEntry.getKey());
+                        Util.ensureKey(needsBeamlet.get(staffEntry.getKey()), HashMap::new, voiceEntry.getKey());
+                        var fusedRests = InstantiatedRestTuple.fuseRestTuples(voiceEntry.getValue());
+                        for (InstantiatedRestTuple restTuple : fusedRests) {
+                            tempLine.getStaves().get(staffEntry.getKey() - 1).addWhiteSpace(restTuple.toRest(tempLine));
+                        }
                     }
                 }
 
-                for (var entry : needsFlag.entrySet()) {
-                    var preEntry = chords.lowerEntry(entry.getKey().getCrotchetsIntoLine());
-                    var preChord = preEntry == null ? null : preEntry.getValue();
-                    if (preChord != null && preChord.getEndCrotchetsIntoLine() + EPSILON < entry.getKey().getCrotchetsIntoLine()) {
-                        preChord = null;
+                for (var staffEntry : part.getValue().get(i).notes.entrySet()) {
+                    Util.ensureCapacity(tempLine.getStaves(), Stave::new, staffEntry.getKey() - 1);
+                    Util.ensureKey(chords, TreeMap::new, staffEntry.getKey());
+                    Util.ensureKey(needsFlag, TreeMap::new, staffEntry.getKey());
+                    Util.ensureKey(needsBeamlet, TreeMap::new, staffEntry.getKey());
+                    for (var voiceEntry : staffEntry.getValue().entrySet()) {
+                        Util.ensureKey(chords.get(staffEntry.getKey()), TreeMap::new, voiceEntry.getKey());
+                        Util.ensureKey(needsFlag.get(staffEntry.getKey()), HashMap::new, voiceEntry.getKey());
+                        Util.ensureKey(needsBeamlet.get(staffEntry.getKey()), HashMap::new, voiceEntry.getKey());
+                        for (var beamTuple : voiceEntry.getValue()) {
+                            beamTuple.addToAverager(averager);
+                            tempLine.getStaves().get(staffEntry.getKey() - 1).addStaveElement(beamTuple.toBeamGroup(tempLine, chords, needsFlag, needsBeamlet));
+                        }
                     }
-                    tempLine.getStaves().get(0).addMusicGroup(new Flag(preChord, entry.getKey(), tempLine, entry.getValue()));
                 }
 
-                for (var entry : needsBeamlet.entrySet()) {
-                    var postEntry = chords.higherEntry(entry.getKey().getCrotchetsIntoLine());
-                    var postChord = postEntry == null ? null : postEntry.getValue();
-                    if (postChord != null && entry.getKey().getEndCrotchetsIntoLine() + EPSILON < postChord.getCrotchetsIntoLine()) {
-                        postChord = null;
+                for (var staffEntry : chords.entrySet()) {
+                    for (var voiceEntry : staffEntry.getValue().entrySet()) {
+                        for (var chordEntry : voiceEntry.getValue().entrySet()) {
+                            if (chordEntry.getKey() > chords.firstKey()) {
+                                chordEntry.getValue().removeTiesTo();
+                            }
+                        }
                     }
-                    tempLine.getStaves().get(0).addMusicGroup(new Beamlet(postChord, entry.getKey(), tempLine, entry.getValue()));
+                }
+
+                for (var staffEntry : needsFlag.entrySet()) {
+                    for (var voiceEntry : staffEntry.getValue().entrySet()) {
+                        for (var entry : voiceEntry.getValue().entrySet()) {
+                            var preEntry = chords.get(staffEntry.getKey()).get(voiceEntry.getKey()).lowerEntry(entry.getKey().getCrotchetsIntoLine());
+                            var preChord = preEntry == null ? null : preEntry.getValue();
+                            if (preChord != null && preChord.getEndCrotchetsIntoLine() + EPSILON < entry.getKey().getCrotchetsIntoLine()) {
+                                preChord = null;
+                            }
+                            tempLine.getStaves().get(staffEntry.getKey() - 1).addMusicGroup(new Flag(preChord, entry.getKey(), tempLine, entry.getValue()));
+                        }
+                    }
+                }
+
+
+                for (var staffEntry : needsBeamlet.entrySet()) {
+                    for (var voiceEntry : staffEntry.getValue().entrySet()) {
+                        for (var entry : voiceEntry.getValue().entrySet()) {
+                            var postEntry = chords.get(staffEntry.getKey()).get(voiceEntry.getKey()).higherEntry(entry.getKey().getCrotchetsIntoLine());
+                            var postChord = postEntry == null ? null : postEntry.getValue();
+                            if (postChord != null && entry.getKey().getEndCrotchetsIntoLine() + EPSILON < postChord.getCrotchetsIntoLine()) {
+                                postChord = null;
+                            }
+                            tempLine.getStaves().get(staffEntry.getKey() - 1).addMusicGroup(new Beamlet(postChord, entry.getKey(), tempLine, entry.getValue()));
+                        }
+                    }
                 }
 
                 for (InstantiatedPulseLineTuple pulseTuple : part.getValue().get(i).pulses) {
                     tempLine.addPulseLine(pulseTuple.toPulseLine(tempLine));
                 }
 
-                for (InstantiatedMusicGroupTuple musicGroupTuple : part.getValue().get(i).musicGroups) {
-                    tempLine.getStaves().get(0).addMusicGroup(musicGroupTuple.toMusicGroup(tempLine, chords));
+                for (var staffEntry : part.getValue().get(i).musicGroups.entrySet()) {
+                    Util.ensureCapacity(tempLine.getStaves(), Stave::new, staffEntry.getKey() - 1);
+                    for (InstantiatedMusicGroupTuple musicGroupTuple : staffEntry.getValue()) {
+                        tempLine.getStaves().get(staffEntry.getKey() - 1).addMusicGroup(musicGroupTuple.toMusicGroup(tempLine, chords));
+                    }
                 }
 
                 for (InstantiatedTempoTuple tempoTuple : part.getValue().get(i).tempoMarkings) {
@@ -644,15 +698,15 @@ public class Parser {
                 if (directionType.getWedge() != null) {
                     Wedge wedge = directionType.getWedge();
                     switch (wedge.getType().name()) {
-                        case "DIMINUENDO" -> target.get(MusicGroupType.DIM).put(wedge.getNumber(), new MusicGroupTuple(time, MusicGroupType.DIM));
-                        case "CRESCENDO" -> target.get(MusicGroupType.CRESC).put(wedge.getNumber(), new MusicGroupTuple(time, MusicGroupType.CRESC));
+                        case "DIMINUENDO" -> target.get(MusicGroupType.DIM).put(wedge.getNumber(), new MusicGroupTuple(time, MusicGroupType.DIM, getStaff(direction.getStaff())));
+                        case "CRESCENDO" -> target.get(MusicGroupType.CRESC).put(wedge.getNumber(), new MusicGroupTuple(time, MusicGroupType.CRESC, getStaff(direction.getStaff())));
                         case "STOP" -> {
                             for (var type : wedgeGroups) {
                                 if (target.get(type).containsKey(wedge.getNumber())) {
                                     var tuple = target.get(type).remove(wedge.getNumber());
                                     tuple.endTime = time;
                                     tuple.aboveStave = direction.getPlacement() == AboveBelow.ABOVE || direction.getPlacement() == null;
-                                    currentPart.musicGroups.add(tuple);
+                                    currentPart.putInMusicGroup(tuple);
                                     break;
                                 }
                             }
@@ -663,11 +717,11 @@ public class Parser {
                     for (var dynamics : directionType.getDynamics()) {
                         if (dynamics.getPOrPpOrPpp() != null) {
                             for (var element : dynamics.getPOrPpOrPpp()) {
-                                var tuple = new MusicGroupTuple(time, MusicGroupType.DYNAMIC);
+                                var tuple = new MusicGroupTuple(time, MusicGroupType.DYNAMIC, getStaff(direction.getStaff()));
                                 tuple.endTime = time;
                                 tuple.text = element.getName().getLocalPart();
                                 tuple.aboveStave = direction.getPlacement() == AboveBelow.ABOVE || direction.getPlacement() == null;
-                                currentPart.musicGroups.add(tuple);
+                                currentPart.putInMusicGroup(tuple);
                             }
                         }
                     }
@@ -675,11 +729,11 @@ public class Parser {
                 if (directionType.getWordsOrSymbol() != null) {
                     for (var wordOrSymbol : directionType.getWordsOrSymbol()) {
                         if (wordOrSymbol instanceof FormattedTextId text && !isDirective(text)) {
-                            var tuple = new MusicGroupTuple(time, MusicGroupType.TEXT);
+                            var tuple = new MusicGroupTuple(time, MusicGroupType.TEXT, getStaff(direction.getStaff()));
                             tuple.endTime = time;
                             tuple.text = text.getValue();
                             tuple.aboveStave = direction.getPlacement() == AboveBelow.ABOVE || direction.getPlacement() == null;
-                            currentPart.musicGroups.add(tuple);
+                            currentPart.putInMusicGroup(tuple);
                         }
                     }
                 }
@@ -746,10 +800,14 @@ public class Parser {
                                 if (target.get(MusicGroupType.SLUR).containsKey(slur.getNumber())) {
                                     var tuple = target.get(MusicGroupType.SLUR).remove(slur.getNumber());
                                     tuple.endTime = time;
-                                    currentPart.musicGroups.add(tuple);
+                                    currentPart.putInMusicGroup(tuple);
                                 }
                             }
-                            case START -> target.get(MusicGroupType.SLUR).put(slur.getNumber(), new MusicGroupTuple(time, MusicGroupType.SLUR));
+                            case START -> {
+                                MusicGroupTuple tuple = new MusicGroupTuple(time, MusicGroupType.SLUR, getStaff(note.getStaff()));
+                                tuple.voice = getVoice(note.getVoice());
+                                target.get(MusicGroupType.SLUR).put(slur.getNumber(), tuple);
+                            }
                         }
                     } else if (s instanceof Tuplet tuple) {
 

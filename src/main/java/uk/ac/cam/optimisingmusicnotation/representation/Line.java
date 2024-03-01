@@ -58,7 +58,7 @@ public class Line {
         for (PulseLine p: pulseLines) {
             p.drawAboveStave(canvas);
         }
-        for (Stave s: staves){
+        for (Stave s: staves) {
             s.draw(canvas,this);
         }
         drawTimeSignatures(canvas);
