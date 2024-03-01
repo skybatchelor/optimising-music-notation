@@ -4,6 +4,7 @@ import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.Clef;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.ClefSign;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.KeySignature;
+import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +40,7 @@ public class Section {
             canvas.addLine();
             l.draw(canvas);
         }
+        canvas.reserveHeight(RenderingConfiguration.postSectionHeight);
     }
 
     private <Anchor> void drawClefAndKey(MusicCanvas<Anchor> canvas){

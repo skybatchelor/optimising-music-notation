@@ -71,6 +71,9 @@ public class RenderingConfiguration {
     // Stave text information
     public static float staveTextHeight = 5f;
 
+    // Section information
+    public static float postSectionHeight = 10f;
+
     static {
         try {
             HashMap<String, String> env = new HashMap<>();
