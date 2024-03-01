@@ -74,7 +74,9 @@ public class Chord extends BeamGroup {
         int highestLine = -10000000;
         ChordAnchors<Anchor> chordAnchors;
         Anchor lowestNoteheadAnchor = null;
+        Accidental lowestAccidental = null;
         Anchor highestNoteheadAnchor = null;
+        Accidental highestAccidental = null;
         for (Note note : notes) {
             // are notes sorted?
             Anchor noteheadAnchor = canvas.getAnchor(musicalPosition, note.pitch);
@@ -82,17 +84,20 @@ public class Chord extends BeamGroup {
             if (note.pitch.rootStaveLine() < lowestLine) {
                 lowestLine = note.pitch.rootStaveLine();
                 lowestNoteheadAnchor = noteheadAnchor;
+                lowestAccidental = note.accidental;
             }
             if (note.pitch.rootStaveLine() > highestLine) {
                 highestLine = note.pitch.rootStaveLine();
                 highestNoteheadAnchor = noteheadAnchor;
+                highestAccidental = note.accidental;
             }
         }
         int sign = RenderingConfiguration.upwardStems ? 1 : -1; // decide to draw the not stem upwards or downwards
         Anchor stemBeginning;
         Anchor stemEnd;
         stemBeginning = canvas.offsetAnchor(sign == 1 ? highestNoteheadAnchor : lowestNoteheadAnchor, 0, sign * RenderingConfiguration.noteheadRadius);
-        stemEnd = canvas.offsetAnchor(stemBeginning, 0, sign * RenderingConfiguration.stemLength);
+        stemEnd = canvas.offsetAnchor(stemBeginning, 0,
+                sign * RenderingConfiguration.stemLength + 0.25f * (sign == 1 ? highestAccidental : lowestAccidental).getSemitoneOffset());
         chordAnchors = new ChordAnchors<>(lowestNoteheadAnchor, highestNoteheadAnchor, stemEnd, 0, 0);
         chordAnchorsMap.put(this, chordAnchors);
     }
@@ -100,10 +105,8 @@ public class Chord extends BeamGroup {
     public static <Anchor> ChordAnchors<Anchor> computeAnchors(MusicCanvas<Anchor> canvas, Anchor anchor, float scaleFactor) {
         ChordAnchors<Anchor> chordAnchors;
         int sign = RenderingConfiguration.upwardStems ? 1 : -1; // decide to draw the not stem upwards or downwards
-        Anchor stemBeginning;
-        Anchor stemEnd;
-        stemBeginning = canvas.offsetAnchor(anchor, 0, sign * RenderingConfiguration.noteheadRadius * scaleFactor);
-        stemEnd = canvas.offsetAnchor(stemBeginning, 0, sign * RenderingConfiguration.stemLength * scaleFactor);
+        Anchor stemBeginning = canvas.offsetAnchor(anchor, 0, sign * RenderingConfiguration.noteheadRadius * scaleFactor);
+        Anchor stemEnd = canvas.offsetAnchor(stemBeginning, 0, sign * RenderingConfiguration.stemLength * scaleFactor);
         chordAnchors = new ChordAnchors<>(anchor, anchor, stemEnd, 0, 0);
         return chordAnchors;
     }
