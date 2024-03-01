@@ -52,18 +52,23 @@ public class Line {
 
     private final float startTimeInCrotchets;
   
+    private final boolean extendPulseLinesUp;
+    private final boolean extendPulseLinesDown;
+
     public Line(List<Stave> staves, float startTimeInCrotchets, float lengthInCrochets, float offsetInCrochets, int lineNumber) {
         this.staves = staves;
         this.lineNumber = lineNumber;
         this.startTimeInCrotchets = startTimeInCrotchets;
         this.lengthInCrotchets = lengthInCrochets;
         this.offsetInCrochets = offsetInCrochets;
+        this.extendPulseLinesUp = true;
+        this.extendPulseLinesDown = true;
         pulseLines = new ArrayList<>();
     }
 
     public <Anchor> void draw(MusicCanvas<Anchor> canvas) {
         for (PulseLine p: pulseLines) {
-            p.drawAboveStave(canvas);
+            p.drawAroundStave(canvas, extendPulseLinesUp, extendPulseLinesDown);
         }
         for (Stave s: staves) {
             s.draw(canvas,this);
