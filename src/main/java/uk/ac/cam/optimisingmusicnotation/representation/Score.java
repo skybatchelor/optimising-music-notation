@@ -21,6 +21,17 @@ public class Score {
 
     private List<Part> parts;
 
+    public String getPartFilename(int index) {
+        String base = parts.get(index).getName();
+        int count = 1;
+        for (int i = 0; i < index; ++i) {
+            if (parts.get(i).getName().equals(base)) {
+                count++;
+            }
+        }
+        return base + (count == 1 ? "" : "_" + count);
+    }
+
     public Score(String workTitle, String composer, List<Part> parts) {
         this.workTitle = workTitle;
         this.composer = composer;
