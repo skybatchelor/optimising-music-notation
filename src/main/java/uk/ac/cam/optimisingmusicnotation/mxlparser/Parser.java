@@ -280,20 +280,21 @@ public class Parser {
     }
 
     static TreeMap<Float, TempoChangeTuple> integrateTime(TreeMap<Float, Float> tempoChanges) {
-        TreeMap<Float, TempoChangeTuple> integratedTime = new TreeMap<>() {{ put(0f, new TempoChangeTuple(0f, TIME_NORMALISATION_FACTOR / tempoChanges.firstEntry().getValue())); }};
+        TreeMap<Float, TempoChangeTuple> integratedTime = new TreeMap<>() {{ put(0f, new TempoChangeTuple(0f, 0f, TIME_NORMALISATION_FACTOR / tempoChanges.firstEntry().getValue())); }};
         if (TIME_NORMALISED_PARSING) {
             for (Map.Entry<Float, Float> entry : tempoChanges.entrySet()) {
                 var timeEntry = integratedTime.lowerEntry(entry.getKey());
                 var tempoEntry = tempoChanges.lowerEntry(entry.getKey());
                 if (timeEntry != null && tempoEntry != null) {
                     integratedTime.put(entry.getKey(), new TempoChangeTuple(
+                            entry.getKey(),
                             timeEntry.getValue().time() + (entry.getKey() - timeEntry.getKey()) * (TIME_NORMALISATION_FACTOR / tempoEntry.getValue()),
                             TIME_NORMALISATION_FACTOR / entry.getValue()));
                 }
             }
         } else {
             integratedTime.clear();
-            integratedTime.put(0f, new TempoChangeTuple(0f, 1));
+            integratedTime.put(0f, new TempoChangeTuple(0f, 0f, 1));
         }
         return integratedTime;
     }
@@ -495,23 +496,13 @@ public class Parser {
         return "";
     }
 
-    static SplitChordTuple splitInstantiatedChordTuple(InstantiatedChordTuple tuple, float newLine) {
-        SplitChordTuple res = new SplitChordTuple();
-        res.pre.add(tuple);
-        return res;
-    }
-
-    static List<InstantiatedBeamGroupTuple> splitInstantiatedBeamTuple(InstantiatedBeamGroupTuple tuple, TreeMap<Float, Float> newlines, TreeMap<Float, Integer> lineIndices) {
-        return null;
-    }
-
     static float normaliseTime(float time, TreeMap<Float, TempoChangeTuple> integratedTime) {
         if (TIME_NORMALISED_PARSING) {
             var timeEntry = integratedTime.floorEntry(time);
             if (timeEntry != null) {
-                return (time - timeEntry.getKey()) * timeEntry.getValue().factor() + timeEntry.getValue().time();
+                return timeEntry.getValue().modulateTime(time);
             } else {
-                return (time - integratedTime.firstKey()) * integratedTime.firstEntry().getValue().factor() + integratedTime.firstEntry().getValue().time();
+                return integratedTime.firstEntry().getValue().modulateTime(time);
             }
         } else {
             return time;
