@@ -1,7 +1,7 @@
 #!/bin/bash
 # Has not been tested on Mac
 
-java -jar optimisingmusicnotation.jar $1 $2 > OUTPUT 2> ERRORS
+/Applications/stenbergconverter.app/Contents/MacOS/stenbergconverter $1 $2 > OUTPUT 2> ERRORS
 
 if [ -s ERRORS ]
 then
