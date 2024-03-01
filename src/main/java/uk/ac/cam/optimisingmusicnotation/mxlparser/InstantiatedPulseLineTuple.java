@@ -21,9 +21,10 @@ class InstantiatedPulseLineTuple {
     }
 
     PulseLine toPulseLine(Line line) {
-        return switch (beatWeight) {
-            case 0 -> new BarLine(new MusicalPosition(line, timeInLine), name, timeSig);
-            default -> new BeatLine(new MusicalPosition(line, timeInLine), beatWeight);
-        };
+        if(beatWeight==0) {
+            return new BarLine(new MusicalPosition(line, timeInLine), name, timeSig);
+        }else{
+            return new BeatLine(new MusicalPosition(line, timeInLine), beatWeight);
+        }
     }
 }

@@ -1,5 +1,6 @@
 package uk.ac.cam.optimisingmusicnotation.representation.properties;
 
+import java.awt.*;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -73,6 +74,8 @@ public class RenderingConfiguration {
 
     // Section information
     public static float postSectionHeight = 10f;
+    // Color information
+    public static Color greyColor = new Color(0xCCCCCC);
 
     static {
         try {

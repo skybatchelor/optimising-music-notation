@@ -26,20 +26,20 @@ public class BeatLine implements PulseLine {
         Anchor startAnchor = canvas.getAnchor(musicalPosition);
         switch (beatWeight) {
             case 1 -> canvas.drawLine(startAnchor,0f, RenderingConfiguration.pulseLineHeight,0f,0.25f,
-                    RenderingConfiguration.beatLineWidth, new Color(0xCCCCCC));
+                    RenderingConfiguration.beatLineWidth, RenderingConfiguration.greyColor);
             case 2 -> canvas.drawLine(startAnchor,0f,RenderingConfiguration.pulseLineHeight,0f,0.25f,
-                    RenderingConfiguration.subBeatLineWidth, new Color(0xCCCCCC));
+                    RenderingConfiguration.subBeatLineWidth, RenderingConfiguration.greyColor);
             default -> canvas.drawLine(startAnchor,0f,RenderingConfiguration.pulseLineHeight,0f,0.25f,
-                    RenderingConfiguration.subBeatLineWidth / (beatWeight + 1), new Color(0xCCCCCC));
+                    RenderingConfiguration.subBeatLineWidth / (beatWeight + 1), RenderingConfiguration.greyColor);
         }
     }
 
     public <Anchor> void drawFull(MusicCanvas<Anchor> canvas) {
         Anchor startAnchor = canvas.getAnchor(musicalPosition);
         switch (beatWeight) {
-            case 1 -> canvas.drawLine(startAnchor,0f,0.5f,0f,-4f,RenderingConfiguration.beatLineWidth, new Color(0xCCCCCC));
-            case 2 -> canvas.drawLine(startAnchor,0f,0.5f,0f,-4f,RenderingConfiguration.subBeatLineWidth, new Color(0xCCCCCC));
-            default -> canvas.drawLine(startAnchor,0f,0.5f,0f,-4f,RenderingConfiguration.subBeatLineWidth / (beatWeight + 1), new Color(0xCCCCCC));
+            case 1 -> canvas.drawLine(startAnchor,0f,0.5f,0f,-4f,RenderingConfiguration.beatLineWidth, RenderingConfiguration.greyColor);
+            case 2 -> canvas.drawLine(startAnchor,0f,0.5f,0f,-4f,RenderingConfiguration.subBeatLineWidth, RenderingConfiguration.greyColor);
+            default -> canvas.drawLine(startAnchor,0f,0.5f,0f,-4f,RenderingConfiguration.subBeatLineWidth / (beatWeight + 1), RenderingConfiguration.greyColor);
         }
     }
 }
