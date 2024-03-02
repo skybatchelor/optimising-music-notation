@@ -74,8 +74,10 @@ public class RenderingConfiguration {
 
     // Section information
     public static float postSectionHeight = 10f;
+
     // Color information
     public static Color greyColor = new Color(0xCCCCCC);
+    public static Color blackColor = new Color(0x000000);
 
     static {
         try {
