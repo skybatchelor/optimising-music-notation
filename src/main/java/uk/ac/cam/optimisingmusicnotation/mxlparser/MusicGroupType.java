@@ -6,4 +6,6 @@ enum MusicGroupType {
     SLUR,
     DYNAMIC,
     TEXT,
+    CODA,
+    SEGNO
 }

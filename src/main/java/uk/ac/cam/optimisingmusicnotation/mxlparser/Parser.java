@@ -875,6 +875,24 @@ public class Parser {
                         }
                     }
                 }
+                if (directionType.getCoda() != null) {
+                    for (var coda : directionType.getCoda()) {
+                        var tuple = new MusicGroupTuple(time, MusicGroupType.CODA, getStaff(direction.getStaff()));
+                        tuple.endTime = time;
+                        tuple.aboveStave = direction.getPlacement() == AboveBelow.ABOVE || direction.getPlacement() == null;
+                        currentPart.putInMusicGroup(tuple);
+                        currentPart.putInMusicGroup(tuple);
+                    }
+                }
+                if (directionType.getSegno() != null) {
+                    for (var segno : directionType.getSegno()) {
+                        var tuple = new MusicGroupTuple(time, MusicGroupType.SEGNO, getStaff(direction.getStaff()));
+                        tuple.endTime = time;
+                        tuple.aboveStave = direction.getPlacement() == AboveBelow.ABOVE || direction.getPlacement() == null;
+                        currentPart.putInMusicGroup(tuple);
+                        currentPart.putInMusicGroup(tuple);
+                    }
+                }
             }
         }
     }

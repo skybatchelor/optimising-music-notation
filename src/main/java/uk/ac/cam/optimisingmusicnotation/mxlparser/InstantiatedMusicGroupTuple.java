@@ -2,6 +2,7 @@ package uk.ac.cam.optimisingmusicnotation.mxlparser;
 
 import uk.ac.cam.optimisingmusicnotation.representation.Line;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
+import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.*;
 
@@ -114,6 +115,14 @@ class InstantiatedMusicGroupTuple {
             }
             case TEXT -> {
                 return new TextAnnotation(getChordsInInterval(chords), text, new MusicalPosition(line, startTime), aboveStave);
+            }
+            case CODA -> {
+                return new ImageAnnotation(getChordsInInterval(chords), RenderingConfiguration.imgFilePath + "/signs/coda.svg",
+                        new MusicalPosition(line, startTime), aboveStave, RenderingConfiguration.signWidth, RenderingConfiguration.signHeight, RenderingConfiguration.signOffset);
+            }
+            case SEGNO -> {
+                return new ImageAnnotation(getChordsInInterval(chords), RenderingConfiguration.imgFilePath + "/signs/segno.svg",
+                        new MusicalPosition(line, startTime), aboveStave, RenderingConfiguration.signWidth, RenderingConfiguration.signHeight, RenderingConfiguration.signOffset);
             }
         }
         throw new IllegalArgumentException();

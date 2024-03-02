@@ -72,6 +72,11 @@ public class RenderingConfiguration {
     // Stave text information
     public static float staveTextHeight = 5f;
 
+    // Coda and segno information
+    public static float signWidth = 4f;
+    public static float signHeight = 4f;
+    public static float signOffset = 5f;
+
     // Section information
     public static float postSectionHeight = 10f;
 

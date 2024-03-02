@@ -270,7 +270,7 @@ public class Chord extends BeamGroup {
                 RenderingConfiguration.stemWidth * scaleFactor);// draw stem
     }
     private <Anchor> void drawAccidental(MusicCanvas<Anchor> canvas, Note note, Anchor anchor) {
-        if (note.accidental != Accidental.NONE){
+        if (note.accidental != Accidental.NONE) {
             String accidentalPath = RenderingConfiguration.imgFilePath + "/accidentals/" + note.accidental.toString().toLowerCase() + ".svg";
             float topLeftY = 1f + (note.accidental == Accidental.FLAT ? 0.5f : 0f);
             try{
