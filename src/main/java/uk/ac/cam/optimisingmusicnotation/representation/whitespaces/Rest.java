@@ -22,7 +22,7 @@ public class Rest implements Whitespace {
         for (PulseLine p: line.getPulseLines()) {
             pulsePosition = p.getMusicalPosition();
             if(pulsePosition.compareTo(startMusicalPosition)>=0 && pulsePosition.compareTo(endMusicalPosition)<=0){
-                p.drawFull(canvas);
+                p.drawFull(canvas, startMusicalPosition.stave());
             }
         }
     }

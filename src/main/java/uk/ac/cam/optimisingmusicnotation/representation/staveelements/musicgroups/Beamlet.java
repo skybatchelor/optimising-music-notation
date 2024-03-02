@@ -2,6 +2,7 @@ package uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgrou
 
 import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.Line;
+import uk.ac.cam.optimisingmusicnotation.representation.Stave;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.ChordAnchors;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
@@ -14,14 +15,16 @@ public class Beamlet extends MusicGroup {
     private final Chord postChord;
     private final Chord chord;
     private final Line line;
+    private final Stave stave;
     private final int maxBeam;
     private final boolean flag;
 
-    public Beamlet(Chord preChord, Chord chord, Line line, int number, boolean flag) {
+    public Beamlet(Chord preChord, Chord chord, Line line, Stave stave, int number, boolean flag) {
         super(new ArrayList<>(0));
         this.postChord = preChord;
         this.chord = chord;
         this.line = line;
+        this.stave = stave;
         this.maxBeam = number;
         this.flag = flag;
     }
@@ -31,8 +34,11 @@ public class Beamlet extends MusicGroup {
         if (postChord == null && !flag) return;
         Anchor startAnchor;
         if (postChord == null) {
-            startAnchor = canvas.getTakeXTakeYAnchor(canvas.getAnchor(new MusicalPosition(line, chord.getMusicalPosition().crotchetsIntoLine() +
-                    chord.getDurationInCrotchets() * (flag ? RenderingConfiguration.flagRatio : RenderingConfiguration.beamletRatio))), chordAnchorsMap.get(chord).stemEnd());
+            startAnchor = canvas.getTakeXTakeYAnchor(canvas.getAnchor(new MusicalPosition(line, stave,
+                            chord.getMusicalPosition().crotchetsIntoLine()
+                                    + chord.getDurationInCrotchets()
+                                    * RenderingConfiguration.flagRatio)),
+                    chordAnchorsMap.get(chord).stemEnd());
         } else {
             startAnchor = canvas.interpolateAnchors(
                     chordAnchorsMap.get(chord).stemEnd(),

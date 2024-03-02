@@ -1,6 +1,6 @@
 package uk.ac.cam.optimisingmusicnotation.mxlparser;
 
-import uk.ac.cam.optimisingmusicnotation.representation.Line;
+import uk.ac.cam.optimisingmusicnotation.representation.Stave;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.Accidental;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch;
@@ -44,8 +44,8 @@ class InstantiatedChordTuple {
         this.markings = markings;
     }
 
-    Chord toChord(Line line) {
+    Chord toChord(Stave stave) {
         return new Chord(pitches, accidentals, tiesFrom, tiesTo, capital ? RenderingConfiguration.capitalScaleFactor : 1f,
-                new MusicalPosition(line, crotchetsIntoLine), duration, noteType, dots, markings);
+                new MusicalPosition(stave.getLine(), stave, crotchetsIntoLine), duration, noteType, dots, markings);
     }
 }

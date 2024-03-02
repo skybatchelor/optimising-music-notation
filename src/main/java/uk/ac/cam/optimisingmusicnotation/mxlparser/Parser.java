@@ -9,6 +9,7 @@ import org.audiveris.proxymusic.util.Marshalling;
 import uk.ac.cam.optimisingmusicnotation.rendering.PdfMusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.*;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.*;
+import uk.ac.cam.optimisingmusicnotation.representation.properties.Clef;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.Beamlet;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.Flag;
@@ -34,7 +35,7 @@ public class Parser {
     public static final boolean END_BAR_LINE_NAME = false;
     public static final boolean TIME_NORMALISED_PARSING = true;
     public static final float TIME_NORMALISATION_FACTOR = 60 * 12;
-    public static final float ADD_TO_CODA = 0.05f;
+    public static final float ADD_TO_CODA = 0.004f;
     public static float startBpm = 120f;
 
 
@@ -138,7 +139,7 @@ public class Parser {
                                     uk.ac.cam.optimisingmusicnotation.representation.properties.Clef parsed = parseClef(clef);
                                     lowestLineGrandStaveLine = clefToLowestLineGrandStaveLine(parsed);
                                     currentChord.lowestLine = lowestLineGrandStaveLine;
-                                    currentPart.clefs.put(measureStartTime + measureTime, parsed);
+                                    currentPart.putInClef(getStaff(clef.getNumber()), measureStartTime + measureTime, parsed);
                                 }
                             }
                             if (attributes.getDivisions() != null) {
@@ -476,7 +477,7 @@ public class Parser {
                         part.getValue().get(i).extendUp, part.getValue().get(i).extendDown);
                 finalLines.get(part.getKey()).add(new InstantiatedLineTuple(newlinesList.get(i), tempLine));
                 for (var staffEntry : part.getValue().get(i).rests.entrySet()) {
-                    Util.ensureCapacity(tempLine.getStaves(), Stave::new, staffEntry.getKey() - 1);
+                    Util.ensureCapacity(tempLine.getStaves(), () -> new Stave(tempLine, tempLine.getStaves().size()), staffEntry.getKey() - 1);
                     Util.ensureKey(chords.get(i), HashMap::new, staffEntry.getKey());
                     Util.ensureKey(rests.get(i), HashMap::new, staffEntry.getKey());
                     Util.ensureKey(needsFlag.get(i), HashMap::new, staffEntry.getKey());
@@ -488,13 +489,14 @@ public class Parser {
                         Util.ensureKey(needsBeamlet.get(i).get(staffEntry.getKey()), HashMap::new, voiceEntry.getKey());
                         var fusedRests = InstantiatedRestTuple.fuseRestTuples(voiceEntry.getValue().values().stream().toList());
                         for (InstantiatedRestTuple restTuple : fusedRests) {
-                            tempLine.getStaves().get(staffEntry.getKey() - 1).addWhiteSpace(restTuple.toRest(tempLine, rests.get(i)));
+                            tempLine.getStaves().get(staffEntry.getKey() - 1)
+                                    .addWhiteSpace(restTuple.toRest(tempLine.getStaves().get(staffEntry.getKey() - 1), rests.get(i)));
                         }
                     }
                 }
 
                 for (var staffEntry : part.getValue().get(i).notes.entrySet()) {
-                    Util.ensureCapacity(tempLine.getStaves(), Stave::new, staffEntry.getKey() - 1);
+                    Util.ensureCapacity(tempLine.getStaves(), () -> new Stave(tempLine, tempLine.getStaves().size()), staffEntry.getKey() - 1);
                     Util.ensureKey(chords.get(i), HashMap::new, staffEntry.getKey());
                     Util.ensureKey(rests.get(i), HashMap::new, staffEntry.getKey());
                     Util.ensureKey(needsFlag.get(i), HashMap::new, staffEntry.getKey());
@@ -506,7 +508,7 @@ public class Parser {
                         Util.ensureKey(needsBeamlet.get(i).get(staffEntry.getKey()), HashMap::new, voiceEntry.getKey());
                         for (var beamTuple : voiceEntry.getValue().values()) {
                             beamTuple.addToAverager(averager);
-                            tempLine.getStaves().get(staffEntry.getKey() - 1).addStaveElement(beamTuple.toBeamGroup(tempLine, chords.get(i), needsFlag.get(i), needsBeamlet.get(i)));
+                            tempLine.getStaves().get(staffEntry.getKey() - 1).addStaveElement(beamTuple.toBeamGroup(tempLine.getStaves().get(staffEntry.getKey() - 1), chords.get(i), needsFlag.get(i), needsBeamlet.get(i)));
                         }
                     }
                 }
@@ -516,14 +518,15 @@ public class Parser {
                 }
 
                 for (var staffEntry : part.getValue().get(i).musicGroups.entrySet()) {
-                    Util.ensureCapacity(tempLine.getStaves(), Stave::new, staffEntry.getKey() - 1);
+                    Util.ensureCapacity(tempLine.getStaves(), () -> new Stave(tempLine, tempLine.getStaves().size()), staffEntry.getKey() - 1);
                     for (InstantiatedMusicGroupTuple musicGroupTuple : staffEntry.getValue()) {
-                        tempLine.getStaves().get(staffEntry.getKey() - 1).addMusicGroup(musicGroupTuple.toMusicGroup(tempLine, chords.get(i)));
+                        tempLine.getStaves().get(staffEntry.getKey() - 1).addMusicGroup(musicGroupTuple.toMusicGroup(
+                                tempLine.getStaves().get(staffEntry.getKey() - 1), chords.get(i)));
                     }
                 }
 
                 for (InstantiatedTempoTuple tempoTuple : part.getValue().get(i).tempoMarkings) {
-                    tempLine.getStaves().get(0).addMusicGroup(tempoTuple.toMusicGroup(tempLine, chords.get(i)));
+                    tempLine.getStaves().get(0).addMusicGroup(tempoTuple.toMusicGroup(tempLine.getStaves().get(0), chords.get(i)));
                 }
             }
             parsingPart.get(part.getKey()).upwardsStems = averager.getAverageStaveLine() < 4;
@@ -574,6 +577,7 @@ public class Parser {
                                 tempLine.getStaves().get(staffEntry.getKey() - 1).addStaveElement(preChord);
                             }
                             tempLine.getStaves().get(staffEntry.getKey() - 1).addMusicGroup(new Flag(preChord, entry.getKey(), tempLine,
+                                    tempLine.getStaves().get(staffEntry.getKey() - 1),
                                     entry.getValue().number(), entry.getValue().flag()));
                         }
                     }
@@ -610,6 +614,7 @@ public class Parser {
                                 tempLine.getStaves().get(staffEntry.getKey() - 1).addStaveElement(postChord);
                             }
                             tempLine.getStaves().get(staffEntry.getKey() - 1).addMusicGroup(new Beamlet(postChord, entry.getKey(), tempLine,
+                                    tempLine.getStaves().get(staffEntry.getKey() - 1),
                                     entry.getValue().number(), entry.getValue().flag()));
                         }
                     }
@@ -639,8 +644,12 @@ public class Parser {
             List<Section> sections = new ArrayList<>();
             for (TreeMap<Float, Line> lines : part.getValue()) {
                 if (lines.size() != 0) {
+                    ArrayList<Clef> clefs = new ArrayList<>();
+                    for (int i = 0; i < lines.firstEntry().getValue().getStaves().size(); ++i) {
+                        clefs.add(parsingParts.get(part.getKey()).clefs.get(i + 1).floorEntry(lines.firstKey()).getValue());
+                    }
                     sections.add(new Section(lines.values().stream().toList(),
-                            parsingParts.get(part.getKey()).clefs.floorEntry(lines.firstKey()).getValue(),
+                            clefs,
                             parsingParts.get(part.getKey()).keySignatures.floorEntry(lines.firstKey()).getValue()));
                 }
             }

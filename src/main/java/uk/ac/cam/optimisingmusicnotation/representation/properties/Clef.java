@@ -2,6 +2,7 @@ package uk.ac.cam.optimisingmusicnotation.representation.properties;
 
 import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.Line;
+import uk.ac.cam.optimisingmusicnotation.representation.Stave;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,8 +44,8 @@ public class Clef {
         this.octaveChange = octaveChange;
     }
 
-    public <Anchor> void draw(MusicCanvas<Anchor> canvas, Line line, int numAlterations){
-        Anchor anchor = canvas.getLineStartAnchor(new MusicalPosition(line, 0));
+    public <Anchor> void draw(MusicCanvas<Anchor> canvas, Line line, Stave stave, int numAlterations){
+        Anchor anchor = canvas.getLineStartAnchor(new MusicalPosition(line, stave, 0));
         String clefPath = RenderingConfiguration.imgFilePath + "/clefs/" + this.toString().toLowerCase() + ".svg";
         float topLeftY = (this.line/2f) + ((sign.height - sign.lineDistanceFromBottomOfClef)-4);
         try{

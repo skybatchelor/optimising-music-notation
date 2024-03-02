@@ -22,9 +22,9 @@ class InstantiatedPulseLineTuple {
 
     PulseLine toPulseLine(Line line) {
         if(beatWeight==0) {
-            return new BarLine(new MusicalPosition(line, timeInLine), name, timeSig);
+            return new BarLine(new MusicalPosition(line, null, timeInLine), name, timeSig);
         }else{
-            return new BeatLine(new MusicalPosition(line, timeInLine), beatWeight);
+            return new BeatLine(new MusicalPosition(line, null, timeInLine), beatWeight);
         }
     }
 }

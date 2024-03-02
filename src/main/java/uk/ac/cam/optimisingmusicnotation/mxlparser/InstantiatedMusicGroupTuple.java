@@ -1,6 +1,6 @@
 package uk.ac.cam.optimisingmusicnotation.mxlparser;
 
-import uk.ac.cam.optimisingmusicnotation.representation.Line;
+import uk.ac.cam.optimisingmusicnotation.representation.Stave;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
@@ -75,29 +75,29 @@ class InstantiatedMusicGroupTuple {
         }
     }
 
-    MusicGroup toMusicGroup(Line line, HashMap<Integer, HashMap<Integer, TreeMap<Float, Chord>>> chords) {
+    MusicGroup toMusicGroup(Stave stave, HashMap<Integer, HashMap<Integer, TreeMap<Float, Chord>>> chords) {
         switch (type) {
             case DIM -> {
                 MusicalPosition startPos = null;
                 MusicalPosition endPos = null;
                 if (startTime != null) {
-                    startPos = new MusicalPosition(line, startTime);
+                    startPos = new MusicalPosition(stave.getLine(), stave, startTime);
                 }
                 if (endTime != null) {
-                    endPos = new MusicalPosition(line, endTime);
+                    endPos = new MusicalPosition(stave.getLine(), stave, endTime);
                 }
-                return new Diminuendo(getChordsInInterval(chords), line, startPos, endPos);
+                return new Diminuendo(getChordsInInterval(chords), stave.getLine(), stave, startPos, endPos);
             }
             case CRESC -> {
                 MusicalPosition startPos = null;
                 MusicalPosition endPos = null;
                 if (startTime != null) {
-                    startPos = new MusicalPosition(line, startTime);
+                    startPos = new MusicalPosition(stave.getLine(), stave, startTime);
                 }
                 if (endTime != null) {
-                    endPos = new MusicalPosition(line, endTime);
+                    endPos = new MusicalPosition(stave.getLine(), stave, endTime);
                 }
-                return new Crescendo(getChordsInInterval(chords), line, startPos, endPos);
+                return new Crescendo(getChordsInInterval(chords), stave.getLine(), stave, startPos, endPos);
             }
             case SLUR -> {
                 Chord startChord = null;
@@ -108,21 +108,21 @@ class InstantiatedMusicGroupTuple {
                 if (endTime != null && chords.get(staff).get(voice).containsKey(endTime)) {
                     endChord = chords.get(staff).get(voice).get(endTime);
                 }
-                return new Slur(getChordsInInterval(chords), startChord, endChord, line);
+                return new Slur(getChordsInInterval(chords), startChord, endChord, stave.getLine(), stave);
             }
             case DYNAMIC -> {
-                return new Dynamic(getChordsInInterval(chords), text, new MusicalPosition(line, startTime));
+                return new Dynamic(getChordsInInterval(chords), text, new MusicalPosition(stave.getLine(), stave, startTime));
             }
             case TEXT -> {
-                return new TextAnnotation(getChordsInInterval(chords), text, new MusicalPosition(line, startTime), aboveStave);
+                return new TextAnnotation(getChordsInInterval(chords), text, new MusicalPosition(stave.getLine(), stave, startTime), aboveStave);
             }
             case CODA -> {
                 return new ImageAnnotation(getChordsInInterval(chords), RenderingConfiguration.imgFilePath + "/signs/coda.svg",
-                        new MusicalPosition(line, startTime), aboveStave, RenderingConfiguration.signWidth, RenderingConfiguration.signHeight, RenderingConfiguration.signOffset, true);
+                        new MusicalPosition(stave.getLine(), stave, startTime), aboveStave, RenderingConfiguration.signWidth, RenderingConfiguration.signHeight, RenderingConfiguration.signOffset, true);
             }
             case SEGNO -> {
                 return new ImageAnnotation(getChordsInInterval(chords), RenderingConfiguration.imgFilePath + "/signs/segno.svg",
-                        new MusicalPosition(line, startTime), aboveStave, RenderingConfiguration.signWidth, RenderingConfiguration.signHeight, RenderingConfiguration.signOffset, true);
+                        new MusicalPosition(stave.getLine(), stave, startTime), aboveStave, RenderingConfiguration.signWidth, RenderingConfiguration.signHeight, RenderingConfiguration.signOffset, true);
             }
         }
         throw new IllegalArgumentException();

@@ -15,8 +15,10 @@ import com.itextpdf.layout.Canvas;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.svg.converter.SvgConverter;
 import uk.ac.cam.optimisingmusicnotation.representation.Line;
+import uk.ac.cam.optimisingmusicnotation.representation.Stave;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch;
+import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 
 import java.awt.Color;
 import java.io.FileInputStream;
@@ -31,7 +33,7 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     private final float LINE_WIDTH = 0.8f;
     private final float STAVE_SPACING = 5f;
     private final float MARGIN = 5f;
-    private final float DEFAULT_LINE_HEIGHT = 15f;
+    private final float DEFAULT_LINE_HEIGHT = 10f;
     private final float SPACE_ABOVE_LINE = 5f;
 
     private final float crotchetsPerLine;
@@ -71,12 +73,44 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     }
 
     @Override
-    public void addLine() {
-        addLine(0f);
+    public void addFirstStave(float crotchetsOffset, int staveNumber) {
+        if (lineAnchors.isEmpty()) {
+            addFirstLineOnPage(0, crotchetsOffset);
+        }
+        else {
+            // save previous line's reserved height
+            Anchor previousLineAnchor = lineAnchors.get(lineAnchors.size() - 1);
+            lineTrueBottomAnchors.add(new Anchor(previousLineAnchor.page, previousLineAnchor.x,
+                    pdf.getPage(previousLineAnchor.page + 1).getPageSize().getTop() / STAVE_SPACING - trueHeight));
+
+            int pageNum = previousLineAnchor.page;
+            PdfPage page = pdf.getPage(pageNum + 1);
+
+            float y = page.getPageSize().getTop() / STAVE_SPACING - reservedHeight - SPACE_ABOVE_LINE;
+            if (y - SPACE_ABOVE_LINE * (staveNumber - 1) - RenderingConfiguration.postLineHeight * 2 < page.getPageSize().getBottom() / STAVE_SPACING + MARGIN) {
+                addFirstLineOnPage(pageNum + 1, crotchetsOffset);
+            }
+            else {
+                float leftX = (page.getPageSize().getWidth() * (1f - LINE_WIDTH) * 0.5f) / STAVE_SPACING;
+                leftLineAnchors.add(new Anchor(pageNum, leftX, y));
+
+                float x = leftX + (page.getPageSize().getWidth() * (crotchetsOffset) * (LINE_WIDTH / crotchetsPerLine)) / STAVE_SPACING;
+                lineAnchors.add(new Anchor(pageNum, x, y));
+            }
+        }
+
+        reservedHeight += DEFAULT_LINE_HEIGHT;
+        trueHeight += DEFAULT_LINE_HEIGHT;
+    }
+
+
+    @Override
+    public void addStave() {
+        addStave(0f);
     }
 
     @Override
-    public void addLine(float crotchetsOffset) {
+    public void addStave(float crotchetsOffset) {
         if (lineAnchors.isEmpty()) {
             addFirstLineOnPage(0, crotchetsOffset);
         }
@@ -135,7 +169,8 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
 
     @Override
     public Anchor getAnchor(MusicalPosition musicalPosition, Pitch pitch) {
-        Anchor lineAnchor = lineAnchors.get(musicalPosition.line().getLineNumber());
+        Anchor lineAnchor = lineAnchors.get(
+                musicalPosition.getIndex());
         PdfPage page = pdf.getPage(lineAnchor.page + 1);
 
         return new Anchor(lineAnchor.page,
@@ -152,7 +187,7 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
 
     @Override
     public Anchor getLineStartAnchor(MusicalPosition musicalPosition, Pitch pitch) {
-        Anchor lineAnchor = leftLineAnchors.get(musicalPosition.line().getLineNumber());
+        Anchor lineAnchor = leftLineAnchors.get(musicalPosition.getIndex());
         PdfPage page = pdf.getPage(lineAnchor.page + 1);
 
         return new Anchor(lineAnchor.page,
@@ -166,18 +201,18 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     }
 
     @Override
-    public Anchor getLowestStaveLineStartOfLineAnchor(Line line) {
-        return getAnchor(new MusicalPosition(line, 0), new Pitch(0, 0, 0));
+    public Anchor getLowestStaveLineStartOfLineAnchor(Line line, Stave stave) {
+        return getAnchor(new MusicalPosition(line, stave, 0), new Pitch(0, 0, 0));
     }
 
     @Override
-    public Anchor getStartOfLineAnchor(Line line) {
-        return getAnchor(new MusicalPosition(line, 0), new Pitch(8, 0, 0));
+    public Anchor getStartOfLineAnchor(Line line, Stave stave) {
+        return getAnchor(new MusicalPosition(line, stave, 0), new Pitch(8, 0, 0));
     }
 
     @Override
-    public Anchor getEndOfLineAnchor(Line line) {
-        return getAnchor(new MusicalPosition(line, line.getLengthInCrotchets()), new Pitch(8, 0, 0));
+    public Anchor getEndOfLineAnchor(Line line, Stave stave) {
+        return getAnchor(new MusicalPosition(line, stave, line.getLengthInCrotchets()), new Pitch(8, 0, 0));
     }
 
     @Override

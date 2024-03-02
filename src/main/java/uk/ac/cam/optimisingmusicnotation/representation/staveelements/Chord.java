@@ -44,7 +44,7 @@ public class Chord extends BeamGroup {
     public Chord() {
         notes = new ArrayList<>();
         markings = new ArrayList<>();
-        musicalPosition = new MusicalPosition(null, 0);
+        musicalPosition = new MusicalPosition(null, null, 0);
         durationInCrotchets = 0;
         noteType = NoteType.BREVE;
         dots = 0;
@@ -76,6 +76,7 @@ public class Chord extends BeamGroup {
 
     public Chord moveToNextLine(Line nextLine) {
         return new Chord(notes, new MusicalPosition(nextLine,
+                musicalPosition.stave(),
                 musicalPosition.crotchetsIntoLine() - musicalPosition.line().getLengthInCrotchets()),
                 durationInCrotchets,
                 noteType,
@@ -86,6 +87,7 @@ public class Chord extends BeamGroup {
 
     public Chord moveToPrevLine(Line prevLine) {
         return new Chord(notes, new MusicalPosition(prevLine,
+                musicalPosition.stave(),
                 musicalPosition.crotchetsIntoLine() + prevLine.getLengthInCrotchets()),
                 durationInCrotchets,
                 noteType,
@@ -305,7 +307,7 @@ public class Chord extends BeamGroup {
     private <Anchor> void drawTie(MusicCanvas<Anchor> canvas, Note note, Anchor anchor) {
         int sign = RenderingConfiguration.upwardStems ? -1 : 1;
         if (note.hasTieFrom) {
-            MusicalPosition endMusicalPosition = new MusicalPosition(musicalPosition.line(), musicalPosition.crotchetsIntoLine() + durationInCrotchets);
+            MusicalPosition endMusicalPosition = new MusicalPosition(musicalPosition.line(), musicalPosition.stave(), musicalPosition.crotchetsIntoLine() + durationInCrotchets);
             Anchor endAnchor = canvas.getAnchor(endMusicalPosition, note.pitch);
             float xOffset = .7f;
             float absoluteYOffset = .4f;
@@ -313,7 +315,7 @@ public class Chord extends BeamGroup {
             canvas.drawCurve(anchor, xOffset, signedYOffset, endAnchor, -xOffset, signedYOffset, .15f, !RenderingConfiguration.upwardStems);
         }
         if (note.hasTieTo) {
-            MusicalPosition startMusicalPosition = new MusicalPosition(musicalPosition.line(), 0);
+            MusicalPosition startMusicalPosition = new MusicalPosition(musicalPosition.line(), musicalPosition.stave(), 0);
             Anchor startAnchor = canvas.getAnchor(startMusicalPosition, note.pitch);
             float xOffset = .7f;
             float absoluteYOffset = .4f;

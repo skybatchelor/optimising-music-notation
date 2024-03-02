@@ -1,6 +1,6 @@
 package uk.ac.cam.optimisingmusicnotation.mxlparser;
 
-import uk.ac.cam.optimisingmusicnotation.representation.Line;
+import uk.ac.cam.optimisingmusicnotation.representation.Stave;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.BeamGroup;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
@@ -43,17 +43,17 @@ class InstantiatedBeamGroupTuple {
         }
     }
 
-    BeamGroup toBeamGroup(Line line,
+    BeamGroup toBeamGroup(Stave stave,
                           HashMap<Integer, HashMap<Integer, TreeMap<Float, Chord>>> chordMap,
                           HashMap<Integer, HashMap<Integer, Map<Chord, BeamletInfo>>> needsFlag,
                           HashMap<Integer, HashMap<Integer, Map<Chord, BeamletInfo>>> needsBeamlet) {
         if (chords.size() == 1) {
             if (!chords.get(0).noteType.isBeamed()) {
-                var chord = chords.get(0).toChord(line);
+                var chord = chords.get(0).toChord(stave);
                 chordMap.get(staff).get(voice).put(chord.getCrotchetsIntoLine(), chord);
                 return chord;
             } else {
-                var chord = chords.get(0).toChord(line);
+                var chord = chords.get(0).toChord(stave);
                 chordMap.get(staff).get(voice).put(chord.getCrotchetsIntoLine(), chord);
                 if (RenderingConfiguration.singleFlaggedLeft) {
                     needsFlag.get(staff).get(voice).put(chord, new BeamletInfo(chord.getNoteType().beamNumber(), true));
@@ -69,14 +69,14 @@ class InstantiatedBeamGroupTuple {
             }
         }
         List<Chord> chords = new ArrayList<>();
-        Chord firstChord = this.chords.get(0).toChord(line);
+        Chord firstChord = this.chords.get(0).toChord(stave);
         chords.add(firstChord);
         chordMap.get(staff).get(voice).put(firstChord.getCrotchetsIntoLine(), firstChord);
         Chord lastChord = firstChord;
         float minTime = firstChord.getCrotchetsIntoLine();
         float maxTime = minTime;
         for (InstantiatedChordTuple chordTuple : this.chords.subList(1, this.chords.size())) {
-            var chord = chordTuple.toChord(line);
+            var chord = chordTuple.toChord(stave);
             chords.add(chord);
             chordMap.get(staff).get(voice).put(chord.getCrotchetsIntoLine(), chord);
             if (chord.getCrotchetsIntoLine() < minTime) {
@@ -90,7 +90,7 @@ class InstantiatedBeamGroupTuple {
         }
         if (RenderingConfiguration.allFlaggedLeft) {
             needsFlag.get(staff).get(voice).put(firstChord, new BeamletInfo(highestBeamNumber(chords.indexOf(firstChord)), true));
-        } else if (RenderingConfiguration.singleBeamletLeft) {
+        } else if (RenderingConfiguration.beamletLeft) {
             needsFlag.get(staff).get(voice).put(firstChord, new BeamletInfo(highestBeamNumber(chords.indexOf(firstChord)), false));
         }
         if (RenderingConfiguration.allFlaggedRight) {

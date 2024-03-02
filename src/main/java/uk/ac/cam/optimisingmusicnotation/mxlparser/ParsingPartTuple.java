@@ -1,6 +1,7 @@
 package uk.ac.cam.optimisingmusicnotation.mxlparser;
 
 import org.audiveris.proxymusic.Direction;
+import uk.ac.cam.optimisingmusicnotation.representation.properties.Clef;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.KeySignature;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 
@@ -25,7 +26,11 @@ class ParsingPartTuple {
 
     HashMap<Integer, HashMap<Integer, TreeMap<Float, ChordTuple>>> chordTuples;
     TreeMap<Float, Direction> directions;
-    TreeMap<Float, uk.ac.cam.optimisingmusicnotation.representation.properties.Clef> clefs;
+
+    public void putInClef(int stave, float time, Clef clef) {
+        Util.putInMapInMap(clefs, TreeMap::new, stave, time, clef);
+    }
+    HashMap<Integer, TreeMap<Float, Clef>> clefs;
     TreeMap<Float, KeySignature> keySignatures;
 
     void addCapital(int staff, int voice, Float time) {
@@ -51,7 +56,7 @@ class ParsingPartTuple {
         //musicGroups = new ArrayList<>();
         chordTuples = new HashMap<>();
         directions = new TreeMap<>();
-        clefs = new TreeMap<>();
+        clefs = new HashMap<>();
         keySignatures = new TreeMap<>();
         capitalNotes = new HashMap<>();
         globalCapitalNotes = new TreeSet<>();

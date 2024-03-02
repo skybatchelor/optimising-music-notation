@@ -1,6 +1,6 @@
 package uk.ac.cam.optimisingmusicnotation.mxlparser;
 
-import uk.ac.cam.optimisingmusicnotation.representation.Line;
+import uk.ac.cam.optimisingmusicnotation.representation.Stave;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType;
@@ -30,8 +30,8 @@ public class InstantiatedTempoTuple {
         this.bpmValue = bpmValue;
     }
 
-    MusicGroup toMusicGroup(Line line, HashMap<Integer, HashMap<Integer, TreeMap<Float, Chord>>> chords) {
-        MusicalPosition position = new MusicalPosition(line, time);
+    MusicGroup toMusicGroup(Stave stave, HashMap<Integer, HashMap<Integer, TreeMap<Float, Chord>>> chords) {
+        MusicalPosition position = new MusicalPosition(stave.getLine(), stave, time);
         if (rightText != null) {
             return new TempoMarking(position, leftItem, leftDots, rightText);
         } else {

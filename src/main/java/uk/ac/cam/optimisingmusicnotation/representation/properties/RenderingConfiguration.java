@@ -97,6 +97,9 @@ public class RenderingConfiguration {
     public static float signHeight = 4f;
     public static float signOffset = 5f;
 
+    // Line information
+    public static float postLineHeight = 5f;
+
     // Section information
     public static float postSectionHeight = 10f;
 

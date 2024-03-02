@@ -1,6 +1,7 @@
 package uk.ac.cam.optimisingmusicnotation.rendering;
 
 import uk.ac.cam.optimisingmusicnotation.representation.Line;
+import uk.ac.cam.optimisingmusicnotation.representation.Stave;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch;
 
@@ -15,9 +16,9 @@ public interface MusicCanvas<Anchor> {
     Anchor getLineStartAnchor(MusicalPosition musicalPosition);
     Anchor getLineStartAnchor(MusicalPosition musicalPosition, Pitch pitch);
     Anchor getLowestStaveLineAnchor(MusicalPosition musicalPosition);
-    Anchor getLowestStaveLineStartOfLineAnchor(Line line);
-    Anchor getStartOfLineAnchor(Line line);
-    Anchor getEndOfLineAnchor(Line line);
+    Anchor getLowestStaveLineStartOfLineAnchor(Line line, Stave stave);
+    Anchor getStartOfLineAnchor(Line line, Stave stave);
+    Anchor getEndOfLineAnchor(Line line, Stave stave);
     Anchor offsetAnchor(Anchor anchor, float x, float y);
     Anchor interpolateAnchors(Anchor anchor1, Anchor anchor2, float t);
     Anchor getTakeXTakeYAnchor(Anchor anchorX, Anchor anchorY);
@@ -31,8 +32,9 @@ public interface MusicCanvas<Anchor> {
     boolean isAnchorAbove(Anchor anchor1, Anchor anchor2);
     boolean areAnchorsOnSamePage(Anchor anchor1, Anchor anchor2);
 
-    void addLine();
-    void addLine(float crotchetsOffset);
+    void addFirstStave(float crotchetsOffset, int staveNumber);
+    void addStave();
+    void addStave(float crotchetsOffset);
     void reserveHeight(float height);
 
     void drawCircle(Anchor anchor, float x, float y, float r);

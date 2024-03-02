@@ -2,6 +2,7 @@ package uk.ac.cam.optimisingmusicnotation.representation.properties;
 
 import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.Line;
+import uk.ac.cam.optimisingmusicnotation.representation.Stave;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -48,10 +49,10 @@ public class KeySignature {
         }
     }
 
-    public <Anchor> void draw(MusicCanvas<Anchor> canvas, Line line, Clef clef){
+    public <Anchor> void draw(MusicCanvas<Anchor> canvas, Line line, Stave stave, Clef clef) {
         int numAlterations = alterations.size();
         for (int i = 0; i < numAlterations; i++) {
-            alterations.get(i).draw(canvas, new MusicalPosition(line,0), clef,i, alterations.size());
+            alterations.get(i).draw(canvas, new MusicalPosition(line, stave,0), clef,i, alterations.size());
         }
     }
 

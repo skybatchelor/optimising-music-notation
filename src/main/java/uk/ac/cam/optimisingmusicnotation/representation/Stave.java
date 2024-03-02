@@ -1,10 +1,7 @@
 package uk.ac.cam.optimisingmusicnotation.representation;
 
 import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
-import uk.ac.cam.optimisingmusicnotation.representation.properties.ChordAnchors;
-import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
-import uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch;
-import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
+import uk.ac.cam.optimisingmusicnotation.representation.properties.*;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.StaveElement;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.MusicGroup;
@@ -19,14 +16,25 @@ public class Stave {
     private final List<StaveElement> staveElements;
     private final List<Whitespace> whitespaces;
     private final List<MusicGroup> musicGroups;
+    private final Line line;
 
-    public Stave() {
+    public int getStaveNumber() {
+        return staveNumber;
+    }
+
+    private final int staveNumber;
+
+    public Stave(Line line, int staveNumber) {
+        this.line = line;
+        this.staveNumber = staveNumber;
         staveElements = new ArrayList<>();
         whitespaces = new ArrayList<>();
         musicGroups = new ArrayList<>();
     }
 
-    public Stave(List<StaveElement> staveElements, List<Whitespace> whitespaces, List<MusicGroup> musicGroups) {
+    public Stave(Line line, int staveNumber, List<StaveElement> staveElements, List<Whitespace> whitespaces, List<MusicGroup> musicGroups) {
+        this.line = line;
+        this.staveNumber = staveNumber;
         this.staveElements = staveElements;
         this.whitespaces = whitespaces;
         this.musicGroups = musicGroups;
@@ -57,9 +65,22 @@ public class Stave {
         }
         drawStaveLines(canvas, line);
     }
+
+
+    public <Anchor> void drawWithClefAndKeySig(MusicCanvas<Anchor> canvas, Line line, Clef clef, KeySignature keySignature) {
+        drawClefAndKey(canvas, clef, keySignature);
+        draw(canvas, line);
+    }
+
+    private <Anchor> void drawClefAndKey(MusicCanvas<Anchor> canvas, Clef clef, KeySignature keySignature) {
+        drawPreStaveLines(canvas, line, keySignature.getAlterations().size());
+        clef.draw(canvas, line, this, keySignature.getAlterations().size());
+        keySignature.draw(canvas, line, this, clef);
+    }
+
     private <Anchor> void drawStaveLines(MusicCanvas<Anchor> canvas, Line line){
         //PRECONDITION: all whitespaces are grouped, and in order, with no overlapping
-        MusicalPosition endOfLastWhitespace = new MusicalPosition(line,0);
+        MusicalPosition endOfLastWhitespace = new MusicalPosition(line, this,0);
         MusicalPosition startOfNextWhitespace;
         for (Whitespace w: whitespaces) {
             startOfNextWhitespace = w.getStartMusicalPosition();
@@ -67,7 +88,7 @@ public class Stave {
             endOfLastWhitespace = w.getEndMusicalPosition();
         }
         if (endOfLastWhitespace.crotchetsIntoLine() < line.getLengthInCrotchets()){
-            drawStaveLines(canvas,endOfLastWhitespace,new MusicalPosition(line,line.getLengthInCrotchets()));
+            drawStaveLines(canvas,endOfLastWhitespace,new MusicalPosition(line, this, line.getLengthInCrotchets()));
         }
     }
 
@@ -88,8 +109,12 @@ public class Stave {
         Anchor anchor1;
 
         for (int i = 0; i < 10; i=i+2) {
-            anchor1 = canvas.getLineStartAnchor(new MusicalPosition(line, 0),new Pitch(i,0, 0));
+            anchor1 = canvas.getLineStartAnchor(new MusicalPosition(line, this, 0),new Pitch(i,0, 0));
             canvas.drawLine(anchor1, -(6f+numAlterations), 0, -2f, 0, 0.1f);
         }
+    }
+
+    public Line getLine() {
+        return line;
     }
 }

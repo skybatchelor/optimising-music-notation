@@ -68,16 +68,44 @@ public class Line {
     }
 
     public <Anchor> void draw(MusicCanvas<Anchor> canvas) {
-        for (PulseLine p: pulseLines) {
-            p.drawAroundStave(canvas, extendPulseLinesUp, extendPulseLinesDown);
-        }
-        for (Stave s: staves) {
+        canvas.addFirstStave(offsetInCrochets, staves.size());
+        for (int i = 0; i < staves.size(); ++i) {
+            Stave s = staves.get(i);
+            if (i != 0) {
+                canvas.addStave(offsetInCrochets);
+            }
+            for (PulseLine p: pulseLines) {
+                p.drawAroundStave(canvas, s, extendPulseLinesUp || i > 0,
+                        extendPulseLinesDown || i < staves.size() - 1,
+                        i < staves.size() - 1 ? 5f : 10f,
+                        i == 0);
+            }
             s.draw(canvas,this);
         }
         drawTimeSignatures(canvas);
+        canvas.reserveHeight(RenderingConfiguration.postLineHeight);
     }
 
-    private <Anchor> void drawTimeSignatures(MusicCanvas<Anchor> canvas){
+    public <Anchor> void drawWithClefAndKeySig(MusicCanvas<Anchor> canvas, List<Clef> clefs, KeySignature keySignature) {
+        canvas.addFirstStave(offsetInCrochets, staves.size());
+        for (int i = 0; i < staves.size(); ++i) {
+            Stave s = staves.get(i);
+            if (i != 0) {
+                canvas.addStave(offsetInCrochets);
+            }
+            for (PulseLine p: pulseLines) {
+                p.drawAroundStave(canvas, s, extendPulseLinesUp || i > 0,
+                        extendPulseLinesDown || i < staves.size() - 1,
+                        i < staves.size() - 1 ? 5f : 10f,
+                        i == 0);
+            }
+            s.drawWithClefAndKeySig(canvas,this, clefs.get(i), keySignature);
+        }
+        drawTimeSignatures(canvas);
+        canvas.reserveHeight(RenderingConfiguration.postLineHeight);
+    }
+
+    private <Anchor> void drawTimeSignatures(MusicCanvas<Anchor> canvas) {
         TimeSignature lastTimeSig = null;
         TimeSignature currentTimeSig;
         for (PulseLine p: pulseLines) {
@@ -85,7 +113,7 @@ public class Line {
                 currentTimeSig = ((BarLine) p).getTimeSignature();
                 if (currentTimeSig != null && !(currentTimeSig.equals(lastTimeSig))){
                     lastTimeSig = ((BarLine) p).getTimeSignature();
-                    lastTimeSig.draw(canvas,p.getMusicalPosition());
+                    lastTimeSig.draw(canvas, p.getMusicalPosition().getPositionWithStave(staves.get(0)));
                 }
             }
         }

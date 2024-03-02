@@ -2,6 +2,7 @@ package uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgrou
 
 import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.Line;
+import uk.ac.cam.optimisingmusicnotation.representation.Stave;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.ChordAnchors;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
@@ -14,12 +15,14 @@ public class Slur extends MusicGroup {
     private final Chord firstChord;
     private final Chord lastChord;
     private final Line line;
+    private final Stave stave;
 
-    public Slur(List<Chord> chords, Chord firstChord, Chord lastChord, Line line) {
+    public Slur(List<Chord> chords, Chord firstChord, Chord lastChord, Line line, Stave stave) {
         super(chords);
         this.firstChord = firstChord;
         this.lastChord = lastChord;
         this.line = line;
+        this.stave = stave;
     }
 
     @Override
@@ -29,8 +32,8 @@ public class Slur extends MusicGroup {
         float startNoteheadOffset = 0;
         float endNoteheadOffset = 0;
 
-        Anchor startAnchor = canvas.getAnchor(new MusicalPosition(line, 0));
-        Anchor endAnchor = canvas.getAnchor(new MusicalPosition(line, 0));
+        Anchor startAnchor = canvas.getAnchor(new MusicalPosition(line, stave, 0));
+        Anchor endAnchor = canvas.getAnchor(new MusicalPosition(line, stave, line.getLengthInCrotchets()));
 
 
         ChordAnchors<Anchor> firstChordAnchors = chordAnchorsMap.get(firstChord);

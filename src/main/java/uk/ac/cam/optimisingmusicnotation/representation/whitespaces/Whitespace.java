@@ -14,13 +14,13 @@ public interface Whitespace {
     }
 
     default Whitespace moveToNextLine(Line line) {
-        return new Rest(new MusicalPosition(line, getStartMusicalPosition().crotchetsIntoLine() - getStartMusicalPosition().line().getLengthInCrotchets()),
-                new MusicalPosition(line, getEndMusicalPosition().crotchetsIntoLine() - getEndMusicalPosition().line().getLengthInCrotchets()));
+        return new Rest(new MusicalPosition(line, getStartMusicalPosition().stave(), getStartMusicalPosition().crotchetsIntoLine() - getStartMusicalPosition().line().getLengthInCrotchets()),
+                new MusicalPosition(line, getStartMusicalPosition().stave(), getEndMusicalPosition().crotchetsIntoLine() - getEndMusicalPosition().line().getLengthInCrotchets()));
     }
 
     default Whitespace moveToPrevLine(Line line) {
-        return new Rest(new MusicalPosition(line, getStartMusicalPosition().crotchetsIntoLine() + line.getLengthInCrotchets()),
-                new MusicalPosition(line, getEndMusicalPosition().crotchetsIntoLine() + line.getLengthInCrotchets()));
+        return new Rest(new MusicalPosition(line, getStartMusicalPosition().stave(), getStartMusicalPosition().crotchetsIntoLine() + line.getLengthInCrotchets()),
+                new MusicalPosition(line, getStartMusicalPosition().stave(), getEndMusicalPosition().crotchetsIntoLine() + line.getLengthInCrotchets()));
     }
 
     <Anchor> void draw(MusicCanvas<Anchor> canvas, Line line);
