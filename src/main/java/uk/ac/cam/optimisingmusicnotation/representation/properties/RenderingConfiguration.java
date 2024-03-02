@@ -30,6 +30,12 @@ public class RenderingConfiguration {
     public static float dotSpacing = 0.2f;
     public static float noteheadRadius = 0.5f;
 
+    // Capital information
+    public static boolean newSectionAddsCapital = true;
+    public static boolean newlineAddsCapital = true;
+    public static boolean artisticWhitespaceAddsCapital = true;
+    public static float capitalScaleFactor = 1.333f;
+
     // Beaming information
     public static float hookRatio = 0.5f;
     public static boolean hookSingleLeft = false;
@@ -81,6 +87,10 @@ public class RenderingConfiguration {
 
     // Stave text information
     public static float staveTextHeight = 5f;
+
+    // Stave image information
+    public static float verticalMargin = 0.25f;
+    public static float horizontalMargin = 0.25f;
 
     // Coda and segno information
     public static float signWidth = 4f;

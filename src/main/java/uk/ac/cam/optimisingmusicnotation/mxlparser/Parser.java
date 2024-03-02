@@ -200,7 +200,13 @@ public class Parser {
                             parseMusicDirective(musicGroupTuples, currentPart, direction,
                                     measureStartTime + measureTime + offset, newlineOffset,
                                     beatChanges, currentTimeSignature,
-                                    addNewline, addNewSection, (voice, time) -> {
+                                    RenderingConfiguration.newlineAddsCapital ? (time, internalOffset) -> {
+                                        currentPart.globalCapitalNotes.add(time); addNewline.accept(time, internalOffset);
+                                    } : addNewline,
+                                    RenderingConfiguration.newSectionAddsCapital ? (time, internalOffset) -> {
+                                        currentPart.globalCapitalNotes.add(time); addNewSection.accept(time, internalOffset);
+                                    } : addNewSection,
+                                    (voice, time) -> {
                                         currentPart.putInArtisticWhitespace(getStaff(direction.getStaff()), voice, time);
                                         var whitespace = new BeamGroupTuple();
                                         whitespace.startTime = (time) - RenderingConfiguration.artisticWhitespaceWidth;
@@ -213,7 +219,12 @@ public class Parser {
                                         whitespace.addChord(restChord);
                                         whitespace.staff = getStaff(direction.getStaff());
                                         whitespace.voice = voice;
-                                        currentPart.putInBeamGroup(whitespace); });
+                                        if (RenderingConfiguration.artisticWhitespaceAddsCapital) {
+                                            currentPart.addCapital(whitespace.staff, voice, time);
+                                        }
+                                        currentPart.putInBeamGroup(whitespace); },
+                                    (voice, time) -> {
+                                        currentPart.addCapital(getStaff(direction.getStaff()), voice, time); });
                             currentTempo = parseTempoMarking(tempoMarkings, tempoChanges, currentTempo, direction, measureStartTime + measureTime + offset);
                             currentPart.directions.put(measureStartTime + measureTime + offset, direction);
                         }
@@ -372,7 +383,7 @@ public class Parser {
                         if (beam.isRest()) {
                             beam.splitToInstantiatedRestTuple(newlines, lineIndices, integratedTime, partLines.get(part.getKey()));
                         } else {
-                            beam.splitToInstantiatedBeamGroupTuple(beamBreaks, newlines, lineIndices, integratedTime, partLines.get(part.getKey()));
+                            beam.splitToInstantiatedBeamGroupTuple(beamBreaks, newlines, lineIndices, integratedTime, part.getValue(), partLines.get(part.getKey()));
                         }
                     }
                 }
@@ -735,10 +746,11 @@ public class Parser {
     }
 
     static boolean isNewline(FormattedTextId formattedText, float time, float offset, BiConsumer<Float, Float> addNewline) {
-        if (formattedText.getValue().equals("n") && formattedText.getEnclosure() == EnclosureShape.RECTANGLE) {
+        String text = formattedText.getValue().toLowerCase();
+        if (text.equals("n") && formattedText.getEnclosure() == EnclosureShape.RECTANGLE) {
             addNewline.accept(time, offset);
             return true;
-        } else if (formattedText.getValue().equals("\\n")) {
+        } else if (text.equals("\\n")) {
             addNewline.accept(time, offset);
             return true;
         }
@@ -746,10 +758,11 @@ public class Parser {
     }
 
     static boolean isNewSection(FormattedTextId formattedText, float time, float offset, BiConsumer<Float, Float> addNewSection) {
-        if (formattedText.getValue().equals("s") && formattedText.getEnclosure() == EnclosureShape.RECTANGLE) {
+        String text = formattedText.getValue().toLowerCase();
+        if (text.equals("s") && formattedText.getEnclosure() == EnclosureShape.RECTANGLE) {
             addNewSection.accept(time, offset);
             return true;
-        } else if (formattedText.getValue().equals("\\s")) {
+        } else if (text.equals("\\s")) {
             addNewSection.accept(time, offset);
             return true;
         }
@@ -757,7 +770,7 @@ public class Parser {
     }
 
     static boolean isPulseDirective(FormattedTextId formattedText, float time, TreeMap<Float, List<TimeSignature.BeatTuple>> beatChanges, TimeSignature timeSig) {
-        String text = formattedText.getValue();
+        String text = formattedText.getValue().toLowerCase();
         String pulseRules;
         if (text.startsWith("t") && formattedText.getEnclosure() == EnclosureShape.RECTANGLE) {
             pulseRules = text.substring(1);
@@ -797,7 +810,7 @@ public class Parser {
     }
 
     static boolean isArtisticWhitespace(FormattedTextId formattedText, float time, BiConsumer<Integer, Float> addArtisticWhitespace) {
-        String text = formattedText.getValue();
+        String text = formattedText.getValue().toLowerCase();
         if (text.startsWith("w") && formattedText.getEnclosure() == EnclosureShape.RECTANGLE) {
             try {
                 if (text.length() == 1) {
@@ -825,11 +838,41 @@ public class Parser {
         return false;
     }
 
+    static boolean isCapitalNote(FormattedTextId formattedText, float time, BiConsumer<Integer, Float> addCapitalNote) {
+        String text = formattedText.getValue().toLowerCase();
+        if (text.startsWith("c") && formattedText.getEnclosure() == EnclosureShape.RECTANGLE) {
+            try {
+                if (text.length() == 1) {
+                    addCapitalNote.accept(1, time);
+                    return true;
+                }
+                addCapitalNote.accept(Integer.parseInt(formattedText.getValue().substring(1)), time);
+                return true;
+            } catch (NumberFormatException e) {
+                return false;
+            }
+        }
+        if (text.startsWith(("\\c"))) {
+            try {
+                if (text.length() == 2) {
+                    addCapitalNote.accept(1, time);
+                    return true;
+                }
+                addCapitalNote.accept(Integer.parseInt(formattedText.getValue().substring(2)), time);
+                return true;
+            } catch (NumberFormatException e) {
+                return false;
+            }
+        }
+        return false;
+    }
+
     static List<MusicGroupType> wedgeGroups = new ArrayList<>(2) {{ add(MusicGroupType.DIM); add(MusicGroupType.CRESC); }};
     static void parseMusicDirective(TreeMap<MusicGroupType, TreeMap<Integer, MusicGroupTuple>> target, ParsingPartTuple currentPart, Direction direction,
                                     float time, float newlineOffset,
                                     TreeMap<Float, List<TimeSignature.BeatTuple>> beatChanges, TimeSignature timeSig,
-                                    BiConsumer<Float, Float> addNewline, BiConsumer<Float, Float> addNewSection, BiConsumer<Integer, Float> addArtisticWhitespace) {
+                                    BiConsumer<Float, Float> addNewline, BiConsumer<Float, Float> addNewSection,
+                                    BiConsumer<Integer, Float> addArtisticWhitespace, BiConsumer<Integer, Float> addCapital) {
         if (direction.getDirectionType() != null) {
             for (DirectionType directionType : direction.getDirectionType()) {
                 if (directionType.getWedge() != null) {
@@ -869,7 +912,8 @@ public class Parser {
                             if (!isPulseDirective(text, time, beatChanges, timeSig)
                                     && !isNewline(text, time, newlineOffset, addNewline)
                                     && !isNewSection(text, time, newlineOffset, addNewSection)
-                                    && !isArtisticWhitespace(text, time, addArtisticWhitespace)) {
+                                    && !isArtisticWhitespace(text, time, addArtisticWhitespace)
+                                    && !isCapitalNote(text, time, addCapital)) {
                                 var tuple = new MusicGroupTuple(time, MusicGroupType.TEXT, getStaff(direction.getStaff()));
                                 tuple.endTime = time;
                                 tuple.text = text.getValue();

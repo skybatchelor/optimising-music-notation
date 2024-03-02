@@ -118,11 +118,11 @@ class InstantiatedMusicGroupTuple {
             }
             case CODA -> {
                 return new ImageAnnotation(getChordsInInterval(chords), RenderingConfiguration.imgFilePath + "/signs/coda.svg",
-                        new MusicalPosition(line, startTime), aboveStave, RenderingConfiguration.signWidth, RenderingConfiguration.signHeight, RenderingConfiguration.signOffset);
+                        new MusicalPosition(line, startTime), aboveStave, RenderingConfiguration.signWidth, RenderingConfiguration.signHeight, RenderingConfiguration.signOffset, true);
             }
             case SEGNO -> {
                 return new ImageAnnotation(getChordsInInterval(chords), RenderingConfiguration.imgFilePath + "/signs/segno.svg",
-                        new MusicalPosition(line, startTime), aboveStave, RenderingConfiguration.signWidth, RenderingConfiguration.signHeight, RenderingConfiguration.signOffset);
+                        new MusicalPosition(line, startTime), aboveStave, RenderingConfiguration.signWidth, RenderingConfiguration.signHeight, RenderingConfiguration.signOffset, true);
             }
         }
         throw new IllegalArgumentException();

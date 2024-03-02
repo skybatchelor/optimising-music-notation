@@ -46,7 +46,8 @@ class BeamGroupTuple {
         return (this.chords.get(0).notes.get(0).getRest() != null);
     }
 
-    void splitToInstantiatedBeamGroupTuple(TreeSet<Float> beamBreaks, TreeMap<Float, Float> newlines, Map<Float, Integer> lineIndices, TreeMap<Float, TempoChangeTuple> integratedTime, List<LineTuple> target) {
+    void splitToInstantiatedBeamGroupTuple(TreeSet<Float> beamBreaks, TreeMap<Float, Float> newlines, Map<Float, Integer> lineIndices,
+                                           TreeMap<Float, TempoChangeTuple> integratedTime, ParsingPartTuple part, List<LineTuple> target) {
         List<BeamTuple> beams = new ArrayList<>();
 
         Integer[] beaming = new Integer[10];
@@ -116,8 +117,16 @@ class BeamGroupTuple {
 
         TreeMap<Float, List<InstantiatedChordTuple>> iChords = new TreeMap<>();
 
+        HashMap<Integer, TreeSet<Float>> emptyStaffCapitals = new HashMap<>(0);
+        TreeSet<Float> emptyVoiceCapitals = new TreeSet<>();
+
         for (int i = 0; i < chords.size(); ++i) {
-            Util.addToListInMap(iChords, split.floorEntry(i).getValue(), chords.get(i).toInstantiatedChordTuple(lineStartTimes.get(i), integratedTime));
+            InstantiatedChordTuple tuple = chords.get(i).toInstantiatedChordTuple(lineStartTimes.get(i), integratedTime);
+            if (part.globalCapitalNotes.contains(chords.get(i).crotchets)
+                    || part.capitalNotes.getOrDefault(staff, emptyStaffCapitals).getOrDefault(voice, emptyVoiceCapitals).contains(chords.get(i).crotchets)) {
+                tuple.capital = true;
+            }
+            Util.addToListInMap(iChords, split.floorEntry(i).getValue(), tuple);
         }
 
         for (var entry : iChords.entrySet()) {

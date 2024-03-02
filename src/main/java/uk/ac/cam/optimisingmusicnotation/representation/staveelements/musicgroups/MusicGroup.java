@@ -18,7 +18,5 @@ public abstract class MusicGroup implements StaveElement {
         this.chords = chords;
     }
     @Override
-    public <Anchor> void draw(MusicCanvas<Anchor> canvas, Map<Chord, ChordAnchors<Anchor>> chordAnchorsMap) {
-
-    }
+    abstract public <Anchor> void draw(MusicCanvas<Anchor> canvas, Map<Chord, ChordAnchors<Anchor>> chordAnchorsMap);
 }

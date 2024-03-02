@@ -2,20 +2,43 @@ package uk.ac.cam.optimisingmusicnotation.mxlparser;
 
 import org.audiveris.proxymusic.Direction;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.KeySignature;
+import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 
 import java.util.*;
 
 class ParsingPartTuple {
+
+    public void putInBeamGroup(BeamGroupTuple beamGroup) {
+        Util.putInMapInMapMap(staveBeamGroups, HashMap::new, TreeMap::new, beamGroup.staff, beamGroup.voice, beamGroup.startTime, beamGroup);
+    }
+
     HashMap<Integer, HashMap<Integer, TreeMap<Float, BeamGroupTuple>>> staveBeamGroups;
+
+    public void putInMusicGroup(MusicGroupTuple musicGroup) {
+        Util.addToListInMap(staveMusicGroups, musicGroup.staff, musicGroup);
+    }
+
     HashMap<Integer, List<MusicGroupTuple>> staveMusicGroups;
     //List<BeamGroupTuple> beamGroups;
     List<PulseLineTuple> pulseLines;
     //List<MusicGroupTuple> musicGroups;
 
-    TreeMap<Float, ChordTuple> chordTuples;
+    HashMap<Integer, HashMap<Integer, TreeMap<Float, ChordTuple>>> chordTuples;
     TreeMap<Float, Direction> directions;
     TreeMap<Float, uk.ac.cam.optimisingmusicnotation.representation.properties.Clef> clefs;
     TreeMap<Float, KeySignature> keySignatures;
+
+    void addCapital(int staff, int voice, Float time) {
+        Util.addToTreeSetInMapMap(capitalNotes, HashMap::new, staff, voice, time);
+    }
+
+    HashMap<Integer, HashMap<Integer, TreeSet<Float>>> capitalNotes;
+    TreeSet<Float> globalCapitalNotes;
+
+
+    public void putInArtisticWhitespace(int staff, int voice, float time) {
+        Util.addToTreeSetInMapMap(artisticWhitespace, HashMap::new, staff, voice, time);
+    }
 
     HashMap<Integer, HashMap<Integer, TreeSet<Float>>> artisticWhitespace;
 
@@ -26,23 +49,13 @@ class ParsingPartTuple {
         //beamGroups = new ArrayList<>();
         pulseLines = new ArrayList<>();
         //musicGroups = new ArrayList<>();
-        chordTuples = new TreeMap<>();
+        chordTuples = new HashMap<>();
         directions = new TreeMap<>();
         clefs = new TreeMap<>();
         keySignatures = new TreeMap<>();
-
+        capitalNotes = new HashMap<>();
+        globalCapitalNotes = new TreeSet<>();
+        if (RenderingConfiguration.newlineAddsCapital || RenderingConfiguration.newSectionAddsCapital) globalCapitalNotes.add(0f);
         artisticWhitespace = new HashMap<>();
-    }
-
-    public void putInBeamGroup(BeamGroupTuple beamGroup) {
-        Util.putInMapInMapMap(staveBeamGroups, HashMap::new, TreeMap::new, beamGroup.staff, beamGroup.voice, beamGroup.startTime, beamGroup);
-    }
-
-    public void putInMusicGroup(MusicGroupTuple musicGroup) {
-        Util.addToListInMap(staveMusicGroups, musicGroup.staff, musicGroup);
-    }
-
-    public void putInArtisticWhitespace(int staff, int voice, float time) {
-        Util.addToTreeSetInMapMap(artisticWhitespace, HashMap::new, staff, voice, time);
     }
 }

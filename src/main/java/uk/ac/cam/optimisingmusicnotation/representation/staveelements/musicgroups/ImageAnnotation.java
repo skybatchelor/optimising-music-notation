@@ -3,6 +3,7 @@ package uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgrou
 import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.ChordAnchors;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
+import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
 
 import java.util.List;
@@ -15,8 +16,9 @@ public class ImageAnnotation extends MusicGroup {
     private final float width;
     private final float height;
     private final float offset;
+    private final boolean backed;
 
-    public ImageAnnotation(List<Chord> chords, String filePath, MusicalPosition musicalPosition, boolean aboveStave, float width, float height, float offset) {
+    public ImageAnnotation(List<Chord> chords, String filePath, MusicalPosition musicalPosition, boolean aboveStave, float width, float height, float offset, boolean backed) {
         super(chords);
         this.filePath = filePath;
         this.musicalPosition = musicalPosition;
@@ -24,6 +26,7 @@ public class ImageAnnotation extends MusicGroup {
         this.width = width;
         this.height = height;
         this.offset = offset;
+        this.backed = backed;
     }
 
     @Override
@@ -33,6 +36,12 @@ public class ImageAnnotation extends MusicGroup {
             Anchor highestAnchor = canvas.getMinAnchor(chords.stream().map((chord) -> chordAnchorsMap.get(chord).getHighestAnchor(canvas, chord)).toList(), anchor, canvas::isAnchorAbove);
             anchor = canvas.getTakeXTakeYAnchor(canvas.getAnchor(musicalPosition), highestAnchor);
             try{
+                if (backed) {
+                    canvas.drawWhitespace(anchor, -width/2 - RenderingConfiguration.horizontalMargin,
+                            offset + height + RenderingConfiguration.verticalMargin,
+                            width + RenderingConfiguration.horizontalMargin * 2,
+                            height + RenderingConfiguration.verticalMargin * 2);
+                }
                 canvas.drawImage(filePath, anchor,-width/2, offset + height, width, height);
             } catch (java.io.IOException e) {
                 throw new RuntimeException(e);
@@ -42,6 +51,12 @@ public class ImageAnnotation extends MusicGroup {
             Anchor lowestAnchor = canvas.getMinAnchor(chords.stream().map((chord) -> chordAnchorsMap.get(chord).getLowestAnchor(canvas, chord)).toList(), anchor, canvas::isAnchorBelow);
             anchor = canvas.getTakeXTakeYAnchor(canvas.getAnchor(musicalPosition), lowestAnchor);
             try{
+                if (backed) {
+                    canvas.drawWhitespace(anchor, -width/2 - RenderingConfiguration.horizontalMargin,
+                            -offset + RenderingConfiguration.verticalMargin,
+                            width + RenderingConfiguration.horizontalMargin * 2,
+                            height + RenderingConfiguration.verticalMargin * 2);
+                }
                 canvas.drawImage(filePath, anchor,-width/2, -offset, width, height);
             } catch (java.io.IOException e) {
                 throw new RuntimeException(e);

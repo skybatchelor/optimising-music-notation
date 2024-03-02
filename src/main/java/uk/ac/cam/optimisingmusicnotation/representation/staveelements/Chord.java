@@ -50,11 +50,13 @@ public class Chord extends BeamGroup {
         dots = 0;
     }
 
-    public Chord(List<Pitch> pitches, List<Accidental> accidentals, List<Boolean> tiesFrom, List<Boolean> tiesTo, MusicalPosition musicalPosition, float durationInCrochets, NoteType noteType, int dots, List<ChordMarking> markings) {
+    public Chord(List<Pitch> pitches, List<Accidental> accidentals, List<Boolean> tiesFrom, List<Boolean> tiesTo, float noteScale,
+                 MusicalPosition musicalPosition, float durationInCrochets, NoteType noteType, int dots, List<ChordMarking> markings) {
         notes = new ArrayList<>(pitches.size());
         for (int i = 0; i < pitches.size(); ++i) {
             notes.add(new Note(pitches.get(i), accidentals.get(i), tiesFrom.get(i), tiesTo.get(i)));
         }
+        this.noteScale = noteScale;
         this.musicalPosition = musicalPosition;
         this.durationInCrotchets = durationInCrochets;
         this.noteType = noteType;
@@ -196,7 +198,7 @@ public class Chord extends BeamGroup {
             drawDots(canvas, anchor, noteType, dots, note.pitch.rootStaveLine() % 2 == 0, noteScale);
             drawAccidental(canvas, note, anchor);
         }
-        drawLedgerLines(canvas, lowestLine, highestLine);
+        drawLedgerLines(canvas, lowestLine, highestLine, noteScale);
 
         if (!markings.isEmpty()) {
             drawChordMarkings(canvas, chordAnchors.notehead());
@@ -280,15 +282,15 @@ public class Chord extends BeamGroup {
             }
         }
     }
-    private <Anchor> void drawLedgerLines(MusicCanvas<Anchor> canvas, int lowestLine, int highestLine) {
+    private <Anchor> void drawLedgerLines(MusicCanvas<Anchor> canvas, int lowestLine, int highestLine, float scale) {
         float width = RenderingConfiguration.ledgerLineWidth * durationToStretch(noteType);
         for (int i = (lowestLine / 2) * 2; i < 0; i += 2) {
             canvas.drawLine(canvas.getAnchor(musicalPosition, new Pitch(i, 0, 0)),
-                    -width/2f, 0f, width/2f, 0f, RenderingConfiguration.staveLineWidth);
+                    -width * scale/2f, 0f, width * scale/2f, 0f, RenderingConfiguration.staveLineWidth);
         }
         for (int i = 10; i <= highestLine; i += 2) {
             canvas.drawLine(canvas.getAnchor(musicalPosition, new Pitch(i, 0,0)),
-                    -width/2f, 0f, width/2f, 0f, RenderingConfiguration.staveLineWidth);
+                    -width * scale/2f, 0f, width * scale/2f, 0f, RenderingConfiguration.staveLineWidth);
         }
     }
 

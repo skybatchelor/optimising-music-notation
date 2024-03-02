@@ -1,9 +1,6 @@
 package uk.ac.cam.optimisingmusicnotation.mxlparser;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.TreeMap;
+import java.util.*;
 
 class LineTuple {
     float startTime;

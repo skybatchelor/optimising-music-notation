@@ -70,6 +70,7 @@ class ChordTuple {
     float duration;
     int lowestLine;
     KeySignature keySig;
+    boolean capital = false;
 
     public ChordTuple(float crochets, int lowestLine, KeySignature keySig) {
         notes = new ArrayList<>();
@@ -113,7 +114,7 @@ class ChordTuple {
             tiesTo.add(isTiedTo(note));
             addMarkings(note, markings);
         }
-        return new InstantiatedChordTuple(pitches, accidentals, tiesFrom, tiesTo,
+        return new InstantiatedChordTuple(pitches, accidentals, tiesFrom, tiesTo, capital,
                 Parser.normaliseTime(crotchets, integratedTime) - lineTime, Parser.normaliseDuration(crotchets, duration, integratedTime),
                 Parser.convertNoteType(notes.get(0).getType()), getDotNumber(notes.get(0)), markings);
     }
