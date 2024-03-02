@@ -25,9 +25,11 @@ public interface MusicCanvas<Anchor> {
     Anchor topLeftAnchor();
     Anchor topCentreAnchor();
     Anchor topRightAnchor();
+    Anchor getTrueBottomAnchor(int line);
 
     boolean isAnchorBelow(Anchor anchor1, Anchor anchor2);
     boolean isAnchorAbove(Anchor anchor1, Anchor anchor2);
+    boolean areAnchorsOnSamePage(Anchor anchor1, Anchor anchor2);
 
     void addLine();
     void addLine(float crotchetsOffset);

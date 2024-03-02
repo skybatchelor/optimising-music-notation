@@ -3,6 +3,7 @@ package uk.ac.cam.optimisingmusicnotation.representation.beatlines;
 import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.rendering.TextAlignment;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
+import uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.TimeSignature;
 
@@ -29,10 +30,27 @@ public class BarLine implements PulseLine {
         this.timeSignature = timeSignature;
     }
 
-    public <Anchor> void drawAboveStave(MusicCanvas<Anchor> canvas) {
+    public <Anchor> void drawAroundStave(MusicCanvas<Anchor> canvas, boolean extendUp, boolean extendDown) {
         Anchor startAnchor = canvas.getAnchor(musicalPosition);
-        canvas.drawLine(startAnchor,0f,RenderingConfiguration.pulseLineHeight,0f,0.25f,
-                RenderingConfiguration.barLineWidth, RenderingConfiguration.greyColor);
+        Anchor endAnchor;
+        int lineNumber = musicalPosition.line().getLineNumber();
+        Anchor defaultEndAnchor = canvas.offsetAnchor(startAnchor, 0f, RenderingConfiguration.pulseLineHeight);
+        if (extendUp && lineNumber > 0) {
+            endAnchor = canvas.getTakeXTakeYAnchor(startAnchor, canvas.getTrueBottomAnchor(lineNumber - 1));
+            if (!canvas.areAnchorsOnSamePage(startAnchor, endAnchor)) {
+                endAnchor = defaultEndAnchor;
+            }
+        } else {
+            endAnchor = defaultEndAnchor;
+        }
+        canvas.drawLine(startAnchor,0f,0.25f, endAnchor, 0f, 0f,
+                RenderingConfiguration.barLineWidth, RenderingConfiguration.greyColor, false);
+
+        if (extendDown) {
+            Anchor downStartAnchor = canvas.getAnchor(musicalPosition, new Pitch(0, 0, 0));
+            canvas.drawLine(downStartAnchor,0f, -0.25f,0f, -10f,
+                    RenderingConfiguration.barLineWidth, RenderingConfiguration.greyColor, false);
+        }
 
         float width = barName.length() * 1.5f;
         try {
@@ -45,6 +63,6 @@ public class BarLine implements PulseLine {
 
     public <Anchor> void drawFull(MusicCanvas<Anchor> canvas) {
         Anchor startAnchor = canvas.getAnchor(musicalPosition);
-        canvas.drawLine(startAnchor,0f,0.5f,0f,-4f,RenderingConfiguration.barLineWidth, RenderingConfiguration.greyColor);
+        canvas.drawLine(startAnchor,0f,0.25f,0f,-4.25f,RenderingConfiguration.barLineWidth, RenderingConfiguration.greyColor);
     }
 }

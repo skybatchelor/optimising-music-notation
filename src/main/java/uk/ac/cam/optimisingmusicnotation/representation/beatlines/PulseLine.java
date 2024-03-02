@@ -5,6 +5,6 @@ import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPositi
 
 public interface PulseLine {
     MusicalPosition getMusicalPosition();
-    <Anchor> void drawAboveStave(MusicCanvas<Anchor> canvas);
+    <Anchor> void drawAroundStave(MusicCanvas<Anchor> canvas, boolean extendUp, boolean extendDown);
     <Anchor> void drawFull(MusicCanvas<Anchor> canvas);
 }

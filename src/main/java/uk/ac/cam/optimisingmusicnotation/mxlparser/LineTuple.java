@@ -7,6 +7,10 @@ import java.util.TreeMap;
 
 class LineTuple {
     float startTime;
+    float offset;
+    float length;
+    boolean extendUp = false;
+    boolean extendDown = false;
 
     void addRest(InstantiatedRestTuple rest) {
         Util.putInMapInMapMap(rests, HashMap::new, TreeMap::new, rest.staff, rest.voice, rest.startTime, rest);
@@ -28,8 +32,10 @@ class LineTuple {
     HashMap<Integer, List<InstantiatedMusicGroupTuple>> musicGroups;
     List<InstantiatedTempoTuple> tempoMarkings;
 
-    LineTuple(float startTime) {
+    LineTuple(float startTime, float offset, float length) {
         this.startTime = startTime;
+        this.offset = offset;
+        this.length = length;
         rests = new HashMap<>();
         pulses = new ArrayList<>();
         notes = new HashMap<>();
