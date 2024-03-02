@@ -16,13 +16,15 @@ public class Flag extends MusicGroup {
     private final Chord chord;
     private final Line line;
     private final int maxBeam;
+    private final boolean beamlet;
 
-    public Flag(Chord preChord, Chord chord, Line line, int number) {
+    public Flag(Chord preChord, Chord chord, Line line, int number, boolean flag) {
         super(new ArrayList<>(0));
         this.preChord = preChord;
         this.chord = chord;
         this.line = line;
         this.maxBeam = number;
+        this.beamlet = !flag;
     }
 
     public static <Anchor> void draw(MusicCanvas<Anchor> canvas, ChordAnchors<Anchor> chordAnchors, NoteType noteType, float timeScale, float scaleFactor) {
@@ -42,15 +44,16 @@ public class Flag extends MusicGroup {
 
     @Override
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Map<Chord, ChordAnchors<Anchor>> chordAnchorsMap) {
+        if (preChord == null && beamlet) return;
         Anchor startAnchor;
         if (preChord == null) {
             startAnchor = canvas.getTakeXTakeYAnchor(canvas.getAnchor(new MusicalPosition(line, chord.getMusicalPosition().crotchetsIntoLine() -
-                    chord.getDurationInCrotchets() * RenderingConfiguration.flagRatio)), chordAnchorsMap.get(chord).stemEnd());
+                    chord.getDurationInCrotchets() * (beamlet ? RenderingConfiguration.beamletRatio : RenderingConfiguration.flagRatio))), chordAnchorsMap.get(chord).stemEnd());
         } else {
             startAnchor = canvas.interpolateAnchors(
                 chordAnchorsMap.get(chord).stemEnd(),
                 chordAnchorsMap.get(preChord).stemEnd(),
-                    chord.getDurationInCrotchets() * RenderingConfiguration.flagRatio / preChord.getDurationInCrotchets()
+                    chord.getDurationInCrotchets() * (beamlet ? RenderingConfiguration.beamletRatio : RenderingConfiguration.flagRatio) / preChord.getDurationInCrotchets()
             );
         }
         int sign = RenderingConfiguration.upwardStems ? 1 : -1;

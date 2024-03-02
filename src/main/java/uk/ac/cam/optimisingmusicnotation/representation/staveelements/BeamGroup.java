@@ -121,7 +121,7 @@ public class BeamGroup implements StaveElement {
                                     RenderingConfiguration.beamWidth);
                         }
                     } else {
-                        if (RenderingConfiguration.hookSingleForward) {
+                        if (RenderingConfiguration.hookSingleLeft) {
                             canvas.drawBeam(
                                     canvas.interpolateAnchors(
                                             chordAnchorsMap.get(chords.get(beam.startIndex)).stemEnd(),
@@ -136,7 +136,7 @@ public class BeamGroup implements StaveElement {
                                     beamOffset,
                                     RenderingConfiguration.beamWidth);
                         }
-                        if (RenderingConfiguration.hookSingleBackward) {
+                        if (RenderingConfiguration.hookSingleRight) {
                             canvas.drawBeam(
                                     canvas.interpolateAnchors(
                                             chordAnchorsMap.get(chords.get(beam.startIndex)).stemEnd(),
@@ -154,7 +154,7 @@ public class BeamGroup implements StaveElement {
                 } else {
                     Anchor start = chordAnchorsMap.get(chords.get(beam.startIndex)).stemEnd();
                     Anchor end = chordAnchorsMap.get(chords.get(beam.endIndex)).stemEnd();
-                    if (RenderingConfiguration.hookAllForward && beam.startIndex != 0) {
+                    if (RenderingConfiguration.hookAllLeft && beam.startIndex != 0) {
                         start = canvas.interpolateAnchors(
                                 chordAnchorsMap.get(chords.get(beam.startIndex)).stemEnd(),
                                 chordAnchorsMap.get(chords.get(beam.startIndex - 1)).stemEnd(),
@@ -162,7 +162,7 @@ public class BeamGroup implements StaveElement {
                                         / chords.get(beam.startIndex - 1).getDurationInCrotchets()
                         );
                     }
-                    if (RenderingConfiguration.hookAllBackward && beam.endIndex != chords.size() - 1) {
+                    if (RenderingConfiguration.hookAllRight && beam.endIndex != chords.size() - 1) {
                         end = canvas.interpolateAnchors(
                                 chordAnchorsMap.get(chords.get(beam.endIndex)).stemEnd(),
                                 chordAnchorsMap.get(chords.get(beam.endIndex + 1)).stemEnd(),

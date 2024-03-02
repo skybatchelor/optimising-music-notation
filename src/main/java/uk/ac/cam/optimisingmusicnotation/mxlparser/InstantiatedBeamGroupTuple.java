@@ -45,8 +45,8 @@ class InstantiatedBeamGroupTuple {
 
     BeamGroup toBeamGroup(Line line,
                           HashMap<Integer, HashMap<Integer, TreeMap<Float, Chord>>> chordMap,
-                          HashMap<Integer, HashMap<Integer, Map<Chord, Integer>>> needsFlag,
-                          HashMap<Integer, HashMap<Integer, Map<Chord, Integer>>> needsBeamlet) {
+                          HashMap<Integer, HashMap<Integer, Map<Chord, BeamletInfo>>> needsFlag,
+                          HashMap<Integer, HashMap<Integer, Map<Chord, BeamletInfo>>> needsBeamlet) {
         if (chords.size() == 1) {
             if (!chords.get(0).noteType.isBeamed()) {
                 var chord = chords.get(0).toChord(line);
@@ -55,7 +55,16 @@ class InstantiatedBeamGroupTuple {
             } else {
                 var chord = chords.get(0).toChord(line);
                 chordMap.get(staff).get(voice).put(chord.getCrotchetsIntoLine(), chord);
-                needsFlag.get(staff).get(voice).put(chord, chord.getNoteType().beamNumber());
+                if (RenderingConfiguration.singleFlaggedLeft) {
+                    needsFlag.get(staff).get(voice).put(chord, new BeamletInfo(chord.getNoteType().beamNumber(), true));
+                } else if (RenderingConfiguration.singleBeamletLeft) {
+                    needsFlag.get(staff).get(voice).put(chord, new BeamletInfo(chord.getNoteType().beamNumber(), false));
+                }
+                if (RenderingConfiguration.singleFlaggedRight) {
+                    needsBeamlet.get(staff).get(voice).put(chord, new BeamletInfo(chord.getNoteType().beamNumber(), true));
+                } else if (RenderingConfiguration.singleBeamletRight) {
+                    needsBeamlet.get(staff).get(voice).put(chord, new BeamletInfo(chord.getNoteType().beamNumber(), false));
+                }
                 return chord;
             }
         }
@@ -79,11 +88,15 @@ class InstantiatedBeamGroupTuple {
                 lastChord = chord;
             }
         }
-        if (RenderingConfiguration.allFlagged) {
-            needsFlag.get(staff).get(voice).put(firstChord, highestBeamNumber(chords.indexOf(firstChord)));
+        if (RenderingConfiguration.allFlaggedLeft) {
+            needsFlag.get(staff).get(voice).put(firstChord, new BeamletInfo(highestBeamNumber(chords.indexOf(firstChord)), true));
+        } else if (RenderingConfiguration.singleBeamletLeft) {
+            needsFlag.get(staff).get(voice).put(firstChord, new BeamletInfo(highestBeamNumber(chords.indexOf(firstChord)), false));
         }
-        if (RenderingConfiguration.beamlets) {
-            needsBeamlet.get(staff).get(voice).put(lastChord, highestBeamNumber(chords.indexOf(lastChord)));
+        if (RenderingConfiguration.allFlaggedRight) {
+            needsBeamlet.get(staff).get(voice).put(lastChord, new BeamletInfo(highestBeamNumber(chords.indexOf(lastChord)), true));
+        } else if (RenderingConfiguration.beamletRight) {
+            needsBeamlet.get(staff).get(voice).put(lastChord, new BeamletInfo(highestBeamNumber(chords.indexOf(lastChord)), false));
         }
         BeamGroup group = new BeamGroup(chords);
         for (BeamTuple tuple : beams) {

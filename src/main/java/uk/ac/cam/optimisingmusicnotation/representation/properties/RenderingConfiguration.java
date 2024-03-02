@@ -32,20 +32,30 @@ public class RenderingConfiguration {
 
     // Beaming information
     public static float hookRatio = 0.5f;
-    public static float flagRatio = 0.5f;
-    public static float beamletRatio = 0.25f;
-    public static boolean hookSingleForward = false;
-    public static boolean hookAllForward = false;
-    public static boolean hookSingleBackward = true;
-    public static boolean hookAllBackward = false;
+    public static boolean hookSingleLeft = false;
+    public static boolean hookAllLeft = false;
+    public static boolean hookSingleRight = true;
+    public static boolean hookAllRight = false;
     public static boolean hookStart = true;
     public static boolean hookEnd = true;
-    public static boolean allFlagged = false;
-    public static boolean beamlets = true;
-    public static int beamletLimit = 0;
     public static float beamWidth = 0.5f;
     public static float gapBetweenBeams = 0.25f;
     public static float beamOffset = -0f;
+
+    // Flag information
+    public static float flagRatio = 0.5f;
+    public static boolean allFlaggedLeft = false;
+    public static boolean singleFlaggedLeft = false;
+    public static boolean allFlaggedRight = false;
+    public static boolean singleFlaggedRight = true;
+
+    // Beamlet information
+    public static float beamletRatio = 0.25f;
+    public static boolean beamletLeft = false;
+    public static boolean singleBeamletLeft = false;
+    public static boolean beamletRight = true;
+    public static boolean singleBeamletRight = false;
+    public static int beamletLimit = 0;
 
     // Whitespace information
     public static float artisticWhitespaceWidth = 0.5f; // A crochet of whitespace + dead space

@@ -34,7 +34,9 @@ public class Parser {
     public static final boolean END_BAR_LINE_NAME = false;
     public static final boolean TIME_NORMALISED_PARSING = true;
     public static final float TIME_NORMALISATION_FACTOR = 60 * 12;
+    public static final float ADD_TO_CODA = 0.05f;
     public static float startBpm = 120f;
+
 
     public static Score parseToScore(Object mxl) {
         if (mxl instanceof ScorePartwise partwise) {
@@ -450,8 +452,8 @@ public class Parser {
 
             List<HashMap<Integer, HashMap<Integer, TreeMap<Float, Chord>>>> chords = new ArrayList<>();
             List<HashMap<Integer, HashMap<Integer, TreeMap<Float, Whitespace>>>> rests = new ArrayList<>();
-            List<HashMap<Integer, HashMap<Integer, Map<Chord, Integer>>>> needsFlag = new ArrayList<>();
-            List<HashMap<Integer, HashMap<Integer, Map<Chord, Integer>>>> needsBeamlet = new ArrayList<>();
+            List<HashMap<Integer, HashMap<Integer, Map<Chord, BeamletInfo>>>> needsFlag = new ArrayList<>();
+            List<HashMap<Integer, HashMap<Integer, Map<Chord, BeamletInfo>>>> needsBeamlet = new ArrayList<>();
             for (int i = 0; i < part.getValue().size(); ++i) {
 
                 chords.add(new HashMap<>());
@@ -560,7 +562,8 @@ public class Parser {
                             if (preChord != null && prevLine) {
                                 tempLine.getStaves().get(staffEntry.getKey() - 1).addStaveElement(preChord);
                             }
-                            tempLine.getStaves().get(staffEntry.getKey() - 1).addMusicGroup(new Flag(preChord, entry.getKey(), tempLine, entry.getValue()));
+                            tempLine.getStaves().get(staffEntry.getKey() - 1).addMusicGroup(new Flag(preChord, entry.getKey(), tempLine,
+                                    entry.getValue().number(), entry.getValue().flag()));
                         }
                     }
                 }
@@ -595,7 +598,8 @@ public class Parser {
                             if (postChord != null && nextLine) {
                                 tempLine.getStaves().get(staffEntry.getKey() - 1).addStaveElement(postChord);
                             }
-                            tempLine.getStaves().get(staffEntry.getKey() - 1).addMusicGroup(new Beamlet(postChord, entry.getKey(), tempLine, entry.getValue()));
+                            tempLine.getStaves().get(staffEntry.getKey() - 1).addMusicGroup(new Beamlet(postChord, entry.getKey(), tempLine,
+                                    entry.getValue().number(), entry.getValue().flag()));
                         }
                     }
                 }
@@ -877,8 +881,8 @@ public class Parser {
                 }
                 if (directionType.getCoda() != null) {
                     for (var coda : directionType.getCoda()) {
-                        var tuple = new MusicGroupTuple(time, MusicGroupType.CODA, getStaff(direction.getStaff()));
-                        tuple.endTime = time;
+                        var tuple = new MusicGroupTuple(time + ADD_TO_CODA, MusicGroupType.CODA, getStaff(direction.getStaff()));
+                        tuple.endTime = time + ADD_TO_CODA;
                         tuple.aboveStave = direction.getPlacement() == AboveBelow.ABOVE || direction.getPlacement() == null;
                         currentPart.putInMusicGroup(tuple);
                         currentPart.putInMusicGroup(tuple);
@@ -886,8 +890,8 @@ public class Parser {
                 }
                 if (directionType.getSegno() != null) {
                     for (var segno : directionType.getSegno()) {
-                        var tuple = new MusicGroupTuple(time, MusicGroupType.SEGNO, getStaff(direction.getStaff()));
-                        tuple.endTime = time;
+                        var tuple = new MusicGroupTuple(time + ADD_TO_CODA, MusicGroupType.SEGNO, getStaff(direction.getStaff()));
+                        tuple.endTime = time + ADD_TO_CODA;
                         tuple.aboveStave = direction.getPlacement() == AboveBelow.ABOVE || direction.getPlacement() == null;
                         currentPart.putInMusicGroup(tuple);
                         currentPart.putInMusicGroup(tuple);
