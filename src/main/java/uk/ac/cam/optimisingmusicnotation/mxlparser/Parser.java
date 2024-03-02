@@ -248,15 +248,20 @@ public class Parser {
                 lineIndices.put(newline, index);
                 lineOffsets.add(nNewlines.get(newline));
                 if (index != 0) {
-                    lineLengths.add(newline - prevLineStart);
+                    float lineLength = newline - prevLineStart;
+                    lineLengths.add(lineLength);
+                    for (List<LineTuple> partList : partLines.values()) {
+                        partList.add(new LineTuple(prevLineStart, nNewlines.get(prevLineStart), lineLength));
+                    }
                     prevLineStart = newline;
-                }
-                for (List<LineTuple> partList : partLines.values()) {
-                    partList.add(new LineTuple(newline));
                 }
                 ++index;
             }
-            lineLengths.add(normaliseTime(totalLength, integratedTime) - prevLineStart);
+            float lineLength = normaliseTime(totalLength, integratedTime) - prevLineStart;
+            for (List<LineTuple> partList : partLines.values()) {
+                partList.add(new LineTuple(prevLineStart, nNewlines.get(prevLineStart), lineLength));
+            }
+            lineLengths.add(lineLength);
 
             var sectionIndices = createSectionIndices(nNewSections, partSections);
 
@@ -400,8 +405,36 @@ public class Parser {
                     }
                 }
             }
+
+            parseLineExtensions(partLines.get(part.getKey()));
         }
+
         return partLines;
+    }
+
+    static void parseLineExtensions(List<LineTuple> lines) {
+        for (int i = 0; i < lines.size() - 1; ++i) {
+            int j = i;
+            if (lines.get(i).pulses.stream().allMatch(
+                    (pulse) -> matchPulseLine(pulse, lines.get(j), lines.get(j + 1))
+            ) && (lines.get(i + 1).pulses.stream().allMatch(
+                    (pulse) -> matchPulseLine(pulse, lines.get(j + 1), lines.get(j))
+            ) ) ) {
+                lines.get(i).extendDown = true;
+                lines.get(i + 1).extendUp = true;
+            }
+        }
+    }
+
+    static boolean matchPulseLine(InstantiatedPulseLineTuple tuple, LineTuple line, LineTuple other) {
+        if (tuple.beatWeight > 1) return true;
+        float position = tuple.timeInLine + line.offset;
+        if (position < other.offset || position > other.offset + other.length) return true;
+        return other.pulses.stream().anyMatch((otherTuple) -> {
+            float otherPosition = otherTuple.timeInLine + other.offset;
+            float difference = otherPosition - position;
+            return tuple.beatWeight == otherTuple.beatWeight && -EPSILON < difference && difference < EPSILON;
+        });
     }
 
     static TreeMap<String, List<InstantiatedLineTuple>> instantiateLines(TreeMap<Float, Float> newlines, TreeMap<String, List<LineTuple>> partLines,
@@ -426,7 +459,8 @@ public class Parser {
                 needsFlag.add(new HashMap<>());
                 needsBeamlet.add(new HashMap<>());
 
-                Line tempLine = new Line(new ArrayList<>(), newlinesList.get(i), lineLengths.get(i), lineOffsets.get(i), i);
+                Line tempLine = new Line(new ArrayList<>(), newlinesList.get(i), lineLengths.get(i), lineOffsets.get(i), i,
+                        part.getValue().get(i).extendUp, part.getValue().get(i).extendDown);
                 finalLines.get(part.getKey()).add(new InstantiatedLineTuple(newlinesList.get(i), tempLine));
                 for (var staffEntry : part.getValue().get(i).rests.entrySet()) {
                     Util.ensureCapacity(tempLine.getStaves(), Stave::new, staffEntry.getKey() - 1);

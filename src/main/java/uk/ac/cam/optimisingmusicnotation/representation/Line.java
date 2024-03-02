@@ -55,14 +55,15 @@ public class Line {
     private final boolean extendPulseLinesUp;
     private final boolean extendPulseLinesDown;
 
-    public Line(List<Stave> staves, float startTimeInCrotchets, float lengthInCrochets, float offsetInCrochets, int lineNumber) {
+    public Line(List<Stave> staves, float startTimeInCrotchets, float lengthInCrochets, float offsetInCrochets,
+                int lineNumber, boolean extendPulseLinesUp, boolean extendPulseLinesDown) {
         this.staves = staves;
         this.lineNumber = lineNumber;
         this.startTimeInCrotchets = startTimeInCrotchets;
         this.lengthInCrotchets = lengthInCrochets;
         this.offsetInCrochets = offsetInCrochets;
-        this.extendPulseLinesUp = true;
-        this.extendPulseLinesDown = true;
+        this.extendPulseLinesUp = extendPulseLinesUp;
+        this.extendPulseLinesDown = extendPulseLinesDown;
         pulseLines = new ArrayList<>();
     }
 
