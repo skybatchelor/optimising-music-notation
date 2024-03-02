@@ -4,10 +4,30 @@ import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.rendering.TextAlignment;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TimeSignature {
+    public record BeatTuple(int durationInUnits, int beatType, int subBeats) {
+
+    }
+
     private int beatNum;
     private int beatType;
+
+    public List<BeatTuple> getBeatPattern() {
+        return beatPattern;
+    }
+
+    public void setBeatPatternToDefault() {
+        this.beatPattern = defaultBeatPatterns(this.beatNum, this.beatType);
+    }
+
+    public void setBeatPattern(List<BeatTuple> beatPattern) {
+        this.beatPattern = beatPattern;
+    }
+
+    private List<BeatTuple> beatPattern;
 
     public int getBeatNum() {
         return beatNum;
@@ -19,11 +39,49 @@ public class TimeSignature {
     public TimeSignature() {
         beatNum = 0;
         beatType = 0;
+        beatPattern = new ArrayList<>();
     }
 
     public TimeSignature(int beatNum, int beatType) {
         this.beatNum = beatNum;
         this.beatType = beatType;
+        this.beatPattern = defaultBeatPatterns(beatNum, beatType);
+    }
+
+    public List<BeatTuple> defaultBeatPatterns(int beatNum, int beatType) {
+        switch (beatNum) {
+            case 5 -> {
+                return new ArrayList<>() {{ add(new BeatTuple(3, beatType, 3));
+                    add(new BeatTuple(2, beatType, 2)); }};
+            }
+            case 6 -> {
+                return new ArrayList<>() {{ add(new BeatTuple(3, beatType, 3));
+                    add(new BeatTuple(3, beatType, 3)); }};
+            }
+            case 7 -> {
+                return new ArrayList<>() {{ add(new BeatTuple(2, beatType, 2));
+                    add(new BeatTuple(2, beatType, 2));
+                    add(new BeatTuple(3, beatType, 3)); }};
+            }
+            case 9 -> {
+                return new ArrayList<>() {{ add(new BeatTuple(3, beatType, 3));
+                    add(new BeatTuple(3, beatType, 3));
+                    add(new BeatTuple(3, beatType, 3)); }};
+            }
+            case 12 -> {
+                return new ArrayList<>() {{ add(new BeatTuple(3, beatType, 3));
+                    add(new BeatTuple(3, beatType, 3));
+                    add(new BeatTuple(3, beatType, 3));
+                    add(new BeatTuple(3, beatType, 3)); }};
+            }
+            default -> {
+                var res = new ArrayList<BeatTuple>();
+                for (int i = 0; i < beatNum; ++i) {
+                    res.add(new BeatTuple(1, beatType, 1));
+                }
+                return res;
+            }
+        }
     }
 
     public void setBeatNum(int beatNum) { this.beatNum = beatNum; }
