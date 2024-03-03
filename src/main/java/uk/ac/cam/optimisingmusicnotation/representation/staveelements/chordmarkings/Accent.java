@@ -1,7 +1,6 @@
 package uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmarkings;
 
 import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
-import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 
 public class Accent extends ChordMarking {
     @Override
