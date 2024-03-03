@@ -4,7 +4,7 @@ import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 
 public class StrongAccent extends ChordMarking {
-    // TODO: rename it to Marcato
+    // TODO: Should this be Marcato?
     protected float amendYOffset = .5f;
     @Override
     public float signedYOffset() {
@@ -13,7 +13,7 @@ public class StrongAccent extends ChordMarking {
     @Override
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Anchor anchor) {
         float l = .4f;
-        float h = .7f;
+        float h = .6f;
         float w = .1f;
 
         int sign = RenderingConfiguration.upwardStems ? 1 : -1;

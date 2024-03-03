@@ -4,6 +4,7 @@ import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.Line;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.*;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmarkings.ChordMarking;
+import uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmarkings.StrongAccent;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.Flag;
 
 import java.awt.*;
@@ -203,19 +204,46 @@ public class Chord extends BeamGroup {
         drawLedgerLines(canvas, lowestLine, highestLine, noteScale);
 
         if (!markings.isEmpty()) {
-            drawChordMarkings(canvas, chordAnchors.notehead());
+            int edgeLine = RenderingConfiguration.upwardStems ? lowestLine : highestLine;
+
+            if (edgeLine % 2 == 1) {
+                drawChordMarkings(canvas, chordAnchors.notehead(), 1);
+            }
+            else {
+                drawChordMarkings(canvas, chordAnchors.notehead(),1.5f);
+            }
             chordAnchors = updateNoteheadOffset(chordAnchors);
         }
 
         chordAnchorsMap.put(this, chordAnchors);
     }
 
-    private <Anchor> void drawChordMarkings(MusicCanvas<Anchor> canvas, Anchor anchor) {
-        float cumulatedYOffsetIncrease = 0;
+    private <Anchor> void drawChordMarkings(MusicCanvas<Anchor> canvas, Anchor noteAnchor, float cumulatedYOffsetIncrease) {
+
         for (ChordMarking marking: markings) {
-            marking.increaseYOffset(cumulatedYOffsetIncrease);
-            marking.draw(canvas, anchor);
-            cumulatedYOffsetIncrease += .8f;
+            if (!(marking instanceof StrongAccent)) {
+                marking.increaseYOffset(cumulatedYOffsetIncrease);
+                marking.draw(canvas, noteAnchor);
+                cumulatedYOffsetIncrease += 1;
+            }
+        }
+
+        Anchor highAnchor = canvas.getAnchor(musicalPosition, new Pitch(9, 0, 0));
+        Anchor lowAnchor = canvas.getAnchor(musicalPosition, new Pitch(-1, 0, 0));
+
+        float signedYOffsetIncrease = RenderingConfiguration.upwardStems ? -cumulatedYOffsetIncrease : cumulatedYOffsetIncrease;
+        Anchor offsetNoteAnchor = canvas.offsetAnchor(noteAnchor, 0, signedYOffsetIncrease);
+
+        highAnchor = canvas.isAnchorAbove(highAnchor, offsetNoteAnchor) ? highAnchor : offsetNoteAnchor;
+        lowAnchor = canvas.isAnchorBelow(lowAnchor, offsetNoteAnchor) ? lowAnchor : offsetNoteAnchor;
+
+        Anchor edgeAnchor = RenderingConfiguration.upwardStems ? lowAnchor : highAnchor;
+
+        for (ChordMarking marking: markings) {
+
+            if (marking instanceof StrongAccent) {
+                marking.draw(canvas, edgeAnchor);
+            }
         }
     }
 

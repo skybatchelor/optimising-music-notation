@@ -4,7 +4,7 @@ import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 
 public abstract class ChordMarking {
-    protected float absoluteYOffset = 1.3f;
+    protected float absoluteYOffset = 0;
     public float signedYOffset() {
         return RenderingConfiguration.upwardStems ? -absoluteYOffset : absoluteYOffset;
     }
