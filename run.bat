@@ -11,5 +11,6 @@ cd /D "%~dp0"
 for /f %%i in ("ERRORS") do set size=%%~zi
 if %size% gtr 0 (echo FAIL > FAIL) else (echo PASS > PASS)
 
+:: loop over each line in OUTPUT and open it in the default software
+:: each line will be a generated pdf
 for /F delims^=^ eol^= %%i in ('type OUTPUT') do start "" "%%i"
-PAUSE
