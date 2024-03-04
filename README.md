@@ -20,7 +20,8 @@ To pass on information only required in the novel notation, create a boxed lette
 |-------------- | -------------- |  
 | w    | Artistic whitespace |
 | n    | New line     |      
-| s    | New section |
+| s    | New section |   
+| C    | Capital note |
 
 ### Debugging the plugin
 If anything in the plugin itself goes wrong, the easiest way to debug is to add `trace` calls. Editing the plugin is done through `File -> Plug-ins -> Edit Plug-ins -> Mike (user copy) -> Edit...`.
