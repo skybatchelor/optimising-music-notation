@@ -60,14 +60,13 @@ public class Part {
 
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, String workTitle, String composer) {
         RenderingConfiguration.upwardStems = upwardsStems;
-        canvas.reserveHeight(15f);
         try {
             canvas.drawText(RenderingConfiguration.defaultFontFilePath,workTitle,24f,
-                    TextAlignment.CENTRE, canvas.topCentreAnchor(), -60f,-7f,120f,20f, RenderingConfiguration.blackColor);
+                    TextAlignment.CENTRE, canvas.topCentreAnchor(), -60f,-3f,120f,20f, RenderingConfiguration.blackColor);
             canvas.drawText(RenderingConfiguration.defaultFontFilePath,name,16f,
-                    TextAlignment.LEFT, canvas.topLeftAnchor(), 6f,-15f,100f,20f, RenderingConfiguration.blackColor);
+                    TextAlignment.LEFT, canvas.topLeftAnchor(), 6f,-12,100f,20f, RenderingConfiguration.blackColor);
             canvas.drawText(RenderingConfiguration.defaultFontFilePath,composer,16f,
-                    TextAlignment.RIGHT, canvas.topRightAnchor(), -106f,-15f,100f,20f, RenderingConfiguration.blackColor);
+                    TextAlignment.RIGHT, canvas.topRightAnchor(), -106f,-12f,100f,20f, RenderingConfiguration.blackColor);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

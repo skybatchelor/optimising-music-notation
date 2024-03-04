@@ -32,15 +32,17 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     // TODO: make these configurable
     private final float LINE_WIDTH = 0.8f;
     private final float STAVE_SPACING = 5f;
-    private final float MARGIN = 5f;
-    private final float DEFAULT_LINE_HEIGHT = 10f;
-    private final float SPACE_ABOVE_LINE = 5f;
+    private final float TOP_MARGIN = 10f;
+    private final float BOTTOM_MARGIN = 1f;
+    private final float DEFAULT_LINE_HEIGHT = 5f;
+    private final float SPACE_ABOVE_LINE = 1.6f;
+    private final float RESERVED_HEIGHT_BELOW_LOWEST = 1f;
 
     private final float crotchetsPerLine;
     private final float leftOffset;
 
-    private float reservedHeight = MARGIN + SPACE_ABOVE_LINE;
-    private float trueHeight = MARGIN + SPACE_ABOVE_LINE;
+    private float reservedHeight = TOP_MARGIN + SPACE_ABOVE_LINE;
+    private float trueHeight = TOP_MARGIN + SPACE_ABOVE_LINE;
 
     public static class Anchor {
 
@@ -87,7 +89,8 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
             PdfPage page = pdf.getPage(pageNum + 1);
 
             float y = page.getPageSize().getTop() / STAVE_SPACING - reservedHeight - SPACE_ABOVE_LINE;
-            if (y - SPACE_ABOVE_LINE * (staveNumber - 1) - RenderingConfiguration.postLineHeight * 2 < page.getPageSize().getBottom() / STAVE_SPACING + MARGIN) {
+            if (y - SPACE_ABOVE_LINE * (staveNumber - 1) -
+                    RenderingConfiguration.postLineHeight * 2 < page.getPageSize().getBottom() / STAVE_SPACING + BOTTOM_MARGIN) {
                 addFirstLineOnPage(pageNum + 1, crotchetsOffset);
             }
             else {
@@ -124,7 +127,7 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
             PdfPage page = pdf.getPage(pageNum + 1);
 
             float y = page.getPageSize().getTop() / STAVE_SPACING - reservedHeight - SPACE_ABOVE_LINE;
-            if (y < page.getPageSize().getBottom() / STAVE_SPACING + MARGIN) {
+            if (y < page.getPageSize().getBottom() / STAVE_SPACING + BOTTOM_MARGIN) {
                 addFirstLineOnPage(pageNum + 1, crotchetsOffset);
             }
             else {
@@ -143,8 +146,8 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     private void addFirstLineOnPage(int pageNum, float crotchetsOffset) {
         while (pdf.getNumberOfPages() < pageNum + 1) {
             pdf.addNewPage();
-            reservedHeight = MARGIN + SPACE_ABOVE_LINE;
-            trueHeight = MARGIN + SPACE_ABOVE_LINE;
+            reservedHeight = TOP_MARGIN + SPACE_ABOVE_LINE;
+            trueHeight = TOP_MARGIN + SPACE_ABOVE_LINE;
         }
 
         PdfPage page = pdf.getPage(pageNum + 1);
@@ -314,7 +317,7 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
 
         // probably want to do this check elsewhere and for everything instead of just lines
         // don't let endpoints go off the bottom of the page
-        float bottom = page.getPageSize().getBottom() + MARGIN * STAVE_SPACING;
+        float bottom = page.getPageSize().getBottom() + BOTTOM_MARGIN * STAVE_SPACING;
         float y1Pos = (anchor.y + y1) * STAVE_SPACING;
         if (y1Pos < bottom) {
             y1Pos = bottom;
@@ -532,8 +535,8 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     private void updateReservedHeight(int pageNum, float y, boolean onlyUpdateTrueHeight) {
         Rectangle pageSize = pdf.getPage(pageNum + 1).getPageSize();
         float newHeight = pageSize.getTop() / STAVE_SPACING - y;
-        if (!onlyUpdateTrueHeight && newHeight + 3f > reservedHeight) {
-            reservedHeight = newHeight + 3f;
+        if (!onlyUpdateTrueHeight && newHeight + RESERVED_HEIGHT_BELOW_LOWEST > reservedHeight) {
+            reservedHeight = newHeight + RESERVED_HEIGHT_BELOW_LOWEST;
         }
         if (newHeight > trueHeight) {
             trueHeight = newHeight;
