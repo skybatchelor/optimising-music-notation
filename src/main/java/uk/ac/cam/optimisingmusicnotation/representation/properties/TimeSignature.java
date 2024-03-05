@@ -55,8 +55,8 @@ public class TimeSignature {
                     add(new BeatTuple(2, beatType, 2)); }};
             }
             case 6 -> {
-                return new ArrayList<>() {{ add(new BeatTuple(3, beatType, 3));
-                    add(new BeatTuple(3, beatType, 3)); }};
+                return new ArrayList<>() {{ add(new BeatTuple(3, beatType, 1));
+                    add(new BeatTuple(3, beatType, 1)); }};
             }
             case 7 -> {
                 return new ArrayList<>() {{ add(new BeatTuple(2, beatType, 2));
@@ -64,15 +64,15 @@ public class TimeSignature {
                     add(new BeatTuple(3, beatType, 3)); }};
             }
             case 9 -> {
-                return new ArrayList<>() {{ add(new BeatTuple(3, beatType, 3));
-                    add(new BeatTuple(3, beatType, 3));
-                    add(new BeatTuple(3, beatType, 3)); }};
+                return new ArrayList<>() {{ add(new BeatTuple(3, beatType, 1));
+                    add(new BeatTuple(3, beatType, 1));
+                    add(new BeatTuple(3, beatType, 1)); }};
             }
             case 12 -> {
-                return new ArrayList<>() {{ add(new BeatTuple(3, beatType, 3));
-                    add(new BeatTuple(3, beatType, 3));
-                    add(new BeatTuple(3, beatType, 3));
-                    add(new BeatTuple(3, beatType, 3)); }};
+                return new ArrayList<>() {{ add(new BeatTuple(3, beatType, 1));
+                    add(new BeatTuple(3, beatType, 1));
+                    add(new BeatTuple(3, beatType, 1));
+                    add(new BeatTuple(3, beatType, 1)); }};
             }
             default -> {
                 var res = new ArrayList<BeatTuple>();
