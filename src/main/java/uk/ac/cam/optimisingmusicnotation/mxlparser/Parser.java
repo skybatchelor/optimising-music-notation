@@ -25,13 +25,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class Parser {
     public static final boolean NEW_SECTION_FOR_KEY_SIGNATURE = true;
     public static final float EPSILON = 0.001f;
-    public static final float NEWLINE_EPSILON = 0.001f;
+    public static final float WHITESPACE_EPSILON = 0.08f;
     public static final boolean END_BAR_LINE_TIME_SIGNATURE = false;
     public static final boolean END_BAR_LINE_NAME = false;
     public static final boolean TIME_NORMALISED_PARSING = true;
@@ -52,8 +54,71 @@ public class Parser {
 
             TreeMap<Float, List<TimeSignature.BeatTuple>> beatChanges = new TreeMap<>();
 
-            BiConsumer<Float, Float> addNewSection = ((time, offset) -> { newSections.add(time); newlines.put(time, offset); });
-            BiConsumer<Float, Float> addNewline = newlines::put;
+            TreeSet<Float> globalCapitalNotes = new TreeSet<>();
+            TreeSet<Float> globalCapitalNextNotes = new TreeSet<>();
+
+            if (RenderingConfiguration.newlineAddsCapital == RenderingConfiguration.NoneThisNext.THIS
+                    || RenderingConfiguration.newSectionAddsCapital == RenderingConfiguration.NoneThisNext.THIS) globalCapitalNotes.add(0f);
+            if (RenderingConfiguration.newlineAddsCapital == RenderingConfiguration.NoneThisNext.NEXT
+                    || RenderingConfiguration.newSectionAddsCapital == RenderingConfiguration.NoneThisNext.NEXT) globalCapitalNextNotes.add(0f);
+
+            Function<ParsingPartTuple, BiConsumer<Float, Float>> addNewlineGenerator = (currentPart) -> {
+                switch (RenderingConfiguration.newlineAddsCapital) {
+                    case NONE -> {
+                        return ((time, offset) -> { newlines.put(time, offset); });
+                    }
+                    case THIS -> {
+                        return ((time, offset) -> { globalCapitalNotes.add(time); newlines.put(time, offset); });
+                    }
+                    case NEXT -> {
+                        return ((time, offset) -> { globalCapitalNextNotes.add(time); newlines.put(time, offset); });
+                    }
+                }
+                throw new IllegalArgumentException();
+            };
+            Function<ParsingPartTuple, BiConsumer<Float, Float>> addNewSectionGenerator = (currentPart) -> {
+                switch (RenderingConfiguration.newSectionAddsCapital) {
+                    case NONE -> {
+                        return ((time, offset) -> { newSections.add(time);
+                            addNewlineGenerator.apply(currentPart).accept(time, offset); });
+                    }
+                    case THIS -> {
+                        return ((time, offset) -> { globalCapitalNotes.add(time); newSections.add(time);
+                            addNewlineGenerator.apply(currentPart).accept(time, offset); });
+                    }
+                    case NEXT -> {
+                        return ((time, offset) -> { globalCapitalNextNotes.add(time); newSections.add(time);
+                            addNewlineGenerator.apply(currentPart).accept(time, offset); });
+                    }
+                }
+                throw new IllegalArgumentException();
+            };
+            Function<KeySignature, BiFunction<ParsingPartTuple, Integer, BiConsumer<Integer, Float>>>
+                    addNewArtisticWhitespaceGenerator = (tempKeySig) -> (currentPart, staff) -> (voice, time) -> {
+                    currentPart.putInArtisticWhitespace(staff, voice, time);
+                    var whitespace = new BeamGroupTuple();
+                    whitespace.startTime = (time) - RenderingConfiguration.artisticWhitespaceWidth;
+                    whitespace.endTime = (time);
+                    var restChord = new ChordTuple(whitespace.startTime, 0, tempKeySig);
+                    restChord.duration = RenderingConfiguration.artisticWhitespaceWidth;
+                    var restNote = new Note();
+                    restNote.setRest(new org.audiveris.proxymusic.Rest());
+                    restChord.notes.add(restNote);
+                    whitespace.addChord(restChord);
+                    whitespace.staff = staff;
+                    whitespace.voice = voice;
+                    switch (RenderingConfiguration.artisticWhitespaceAddsCapital) {
+                        case NONE -> {
+
+                        }
+                        case THIS -> {
+                            currentPart.addCapital(whitespace.staff, voice, time);
+                        }
+                        case NEXT -> {
+                            currentPart.addNextCapital(whitespace.staff, voice, time);
+                        }
+                    }
+                    currentPart.putInBeamGroup(whitespace); };
 
             List<Object> scoreParts = partwise.getPartList().getPartGroupOrScorePart();
             for (Object part : scoreParts) {
@@ -75,9 +140,8 @@ public class Parser {
             TreeMap<String, List<LineTuple>> partLines = new TreeMap<>();
 
             TreeMap<String, List<TreeMap<Float, Line>>> partSections = new TreeMap<>();
-            List<ScorePartwise.Part> musicParts = partwise.getPart();
 
-            for (ScorePartwise.Part part : musicParts) {
+            for (ScorePartwise.Part part : partwise.getPart()) {
                 float currentTempo = startBpm;
 
                 TreeMap<MusicGroupType, TreeMap<Integer, MusicGroupTuple>> musicGroupTuples = new TreeMap<>();
@@ -98,14 +162,15 @@ public class Parser {
                 KeySignature currentKeySignature = new KeySignature();
                 int divisions = 0;
                 float prevChange;
-                int lowestLineGrandStaveLine = 0;
+                int prevDivs;
+                TreeMap<Integer, Integer> lowestLineGrandStaveLines = new TreeMap<>() {{ put(1, 0); }};
                 ChordTuple currentChord = new ChordTuple(0, 0, currentKeySignature);
                 BeamGroupTuple beamGroup = new BeamGroupTuple();
-                List<ScorePartwise.Part.Measure> measures = part.getMeasure();
 
-                for (ScorePartwise.Part.Measure measure : measures) {
+                for (var measure : part.getMeasure()) {
                     boolean newTimeSignature = false;
                     float measureTime = 0;
+                    int divisionsInBar = 0;
                     float measureLength = currentTimeSignature.getBeatNum() * 4f / (currentTimeSignature.getBeatType());
 
                     for(Object component : measure.getNoteOrBackupOrForward()) {
@@ -127,20 +192,22 @@ public class Parser {
                                         currentPart.keySignatures.put(measureStartTime + measureTime, currentKeySignature);
                                         if (NEW_SECTION_FOR_KEY_SIGNATURE) {
                                             if (measureTime == 0) {
-                                                addNewSection.accept(measureStartTime + measureTime, 0f);
+                                                addNewSectionGenerator.apply(currentPart).accept(measureStartTime + measureTime, 0f);
                                             } else {
-                                                addNewSection.accept(measureStartTime + measureTime, measureTime - measureLength);
+                                                addNewSectionGenerator.apply(currentPart).accept(measureStartTime + measureTime, measureTime - measureLength);
                                             }
                                         }
                                     }
                                 }
                             }
                             if (attributes.getClef() != null) {
+                                int i = 1;
                                 for(org.audiveris.proxymusic.Clef clef : attributes.getClef()) {
                                     uk.ac.cam.optimisingmusicnotation.representation.properties.Clef parsed = parseClef(clef);
-                                    lowestLineGrandStaveLine = clefToLowestLineGrandStaveLine(parsed);
-                                    currentChord.lowestLine = lowestLineGrandStaveLine;
+                                    lowestLineGrandStaveLines.put(i, clefToLowestLineGrandStaveLine(parsed));
+                                    currentChord.lowestLine = clefToLowestLineGrandStaveLine(parsed);
                                     currentPart.putInClef(getStaff(clef.getNumber()), measureStartTime + measureTime, parsed);
+                                    i++;
                                 }
                             }
                             if (attributes.getDivisions() != null) {
@@ -151,12 +218,16 @@ public class Parser {
                             parseSlurs(musicGroupTuples, currentPart, divisions, note, measureStartTime + measureTime);
                             if (note.getDuration() != null) {
                                 prevChange = note.getDuration().intValue() / (float)divisions;
+                                prevDivs = note.getDuration().intValue();
                             } else {
                                 prevChange = 0;
+                                prevDivs = 0;
                             }
                             if (note.getChord() == null) {
-                                currentChord = new ChordTuple(measureStartTime + measureTime, lowestLineGrandStaveLine, currentKeySignature);
+                                currentChord = new ChordTuple(measureStartTime + measureTime,
+                                        lowestLineGrandStaveLines.get(getStaff(note.getStaff())), currentKeySignature);
                                 measureTime += prevChange;
+                                divisionsInBar += prevDivs;
                             }
                             currentChord.notes.add(note);
                             if (note.getDuration() != null) {
@@ -187,7 +258,8 @@ public class Parser {
                                 beamGroup = new BeamGroupTuple();
                             }
                         } else if (component instanceof Backup backup) {
-                            measureTime -= backup.getDuration().intValue() / (float) divisions;
+                            divisionsInBar -= backup.getDuration().intValue();
+                            measureTime = divisionsInBar / (float) divisions;
                         } else if (component instanceof Direction direction) {
                             float offset = 0;
                             if (direction.getOffset() != null) {
@@ -202,29 +274,9 @@ public class Parser {
                             parseMusicDirective(musicGroupTuples, currentPart, direction,
                                     measureStartTime + measureTime + offset, newlineOffset,
                                     beatChanges, currentTimeSignature,
-                                    RenderingConfiguration.newlineAddsCapital ? (time, internalOffset) -> {
-                                        currentPart.globalCapitalNotes.add(time); addNewline.accept(time, internalOffset);
-                                    } : addNewline,
-                                    RenderingConfiguration.newSectionAddsCapital ? (time, internalOffset) -> {
-                                        currentPart.globalCapitalNotes.add(time); addNewSection.accept(time, internalOffset);
-                                    } : addNewSection,
-                                    (voice, time) -> {
-                                        currentPart.putInArtisticWhitespace(getStaff(direction.getStaff()), voice, time);
-                                        var whitespace = new BeamGroupTuple();
-                                        whitespace.startTime = (time) - RenderingConfiguration.artisticWhitespaceWidth;
-                                        whitespace.endTime = (time);
-                                        var restChord = new ChordTuple(whitespace.startTime, 0, tempKeySig);
-                                        restChord.duration = RenderingConfiguration.artisticWhitespaceWidth;
-                                        var restNote = new Note();
-                                        restNote.setRest(new org.audiveris.proxymusic.Rest());
-                                        restChord.notes.add(restNote);
-                                        whitespace.addChord(restChord);
-                                        whitespace.staff = getStaff(direction.getStaff());
-                                        whitespace.voice = voice;
-                                        if (RenderingConfiguration.artisticWhitespaceAddsCapital) {
-                                            currentPart.addCapital(whitespace.staff, voice, time);
-                                        }
-                                        currentPart.putInBeamGroup(whitespace); },
+                                    addNewlineGenerator.apply(currentPart),
+                                    addNewSectionGenerator.apply(currentPart),
+                                    addNewArtisticWhitespaceGenerator.apply(tempKeySig).apply(currentPart, getStaff(direction.getStaff())),
                                     (voice, time) -> {
                                         currentPart.addCapital(getStaff(direction.getStaff()), voice, time); });
                             currentTempo = parseTempoMarking(tempoMarkings, tempoChanges, currentTempo, direction, measureStartTime + measureTime + offset);
@@ -247,6 +299,11 @@ public class Parser {
                 }
                 totalLength = Math.max(measureStartTime, totalLength);
                 currentPart.pulseLines.add(new PulseLineTuple(measureStartTime, "", 0, null));
+            }
+
+            for (var part : parsingParts.entrySet()) {
+                part.getValue().globalCapitalNotes = globalCapitalNotes;
+                part.getValue().globalCapitalNextNotes = globalCapitalNextNotes;
             }
 
             var integratedTime = integrateTime(tempoChanges);
@@ -391,6 +448,60 @@ public class Parser {
                 }
             }
 
+            TreeSet<Float> normalisedCapitalEntries = new TreeSet<>();
+            for (var staffEntry : part.getValue().capitalNextNotes.entrySet()) {
+                for (var voiceEntry : staffEntry.getValue().entrySet()) {
+                    for (var entry : voiceEntry.getValue()) {
+                        normalisedCapitalEntries.add(normaliseTime(entry, integratedTime));
+                    }
+                    for (var entry : normalisedCapitalEntries) {
+                        for (var lineEntry : partLines.get(part.getKey())) {
+                            var target = lineEntry.chordGroups
+                                    .get(staffEntry.getKey()).get(voiceEntry.getKey())
+                                    .ceilingEntry(entry - lineEntry.startTime);
+                            if (target != null) {
+                                Float priorTime = normalisedCapitalEntries.floor(target.getValue().crotchetsIntoLine + lineEntry.startTime);
+                                if (entry.equals(priorTime)) {
+                                    target.getValue().capital = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    normalisedCapitalEntries.clear();
+                }
+            }
+            HashMap<Integer, HashMap<Integer, HashSet<Float>>> seenMap = new HashMap<>();
+            HashMap<Integer, HashSet<Float>> emptyMap = new HashMap<>();
+            HashSet<Float> emptySet = new HashSet<>();
+            for (var entry : part.getValue().globalCapitalNextNotes) {
+                normalisedCapitalEntries.add(normaliseTime(entry, integratedTime));
+            }
+            for (var entry : normalisedCapitalEntries) {
+                for (int i = 0; i < partLines.get(part.getKey()).size(); ++i) {
+                    var lineEntry = partLines.get(part.getKey()).get(i);
+                    for (var staffEntry : lineEntry.chordGroups.entrySet()) {
+                        for (var voiceEntry : staffEntry.getValue().entrySet()) {
+                            var target = voiceEntry.getValue()
+                                    .ceilingEntry(entry - lineEntry.startTime);
+                            if (target != null) {
+                                Float priorTime = normalisedCapitalEntries.floor(target.getValue().crotchetsIntoLine + lineEntry.startTime + EPSILON);
+                                if (entry.equals(priorTime) && !seenMap
+                                        .getOrDefault(staffEntry.getKey(), emptyMap)
+                                        .getOrDefault(voiceEntry.getKey(), emptySet)
+                                        .contains(entry)) {
+                                    target.getValue().capital = true;
+                                    seenMap.putIfAbsent(staffEntry.getKey(), new HashMap<>());
+                                    seenMap.get(staffEntry.getKey()).putIfAbsent(voiceEntry.getKey(), new HashSet<>());
+                                    seenMap.get(staffEntry.getKey()).get(voiceEntry.getKey()).add(entry);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            normalisedCapitalEntries.clear();
+
             for (var staffEntry : part.getValue().staveMusicGroups.entrySet()) {
                 for (MusicGroupTuple musicGroup : staffEntry.getValue()) {
                     musicGroup.splitToInstantiatedMusicGroupTuple(newlines, lineIndices, integratedTime, partLines.get(part.getKey()));
@@ -496,7 +607,7 @@ public class Parser {
                     }
                 }
 
-                for (var staffEntry : part.getValue().get(i).notes.entrySet()) {
+                for (var staffEntry : part.getValue().get(i).beamGroups.entrySet()) {
                     Util.ensureCapacity(tempLine.getStaves(), () -> new Stave(tempLine, tempLine.getStaves().size()), staffEntry.getKey() - 1);
                     Util.ensureKey(chords.get(i), HashMap::new, staffEntry.getKey());
                     Util.ensureKey(rests.get(i), HashMap::new, staffEntry.getKey());

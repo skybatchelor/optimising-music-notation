@@ -17,10 +17,16 @@ class LineTuple {
     List<InstantiatedPulseLineTuple> pulses;
 
     void addBeamGroup(InstantiatedBeamGroupTuple beamGroup) {
-        Util.putInMapInMapMap(notes, HashMap::new, TreeMap::new, beamGroup.staff, beamGroup.voice, beamGroup.getStartTime(), beamGroup);
+        Util.putInMapInMapMap(beamGroups, HashMap::new, TreeMap::new, beamGroup.staff, beamGroup.voice, beamGroup.getStartTime(), beamGroup);
     }
 
-    HashMap<Integer, HashMap<Integer, TreeMap<Float, InstantiatedBeamGroupTuple>>> notes;
+    HashMap<Integer, HashMap<Integer, TreeMap<Float, InstantiatedBeamGroupTuple>>> beamGroups;
+
+    void addChord(int staff, int voice, InstantiatedChordTuple chord) {
+        Util.putInMapInMapMap(chordGroups, HashMap::new, TreeMap::new, staff, voice, chord.crotchetsIntoLine, chord);
+    }
+
+    HashMap<Integer, HashMap<Integer, TreeMap<Float, InstantiatedChordTuple>>> chordGroups;
 
     void addMusicGroup(InstantiatedMusicGroupTuple musicGroupTuple) {
         Util.addToListInMap(musicGroups, musicGroupTuple.staff, musicGroupTuple);
@@ -35,7 +41,8 @@ class LineTuple {
         this.length = length;
         rests = new HashMap<>();
         pulses = new ArrayList<>();
-        notes = new HashMap<>();
+        beamGroups = new HashMap<>();
+        chordGroups = new HashMap<>();
         musicGroups = new HashMap<>();
         tempoMarkings = new ArrayList<>();
     }

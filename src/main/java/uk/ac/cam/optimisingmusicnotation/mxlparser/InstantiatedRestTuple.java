@@ -35,14 +35,14 @@ class InstantiatedRestTuple {
                 while (changed) {
                     changed = false;
                     var entry = fusedRests.floorEntry(currentRest.startTime);
-                    if (entry != null && entry.getValue().endTime >= currentRest.startTime) {
+                    if (entry != null && entry.getValue().endTime + Parser.WHITESPACE_EPSILON >= currentRest.startTime) {
                         currentRest = new InstantiatedRestTuple(currentRest.staff, currentRest.voice, entry.getKey(), Math.max(currentRest.endTime, entry.getValue().endTime));
                         fusedRests.remove(entry.getKey());
                         changed = true;
                         continue;
                     }
                     entry = fusedRests.floorEntry(currentRest.endTime);
-                    if (entry != null && entry.getValue().startTime >= currentRest.startTime) {
+                    if (entry != null && entry.getValue().startTime + Parser.WHITESPACE_EPSILON >= currentRest.startTime) {
                         currentRest = new InstantiatedRestTuple(currentRest.staff, currentRest.voice, currentRest.startTime, Math.max(currentRest.endTime, entry.getValue().endTime));
                         fusedRests.remove(entry.getKey());
                         changed = true;

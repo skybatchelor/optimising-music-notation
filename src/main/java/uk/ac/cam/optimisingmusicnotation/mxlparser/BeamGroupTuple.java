@@ -126,6 +126,7 @@ class BeamGroupTuple {
                     || part.capitalNotes.getOrDefault(staff, emptyStaffCapitals).getOrDefault(voice, emptyVoiceCapitals).contains(chords.get(i).crotchets)) {
                 tuple.capital = true;
             }
+            target.get(lineIndices.get(lineStartTimes.get(i))).addChord(staff, voice, tuple);
             Util.addToListInMap(iChords, split.floorEntry(i).getValue(), tuple);
         }
 
