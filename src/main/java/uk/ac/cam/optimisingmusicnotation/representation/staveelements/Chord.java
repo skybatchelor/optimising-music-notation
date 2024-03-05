@@ -13,8 +13,8 @@ import java.util.List;
 import java.util.Map;
 
 public class Chord extends BeamGroup {
-    protected final List<Note> notes;
-    protected final List<ChordMarking> markings;
+    private final List<Note> notes;
+    private final List<ChordMarking> markings;
 
     public float getCrotchetsIntoLine() {
         return musicalPosition.crotchetsIntoLine();
@@ -304,9 +304,10 @@ public class Chord extends BeamGroup {
     private <Anchor> void drawAccidental(MusicCanvas<Anchor> canvas, Note note, Anchor anchor) {
         if (note.accidental != Accidental.NONE) {
             String accidentalPath = RenderingConfiguration.imgFilePath + "/accidentals/" + note.accidental.toString().toLowerCase() + ".svg";
-            float topLeftY = 1f + (note.accidental == Accidental.FLAT ? 0.5f : 0f);
+            float topLeftY = 1.1f + (note.accidental == Accidental.FLAT ? 0.2f : 0f);
+            float topLeftX = -1.3f + (note.accidental == Accidental.FLAT ? 0.1f : 0f);
             try{
-                canvas.drawImage(accidentalPath, anchor,-1.65f, topLeftY,0.75f, 2f);
+                canvas.drawImage(accidentalPath, anchor,topLeftX, topLeftY,0.6f, 1.9f);
             } catch (java.io.IOException e) {
                 throw new RuntimeException(e);
             }
