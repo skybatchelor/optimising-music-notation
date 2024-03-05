@@ -9,6 +9,8 @@ class MusicGroupTuple {
     float endTime;
     MusicGroupType type;
     String text = "";
+    int num;
+    boolean bool;
     boolean aboveStave;
     int staff;
     int voice = -1;
@@ -24,7 +26,7 @@ class MusicGroupTuple {
         float endTime = Parser.normaliseTime(this.endTime, integratedTime);
         if (startTime == endTime) {
             float lineTime = newlines.floorKey(startTime);
-            target.get(lineIndices.get(lineTime)).addMusicGroup(new InstantiatedMusicGroupTuple(startTime - lineTime, endTime - lineTime, staff, voice, type, text, aboveStave));
+            target.get(lineIndices.get(lineTime)).addMusicGroup(new InstantiatedMusicGroupTuple(startTime - lineTime, endTime - lineTime, staff, voice, type, text, num, bool, aboveStave));
             return;
         }
         boolean start = true;
@@ -32,7 +34,8 @@ class MusicGroupTuple {
             float newEndTime = newlines.lowerKey(endTime);
             Float instantiatedStartTime = null;
             Float instantiatedEndTime = null;
-            if (newEndTime < newlines.floorKey(startTime)) {
+            Float receivedKey = newlines.floorKey(startTime);
+            if (receivedKey == null || newEndTime < receivedKey) {
                 break;
             }
             if (newEndTime <= startTime) {
@@ -41,7 +44,7 @@ class MusicGroupTuple {
             if (start) {
                 instantiatedEndTime = endTime - newEndTime;
             }
-            target.get(lineIndices.get(newEndTime)).addMusicGroup(new InstantiatedMusicGroupTuple(instantiatedStartTime, instantiatedEndTime, staff, voice, type, text, aboveStave));
+            target.get(lineIndices.get(newEndTime)).addMusicGroup(new InstantiatedMusicGroupTuple(instantiatedStartTime, instantiatedEndTime, staff, voice, type, text, num, bool, aboveStave));
             endTime = newEndTime;
             start = false;
         }

@@ -7,5 +7,6 @@ enum MusicGroupType {
     DYNAMIC,
     TEXT,
     CODA,
-    SEGNO
+    SEGNO,
+    TUPLET
 }

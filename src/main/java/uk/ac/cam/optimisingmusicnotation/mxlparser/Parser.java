@@ -31,6 +31,7 @@ import java.util.zip.ZipInputStream;
 public class Parser {
     public static final boolean NEW_SECTION_FOR_KEY_SIGNATURE = true;
     public static final float EPSILON = 0.001f;
+    public static final float NEWLINE_EPSILON = 0.001f;
     public static final boolean END_BAR_LINE_TIME_SIGNATURE = false;
     public static final boolean END_BAR_LINE_NAME = false;
     public static final boolean TIME_NORMALISED_PARSING = true;
@@ -147,7 +148,7 @@ public class Parser {
                             }
                             measureLength = currentTimeSignature.getBeatNum() * 4f / (currentTimeSignature.getBeatType());
                         } else if (component instanceof Note note) {
-                            parseSlurs(musicGroupTuples, currentPart, note, measureStartTime + measureTime);
+                            parseSlurs(musicGroupTuples, currentPart, divisions, note, measureStartTime + measureTime);
                             if (note.getDuration() != null) {
                                 prevChange = note.getDuration().intValue() / (float)divisions;
                             } else {
@@ -1003,7 +1004,7 @@ public class Parser {
         return currentTempo;
     }
 
-    static void parseSlurs(TreeMap<MusicGroupType, TreeMap<Integer, MusicGroupTuple>> target, ParsingPartTuple currentPart, Note note, float time) {
+    static void parseSlurs(TreeMap<MusicGroupType, TreeMap<Integer, MusicGroupTuple>> target, ParsingPartTuple currentPart, int divisions, Note note, float time) {
         if (note.getNotations() != null) {
             for (var notation : note.getNotations()) {
                 for (var s : notation.getTiedOrSlurOrTuplet()) {
@@ -1022,8 +1023,29 @@ public class Parser {
                                 target.get(MusicGroupType.SLUR).put(slur.getNumber(), tuple);
                             }
                         }
-                    } else if (s instanceof Tuplet tuple) {
-
+                    } else if (s instanceof Tuplet tuplet) {
+                        switch (tuplet.getType()) {
+                            case STOP -> {
+                                int tupletNum = tuplet.getNumber() == null ? 1 : tuplet.getNumber();
+                                if (target.get(MusicGroupType.TUPLET).containsKey(tupletNum)) {
+                                    var tuple = target.get(MusicGroupType.TUPLET).remove(tupletNum);
+                                    tuple.endTime = time + (RenderingConfiguration.tupletFillPeriod ? note.getDuration().intValue() / (float)divisions : 0);
+                                    currentPart.putInMusicGroup(tuple);
+                                }
+                            }
+                            case START -> {
+                                int tupletNum = tuplet.getNumber() == null ? 1 : tuplet.getNumber();
+                                MusicGroupTuple tuple = new MusicGroupTuple(time, MusicGroupType.TUPLET, getStaff(note.getStaff()));
+                                if (tuplet.getTupletActual() != null) {
+                                    tuple.num = tuplet.getTupletActual().getTupletNumber().getValue().intValue();
+                                } else {
+                                    tuple.num = note.getTimeModification().getActualNotes().intValue();
+                                }
+                                tuple.bool = tuplet.getBracket() == YesNo.YES;
+                                tuple.voice = getVoice(note.getVoice());
+                                target.get(MusicGroupType.TUPLET).put(tupletNum, tuple);
+                            }
+                        }
                     }
                 }
             }

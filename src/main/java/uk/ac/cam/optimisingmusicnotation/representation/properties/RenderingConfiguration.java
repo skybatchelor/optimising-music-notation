@@ -78,7 +78,16 @@ public class RenderingConfiguration {
     public static float dynamicsOffset = -3f;
     public static float hairpinHeight = 1.5f;
     public static float hairpinInset = 1.5f;
+    public static float hairpinLineWidth = 0.1f;
     public static float dynamicsTextHeight = 6f;
+
+    // Tuplet information
+    public static float tupletOffset = 3f;
+    public static float tupletEndHook = 2f;
+    public static float tupletNumHeight = 5f;
+    public static float tupletLineWidth = 0.1f;
+    public static float tupletOverHook = 0f;
+    public static boolean tupletFillPeriod = false;
 
     // Tempo marking information
     public static float tempoNoteScale = 0.5f;
