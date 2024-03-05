@@ -52,16 +52,16 @@ public class RenderingConfiguration {
     // Flag information
     public static float flagRatio = 0.5f;
     public static boolean allFlaggedLeft = false;
-    public static boolean singleFlaggedLeft = false;
+    public static boolean singleFlaggedLeft = true;
     public static boolean allFlaggedRight = false;
-    public static boolean singleFlaggedRight = true;
+    public static boolean singleFlaggedRight = false;
 
     // Beamlet information
     public static float beamletRatio = 0.25f;
     public static boolean beamletLeft = false;
     public static boolean singleBeamletLeft = false;
     public static boolean beamletRight = true;
-    public static boolean singleBeamletRight = false;
+    public static boolean singleBeamletRight = true;
     public static int beamletLimit = 0;
 
     // Whitespace information
@@ -83,8 +83,8 @@ public class RenderingConfiguration {
     public static float dynamicsTextHeight = 6f;
 
     // Tuplet information
-    public static float tupletOffset = 3f;
-    public static float tupletEndHook = 2f;
+    public static float tupletOffset = 1.5f;
+    public static float tupletEndHook = 1f;
     public static float tupletNumHeight = 5f;
     public static float tupletLineWidth = 0.1f;
     public static float tupletOverHook = 0f;
