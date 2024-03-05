@@ -3,7 +3,6 @@ package uk.ac.cam.optimisingmusicnotation.mxlparser;
 import org.audiveris.proxymusic.Direction;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.Clef;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.KeySignature;
-import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 
 import java.util.*;
 
@@ -38,8 +37,15 @@ class ParsingPartTuple {
     }
 
     HashMap<Integer, HashMap<Integer, TreeSet<Float>>> capitalNotes;
-    TreeSet<Float> globalCapitalNotes;
 
+    void addNextCapital(int staff, int voice, Float time) {
+        Util.addToTreeSetInMapMap(capitalNotes, HashMap::new, staff, voice, time);
+    }
+
+    HashMap<Integer, HashMap<Integer, TreeSet<Float>>> capitalNextNotes;
+
+    TreeSet<Float> globalCapitalNotes = new TreeSet<>();
+    TreeSet<Float> globalCapitalNextNotes = new TreeSet<>();
 
     public void putInArtisticWhitespace(int staff, int voice, float time) {
         Util.addToTreeSetInMapMap(artisticWhitespace, HashMap::new, staff, voice, time);
@@ -59,8 +65,7 @@ class ParsingPartTuple {
         clefs = new HashMap<>();
         keySignatures = new TreeMap<>();
         capitalNotes = new HashMap<>();
-        globalCapitalNotes = new TreeSet<>();
-        if (RenderingConfiguration.newlineAddsCapital || RenderingConfiguration.newSectionAddsCapital) globalCapitalNotes.add(0f);
+        capitalNextNotes = new HashMap<>();
         artisticWhitespace = new HashMap<>();
     }
 }

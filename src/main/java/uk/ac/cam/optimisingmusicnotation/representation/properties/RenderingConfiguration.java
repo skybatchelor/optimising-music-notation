@@ -11,6 +11,10 @@ import java.util.HashMap;
 import java.util.Objects;
 
 public class RenderingConfiguration {
+    public enum NoneThisNext {
+        NONE, THIS , NEXT
+    }
+
 
     // Pulse line information
     public static float subBeatLineWidth = 0.1f;
@@ -32,9 +36,9 @@ public class RenderingConfiguration {
     public static float noteheadRadius = 0.5f;
 
     // Capital information
-    public static boolean newSectionAddsCapital = true;
-    public static boolean newlineAddsCapital = true;
-    public static boolean artisticWhitespaceAddsCapital = true;
+    public static NoneThisNext newSectionAddsCapital = NoneThisNext.NEXT;
+    public static NoneThisNext newlineAddsCapital = NoneThisNext.NONE;
+    public static NoneThisNext artisticWhitespaceAddsCapital = NoneThisNext.THIS;
     public static float capitalScaleFactor = 1.333f;
 
     // Beaming information
