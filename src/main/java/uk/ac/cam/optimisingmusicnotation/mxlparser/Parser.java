@@ -1157,10 +1157,11 @@ public class Parser {
             String[] splitPath = input.split("[/\\\\]");
             String scoreMxlName = splitPath[splitPath.length - 1];
             String scoreXmlName = scoreMxlName.split("\\.")[0] + ".xml";
+            String scoreXmlNameOnlyASCII = scoreXmlName.replaceAll("[^\\x00-\\x7F]", ""); // ZipInputStream will just delete non-ascii characters
             try (ZipInputStream xml = new ZipInputStream(new FileInputStream(input))) {
                 ZipEntry zipEntry = xml.getNextEntry();
                 while (zipEntry != null) {
-                    if(zipEntry.getName().equals(scoreXmlName) || zipEntry.getName().equals("score.xml")) {
+                    if(zipEntry.getName().replaceAll("[^\\x00-\\x7F]", "").equals(scoreXmlNameOnlyASCII) || zipEntry.getName().equals("score.xml")) {
                         return Marshalling.unmarshal(xml);
                     }
                     zipEntry = xml.getNextEntry();
