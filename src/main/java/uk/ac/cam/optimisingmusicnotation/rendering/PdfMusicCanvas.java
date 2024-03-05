@@ -384,7 +384,7 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
                     image = SvgConverter.convertToXObject(in, pdf);
                 }
                 else {
-                    System.out.println(fileName);
+                    //System.out.println(fileName);
                     FileInputStream imageFile = new FileInputStream(fileName);
                     image = SvgConverter.convertToXObject(imageFile, pdf);
                     imageFile.close();
