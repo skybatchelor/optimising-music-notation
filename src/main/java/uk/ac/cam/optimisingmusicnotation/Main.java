@@ -32,7 +32,7 @@ public class Main {
         if (score == null) {
             System.err.println("xml parsing failed");
         } else {
-            String outTarget = !args[1].equals("") ? args[1] : score.getWorkTitle();
+            String outTarget = !args[1].isEmpty() ? args[1] : score.getWorkTitle();
             for (int i = 0; i < score.getParts().size(); ++i) {
                 String filePath = drawPartToPDF(outTarget, i, score);
                 System.out.println(filePath);
