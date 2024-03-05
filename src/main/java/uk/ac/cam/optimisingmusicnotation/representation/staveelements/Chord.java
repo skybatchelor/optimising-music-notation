@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class Chord extends BeamGroup {
+public class Chord implements StaveElement {
     private final List<Note> notes;
     private final List<ChordMarking> markings;
 

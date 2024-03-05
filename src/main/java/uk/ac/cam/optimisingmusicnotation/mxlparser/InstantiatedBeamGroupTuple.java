@@ -4,6 +4,7 @@ import uk.ac.cam.optimisingmusicnotation.representation.Stave;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.BeamGroup;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
+import uk.ac.cam.optimisingmusicnotation.representation.staveelements.StaveElement;
 
 import java.util.*;
 
@@ -43,10 +44,10 @@ class InstantiatedBeamGroupTuple {
         }
     }
 
-    BeamGroup toBeamGroup(Stave stave,
-                          HashMap<Integer, HashMap<Integer, TreeMap<Float, Chord>>> chordMap,
-                          HashMap<Integer, HashMap<Integer, Map<Chord, BeamletInfo>>> needsFlag,
-                          HashMap<Integer, HashMap<Integer, Map<Chord, BeamletInfo>>> needsBeamlet) {
+    StaveElement toBeamGroup(Stave stave,
+                             HashMap<Integer, HashMap<Integer, TreeMap<Float, Chord>>> chordMap,
+                             HashMap<Integer, HashMap<Integer, Map<Chord, BeamletInfo>>> needsFlag,
+                             HashMap<Integer, HashMap<Integer, Map<Chord, BeamletInfo>>> needsBeamlet) {
         if (chords.size() == 1) {
             if (!chords.get(0).noteType.isBeamed()) {
                 var chord = chords.get(0).toChord(stave);
