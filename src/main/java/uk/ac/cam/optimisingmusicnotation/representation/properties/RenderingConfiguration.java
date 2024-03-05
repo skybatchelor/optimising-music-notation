@@ -8,6 +8,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.Objects;
 
 public class RenderingConfiguration {
 
@@ -64,7 +65,7 @@ public class RenderingConfiguration {
     public static int beamletLimit = 0;
 
     // Whitespace information
-    public static float artisticWhitespaceWidth = 0.5f; // A crochet of whitespace + dead space
+    public static float artisticWhitespaceWidth = 0.4f; // A crochet of whitespace + dead space
 
     // Text information
     public static String defaultFontFilePath;
@@ -110,19 +111,19 @@ public class RenderingConfiguration {
     static {
         try {
             HashMap<String, String> env = new HashMap<>();
-            String[] fontPaths = RenderingConfiguration.class.getResource("/fonts").toURI().toString().split("!");
+            String[] fontPaths = Objects.requireNonNull(RenderingConfiguration.class.getResource("/fonts")).toURI().toString().split("!");
             if (fontPaths.length == 1) {
                 fontFilePath = Paths.get(URI.create(fontPaths[0])).toString();
                 defaultFontFilePath = fontFilePath + "/Roboto-Regular.ttf";
                 dynamicsFontFilePath = fontFilePath + "/Century_Condensed_Bold_Italic.ttf";
-                imgFilePath = Paths.get(RenderingConfiguration.class.getResource("/img").toURI()).toString();
+                imgFilePath = Paths.get(Objects.requireNonNull(RenderingConfiguration.class.getResource("/img")).toURI()).toString();
             }
             else {
                 try (FileSystem fs = FileSystems.newFileSystem(URI.create(fontPaths[0]), env)) {
                     fontFilePath = fs.getPath(fontPaths[1]).toString();
                     defaultFontFilePath = fontFilePath + "/Roboto-Regular.ttf";
                     dynamicsFontFilePath = fontFilePath + "/Century_Condensed_Bold_Italic.ttf";
-                    imgFilePath = fs.getPath(RenderingConfiguration.class.getResource("/img").toURI().toString().split("!")[1]).toString();
+                    imgFilePath = fs.getPath(Objects.requireNonNull(RenderingConfiguration.class.getResource("/img")).toURI().toString().split("!")[1]).toString();
                 }
             }
         } catch (URISyntaxException | NullPointerException | IOException e) {
