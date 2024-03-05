@@ -16,18 +16,22 @@ class InstantiatedMusicGroupTuple {
     Float endTime;
     MusicGroupType type;
     String text;
+    int num;
+    boolean bool;
     boolean aboveStave;
 
     int staff;
     int voice;
 
-    public InstantiatedMusicGroupTuple(Float startTime, Float endTime, int staff, int voice, MusicGroupType type, String text, boolean aboveStave) {
+    public InstantiatedMusicGroupTuple(Float startTime, Float endTime, int staff, int voice, MusicGroupType type, String text, int num, boolean bool, boolean aboveStave) {
         this.startTime = startTime;
         this.endTime = endTime;
         this.staff = staff;
         this.voice = voice;
         this.type = type;
         this.text = text;
+        this.num = num;
+        this.bool = bool;
         this.aboveStave = aboveStave;
     }
 
@@ -123,6 +127,17 @@ class InstantiatedMusicGroupTuple {
             case SEGNO -> {
                 return new ImageAnnotation(getChordsInInterval(chords), RenderingConfiguration.imgFilePath + "/signs/segno.svg",
                         new MusicalPosition(stave.getLine(), stave, startTime), aboveStave, RenderingConfiguration.signWidth, RenderingConfiguration.signHeight, RenderingConfiguration.signOffset, true);
+            }
+            case TUPLET -> {
+                MusicalPosition startPos = null;
+                MusicalPosition endPos = null;
+                if (startTime != null) {
+                    startPos = new MusicalPosition(stave.getLine(), stave, startTime);
+                }
+                if (endTime != null) {
+                    endPos = new MusicalPosition(stave.getLine(), stave, endTime);
+                }
+                return new Tuplet(getChordsInInterval(chords), stave.getLine(), stave, startPos, endPos, num, bool);
             }
         }
         throw new IllegalArgumentException();

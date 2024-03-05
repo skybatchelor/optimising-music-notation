@@ -160,9 +160,21 @@ class BeamGroupTuple {
     void splitToInstantiatedRestTuple(TreeMap<Float, Float> newlines, Map<Float, Integer> lineIndices, TreeMap<Float, TempoChangeTuple> integratedTime, List<LineTuple> target) {
         float endTime = Parser.normaliseTime(this.endTime, integratedTime);
         float startTime = Parser.normaliseTime(this.startTime, integratedTime);
-        float lowestLineStart = newlines.floorKey(startTime);
+        float lowestLineStart;
+        Float receivedKey = newlines.floorKey(startTime);
+        if (receivedKey != null) {
+            lowestLineStart = receivedKey;
+        } else {
+            return;
+        }
         while (endTime > startTime) {
-            float newEndTime = newlines.lowerKey(endTime);
+            receivedKey = newlines.lowerKey(endTime);
+            float newEndTime;
+            if (receivedKey != null) {
+                newEndTime = receivedKey;
+            } else {
+                break;
+            }
             if (newEndTime < lowestLineStart) {
                 break;
             }

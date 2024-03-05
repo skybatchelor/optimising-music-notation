@@ -26,8 +26,8 @@ public class Crescendo extends LineElement {
         startAnchor = canvas.getTakeXTakeYAnchor(startPosition != null ? canvas.getAnchor(startPosition) : canvas.getStartOfLineAnchor(line, stave), lowestAnchor);
         Anchor endAnchor = canvas.getTakeXTakeYAnchor(endPosition != null ? canvas.getAnchor(endPosition) : canvas.getEndOfLineAnchor(line, stave), lowestAnchor);
         canvas.drawLine(startAnchor, RenderingConfiguration.hairpinInset, RenderingConfiguration.dynamicsOffset + startOffset,
-                endAnchor, -RenderingConfiguration.hairpinInset, RenderingConfiguration.dynamicsOffset + endOffset,  .1f);
+                endAnchor, -RenderingConfiguration.hairpinInset, RenderingConfiguration.dynamicsOffset + endOffset,  RenderingConfiguration.hairpinLineWidth);
         canvas.drawLine(startAnchor, RenderingConfiguration.hairpinInset, RenderingConfiguration.dynamicsOffset - startOffset,
-                endAnchor, -RenderingConfiguration.hairpinInset, RenderingConfiguration.dynamicsOffset - endOffset,  .1f);
+                endAnchor, -RenderingConfiguration.hairpinInset, RenderingConfiguration.dynamicsOffset - endOffset,  RenderingConfiguration.hairpinLineWidth);
     }
 }
