@@ -23,7 +23,7 @@ To pass on information only required in the novel notation, create a boxed lette
 | C    | Capital note |
 
 ### Debugging the plugin
-If anything in the plugin itself goes wrong, the easiest way to debug is to add `trace` calls. Editing the plugin is done through `File -> Plug-ins -> Edit Plug-ins -> Mike (user copy) -> Edit...`.
+If anything in the plugin itself goes wrong, the easiest way to debug is to add `trace` calls. Editing the plugin is done through `File -> Plug-ins -> Edit Plug-ins -> Convert to Stenberg Notation (user copy) -> Edit...`.
 
 If something in the Java executable goes wrong, the error should be propagated through to Sibelius and appear as a MessageBox. _This doesn't happen without `run.bat` and appropriate code changes within the `Convert` method_.
 
