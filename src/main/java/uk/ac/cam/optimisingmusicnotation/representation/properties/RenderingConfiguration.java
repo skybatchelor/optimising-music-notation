@@ -33,6 +33,7 @@ public class RenderingConfiguration {
     public static float pulseLineHeight = 5f;
 
     // Stave information
+    /** The line width for the stave lines */
     public static float staveLineWidth = 0.1f;
 
     // Note information

@@ -11,17 +11,20 @@ import java.util.Map;
 /**
  * A collection of chords beamed together.
  * Its primary responsibility is to alter the stems of chords in the middle of the group to meet the beam.
- * Beam groups have an implicit beam connecting all of the notes.
+ * Beam groups have an implicit beam connecting all the notes.
  */
 public class BeamGroup implements StaveElement {
     /**
      * Represents a secondary beam.
      */
     private static class Beam {
-        int startIndex; /** The index of the chord in the beam group the beam starts at */
-        int endIndex; /** The index of the chord in the beam group the beam ends at */
+        /** The index of the chord in the beam group the beam starts at */
+        int startIndex;
+        /** The index of the chord in the beam group the beam ends at */
+        int endIndex;
         // Zero indexed beams
-        int number; /** The beam number. The 0th beam is the implicit beam between all the notes */
+        /** The beam number. The 0th beam is the implicit beam between all the notes */
+        int number;
 
         public Beam(int startIndex, int endIndex, int number) {
             this.startIndex = startIndex;
@@ -30,8 +33,9 @@ public class BeamGroup implements StaveElement {
         }
     }
 
+    /** The chords in the beam group */
     private final List<Chord> chords;
-    /** The list of secondary beams. Note that beam groups always have an implicit first level beam. */
+    /** The list of secondary beams. Note that beam groups always have an implicit first level beam */
     private final List<Beam> beams;
 
     public BeamGroup() {
