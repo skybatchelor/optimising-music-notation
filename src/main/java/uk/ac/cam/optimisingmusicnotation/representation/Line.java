@@ -9,7 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents a line of music, which might have multiple lines. In general, any two points with the same horizontal position in a line should occur at the same time.
+ * Represents a line of music, which might have multiple lines.
+ * In general, any two points with the same horizontal position in a line should occur at the same time.
  */
 public class Line {
   
@@ -70,6 +71,11 @@ public class Line {
         pulseLines = new ArrayList<>();
     }
 
+    /**
+     * Draws a line on a given canvas.
+     * @param canvas the canvas rendering the score
+     * @param <Anchor> the anchor type used by the canvas
+     */
     public <Anchor> void draw(MusicCanvas<Anchor> canvas) {
         canvas.addFirstStave(offsetInCrotchets, staves.size());
         for (int i = 0; i < staves.size(); ++i) {
@@ -89,6 +95,14 @@ public class Line {
         canvas.reserveHeight(RenderingConfiguration.postLineHeight);
     }
 
+    /**
+     * Draws a line, with a given set of {@link Clef}s, and a given {@link KeySignature}.
+     * Used to draw a line at the start of a section.
+     * @param canvas the canvas rendering the score
+     * @param clefs the list of clefs for each stave
+     * @param keySignature the key signature to draw
+     * @param <Anchor> the anchor type used by the canvas
+     */
     public <Anchor> void drawWithClefAndKeySig(MusicCanvas<Anchor> canvas, List<Clef> clefs, KeySignature keySignature) {
         canvas.addFirstStave(offsetInCrotchets, staves.size());
         for (int i = 0; i < staves.size(); ++i) {
@@ -108,6 +122,11 @@ public class Line {
         canvas.reserveHeight(RenderingConfiguration.postLineHeight);
     }
 
+    /**
+     * Draws all the time signatures on all the bar lines.
+     * @param canvas the canvas used for rendering the score
+     * @param <Anchor> the anchor type used by the canvas
+     */
     private <Anchor> void drawTimeSignatures(MusicCanvas<Anchor> canvas) {
         TimeSignature lastTimeSig = null;
         TimeSignature currentTimeSig;
