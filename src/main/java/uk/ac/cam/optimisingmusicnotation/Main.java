@@ -16,7 +16,7 @@ public class Main {
     public static void main(String[] args) {
         //arg 0: path of source mxl
         //arg 1: path of target (pdf)
-        if (args.length != 2){
+        if (args.length != 2) {
             System.err.println("Needs 2 arguments");
             throw new RuntimeException();
         }
