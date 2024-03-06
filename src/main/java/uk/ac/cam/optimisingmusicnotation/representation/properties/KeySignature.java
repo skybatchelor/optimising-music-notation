@@ -40,6 +40,11 @@ public class KeySignature {
         return alterations;
     }
 
+    /**
+     * Gets the accidental alteration for a given pitch name.
+     * @param pitchName the pitch name
+     * @return the accidental altering that pitch name
+     */
     public Accidental getAccidental(PitchName pitchName) {
         for (Alteration alt : alterations) {
             if (alt.alteredPitch == pitchName) {
