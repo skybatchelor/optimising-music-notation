@@ -33,6 +33,15 @@ public class LeftBeamSegment extends MusicGroup {
         this.flag = flag;
     }
 
+    /**
+     * Draws a flag using the given chord anchors. Used to draw a note without instantiating a chord, primarily for use by tempo markings.
+     * @param canvas the canvas rendering the score
+     * @param chordAnchors the anchors for the note being drawn
+     * @param noteType the type of the note being drawn, which affects how many flag lines to draw
+     * @param timeScale the timescale of the note
+     * @param scaleFactor the overall scale factor of the note
+     * @param <Anchor> the anchor type used by the canvas
+     */
     public static <Anchor> void draw(MusicCanvas<Anchor> canvas, ChordAnchors<Anchor> chordAnchors, NoteType noteType, float timeScale, float scaleFactor) {
         int sign = RenderingConfiguration.upwardStems ? 1 : -1;
         for (int i = 0; i <= noteType.beamNumber(); ++i) {

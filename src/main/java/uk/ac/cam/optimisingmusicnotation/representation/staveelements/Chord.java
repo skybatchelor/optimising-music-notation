@@ -78,6 +78,11 @@ public class Chord implements StaveElement {
         this.render = render;
     }
 
+    /**
+     * Generates a copy of this chord which is positioned on the next line and is not drawn.
+     * @param nextLine the next line
+     * @return a chord on nextLine which will not be drawn
+     */
     public Chord moveToNextLine(Line nextLine) {
         return new Chord(notes, new MusicalPosition(nextLine,
                 musicalPosition.stave(),
@@ -89,6 +94,11 @@ public class Chord implements StaveElement {
                 false);
     }
 
+    /**
+     * Generates a copy of this chord which is positioned on the previous line and is not drawn.
+     * @param prevLine the previous line
+     * @return a chord on prevLine which will not be drawn
+     */
     public Chord moveToPrevLine(Line prevLine) {
         return new Chord(notes, new MusicalPosition(prevLine,
                 musicalPosition.stave(),
@@ -100,16 +110,29 @@ public class Chord implements StaveElement {
                 false);
     }
 
+    /**
+     * Removes all pre tie segments. Used to remove pre ties for notes which do not start lines.
+     */
     public void removeTiesTo() {
         for (Note note : notes) {
             note.hasTieTo = false;
         }
     }
 
+    /**
+     * Returns the {@link MusicalPosition} of this chord.
+     * @return the musical position of the chord
+     */
     public MusicalPosition getMusicalPosition() {
         return musicalPosition;
     }
-    
+
+    /**
+     * Computes the anchor placements for this chord, assuming that the stems are not affected by a beam.
+     * @param canvas the canvas rendering the score
+     * @param chordAnchorsMap the anchor map to put the anchors into
+     * @param <Anchor> the anchor type the canvas uses
+     */
     public <Anchor> void computeAnchors(MusicCanvas<Anchor> canvas, Map<Chord, ChordAnchors<Anchor>> chordAnchorsMap) {
         int lowestLine = Integer.MAX_VALUE;
         int highestLine = Integer.MIN_VALUE;
@@ -143,6 +166,14 @@ public class Chord implements StaveElement {
         chordAnchorsMap.put(this, chordAnchors);
     }
 
+    /**
+     * Computes the anchors for a note, based on an anchor for the notehead.
+     * @param canvas the canvas rendering the score
+     * @param anchor the anchor for the notehead
+     * @param scaleFactor the scale factor for the note
+     * @return the anchors for the note
+     * @param <Anchor> the anchor type used by the canvas
+     */
     public static <Anchor> ChordAnchors<Anchor> computeAnchors(MusicCanvas<Anchor> canvas, Anchor anchor, float scaleFactor) {
         ChordAnchors<Anchor> chordAnchors;
         int sign = RenderingConfiguration.upwardStems ? 1 : -1; // decide to draw the not stem upwards or downwards
