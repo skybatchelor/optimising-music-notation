@@ -2,6 +2,9 @@ package uk.ac.cam.optimisingmusicnotation.mxlparser;
 
 import java.util.TreeMap;
 
+/**
+ * Provides a class to get the median line.
+ */
 class MedianAverager implements StaveLineAverager {
     private TreeMap<Integer, Integer> counts = new TreeMap<>();
     private int count = 0;

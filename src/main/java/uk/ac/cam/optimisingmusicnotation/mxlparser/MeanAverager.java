@@ -1,5 +1,8 @@
 package uk.ac.cam.optimisingmusicnotation.mxlparser;
 
+/**
+ * Provides a class to get the mean line.
+ */
 class MeanAverager implements StaveLineAverager {
     private int total;
     private int count;

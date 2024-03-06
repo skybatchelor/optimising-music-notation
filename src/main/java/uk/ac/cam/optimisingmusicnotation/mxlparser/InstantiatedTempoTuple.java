@@ -9,6 +9,9 @@ import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroup
 import java.util.HashMap;
 import java.util.TreeMap;
 
+/**
+ * Holds the tempo tuple adjusted to exist on a given line
+ */
 public class InstantiatedTempoTuple {
     float time;
     NoteType leftItem;

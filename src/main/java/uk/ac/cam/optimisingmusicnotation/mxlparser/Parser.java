@@ -66,7 +66,7 @@ public class Parser {
             Function<ParsingPartTuple, BiConsumer<Float, Float>> addNewlineGenerator = (currentPart) -> {
                 switch (RenderingConfiguration.newlineAddsCapital) {
                     case NONE -> {
-                        return ((time, offset) -> { newlines.put(time, offset); });
+                        return (newlines::put);
                     }
                     case THIS -> {
                         return ((time, offset) -> { globalCapitalNotes.add(time); newlines.put(time, offset); });
@@ -109,15 +109,8 @@ public class Parser {
                     whitespace.staff = staff;
                     whitespace.voice = voice;
                     switch (RenderingConfiguration.artisticWhitespaceAddsCapital) {
-                        case NONE -> {
-
-                        }
-                        case THIS -> {
-                            currentPart.addCapital(whitespace.staff, voice, time);
-                        }
-                        case NEXT -> {
-                            currentPart.addNextCapital(whitespace.staff, voice, time);
-                        }
+                        case THIS -> currentPart.addCapital(whitespace.staff, voice, time);
+                        case NEXT -> currentPart.addNextCapital(whitespace.staff, voice, time);
                     }
                     currentPart.putInBeamGroup(whitespace); };
 
@@ -271,15 +264,13 @@ public class Parser {
                             if (measureTime + offset != 0) {
                                 newlineOffset = measureTime + offset - measureLength;
                             }
-                            final KeySignature tempKeySig = currentKeySignature;
                             parseMusicDirective(musicGroupTuples, currentPart, direction,
                                     measureStartTime + measureTime + offset, newlineOffset,
                                     beatChanges, currentTimeSignature,
                                     addNewlineGenerator.apply(currentPart),
                                     addNewSectionGenerator.apply(currentPart),
-                                    addNewArtisticWhitespaceGenerator.apply(tempKeySig).apply(currentPart, getStaff(direction.getStaff())),
-                                    (voice, time) -> {
-                                        currentPart.addCapital(getStaff(direction.getStaff()), voice, time); });
+                                    addNewArtisticWhitespaceGenerator.apply(currentKeySignature).apply(currentPart, getStaff(direction.getStaff())),
+                                    (voice, time) -> currentPart.addCapital(getStaff(direction.getStaff()), voice, time));
                             currentTempo = parseTempoMarking(tempoMarkings, tempoChanges, currentTempo, direction, measureStartTime + measureTime + offset);
                             currentPart.directions.put(measureStartTime + measureTime + offset, direction);
                         }
@@ -751,7 +742,8 @@ public class Parser {
                                                                             TreeSet<Float> newSections, Map<Float, Integer> sectionIndices) {
         for (Map.Entry<String, List<InstantiatedLineTuple>> part : finalLines.entrySet()) {
             for (InstantiatedLineTuple instantiatedLineTuple : part.getValue()) {
-                float sectionStart = newSections.floor(instantiatedLineTuple.startTime);
+                Float capturedStart = newSections.floor(instantiatedLineTuple.startTime);
+                float sectionStart = capturedStart == null ? 0 : capturedStart;
                 int sectionNum = sectionIndices.get(sectionStart);
                 partSections.get(part.getKey()).get(sectionNum).put(instantiatedLineTuple.startTime, instantiatedLineTuple.line);
             }

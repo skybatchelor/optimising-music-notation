@@ -1,7 +1,8 @@
 package uk.ac.cam.optimisingmusicnotation.mxlparser;
 
-import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
-
+/**
+ * An interface for getting the average line of an item.
+ */
 interface StaveLineAverager {
     void addChord(InstantiatedChordTuple chord);
     float getAverageStaveLine();

@@ -2,6 +2,9 @@ package uk.ac.cam.optimisingmusicnotation.mxlparser;
 
 import java.util.*;
 
+/**
+ * Holds collated line information before the line is fully instantiated
+ */
 class LineTuple {
     float startTime;
     float offset;
