@@ -27,9 +27,9 @@ public class Diminuendo extends LineElement {
         Anchor lowestAnchor = canvas.getMinAnchor(chords.stream().map((chord) -> chordAnchorsMap.get(chord).getLowestAnchor(canvas, chord)).toList(), startAnchor, canvas::isAnchorBelow);
         startAnchor = canvas.getTakeXTakeYAnchor(startPosition != null ? canvas.getAnchor(startPosition) : canvas.getStartOfLineAnchor(line, stave), lowestAnchor);
         Anchor endAnchor = canvas.getTakeXTakeYAnchor(endPosition != null ? canvas.getAnchor(endPosition) : canvas.getEndOfLineAnchor(line, stave), lowestAnchor);
-        canvas.drawLine(startAnchor, RenderingConfiguration.hairpinInset, RenderingConfiguration.dynamicsOffset + startOffset,
-                endAnchor, -RenderingConfiguration.hairpinInset, RenderingConfiguration.dynamicsOffset + endOffset,  .1f);
-        canvas.drawLine(startAnchor, RenderingConfiguration.hairpinInset, RenderingConfiguration.dynamicsOffset - startOffset,
-                endAnchor, -RenderingConfiguration.hairpinInset, RenderingConfiguration.dynamicsOffset - endOffset,  .1f);
+        canvas.drawLine(startAnchor, startPosition == null ? 0 : RenderingConfiguration.hairpinInset, RenderingConfiguration.dynamicsOffset + startOffset,
+                endAnchor, endPosition == null ? 0 : -RenderingConfiguration.hairpinInset, RenderingConfiguration.dynamicsOffset + endOffset,  .1f);
+        canvas.drawLine(startAnchor, startPosition == null ? 0 : RenderingConfiguration.hairpinInset, RenderingConfiguration.dynamicsOffset - startOffset,
+                endAnchor, endPosition == null ? 0 : -RenderingConfiguration.hairpinInset, RenderingConfiguration.dynamicsOffset - endOffset,  .1f);
     }
 }
