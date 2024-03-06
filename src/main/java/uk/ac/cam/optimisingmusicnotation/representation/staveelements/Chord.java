@@ -111,8 +111,8 @@ public class Chord implements StaveElement {
     }
     
     public <Anchor> void computeAnchors(MusicCanvas<Anchor> canvas, Map<Chord, ChordAnchors<Anchor>> chordAnchorsMap) {
-        int lowestLine = 10000000;
-        int highestLine = -10000000;
+        int lowestLine = Integer.MAX_VALUE;
+        int highestLine = Integer.MIN_VALUE;
         ChordAnchors<Anchor> chordAnchors;
         Anchor lowestNoteheadAnchor = null;
         Accidental lowestAccidental = null;
@@ -250,6 +250,7 @@ public class Chord implements StaveElement {
         }
     }
 
+    // update the NoteheadOffset after all articulations have been drawn
     private <Anchor> ChordAnchors<Anchor> updateNoteheadOffset(ChordAnchors<Anchor> chordAnchors) {
         return chordAnchors.withNoteheadOffset(markings.get(markings.size() - 1).signedYOffset());
     }
@@ -336,6 +337,7 @@ public class Chord implements StaveElement {
         }
     }
 
+    // drawing ties based on the length of the note
     private <Anchor> void drawTie(MusicCanvas<Anchor> canvas, Note note, Anchor anchor) {
         int sign = RenderingConfiguration.upwardStems ? -1 : 1;
         if (note.hasTieFrom) {
@@ -360,6 +362,7 @@ public class Chord implements StaveElement {
         Pitch pitch;
         Accidental accidental;
 
+        // ties are represented as flags in Note;
         boolean hasTieFrom;
         boolean hasTieTo;
 
