@@ -31,6 +31,7 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
 
     // TODO: make these configurable
     private final float LINE_WIDTH = 0.8f;
+    // distance between stave lines - all coordinates have this as the unit
     private final float STAVE_SPACING = 5f;
     private final float TOP_MARGIN = 8f;
     private final float BOTTOM_MARGIN = 1f;
@@ -41,7 +42,10 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     private final float crotchetsPerLine;
     private final float leftOffset;
 
+    // starting height of the next stave - moved further down when things are drawn below the current stave
     private float reservedHeight = TOP_MARGIN + SPACE_ABOVE_LINE;
+    // "true" height of the next stave, usually the lowest anything has been drawn
+    // for figuring out where to connect pulse lines to when extending them upwards
     private float trueHeight = TOP_MARGIN + SPACE_ABOVE_LINE;
 
     public static class Anchor {
@@ -126,6 +130,7 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
             int pageNum = previousLineAnchor.page;
             PdfPage page = pdf.getPage(pageNum + 1);
 
+            // check if we need to start a new page if we don't have enough space on the current page
             float y = page.getPageSize().getTop() / STAVE_SPACING - reservedHeight - SPACE_ABOVE_LINE;
             if (y < page.getPageSize().getBottom() / STAVE_SPACING + BOTTOM_MARGIN) {
                 addFirstLineOnPage(pageNum + 1, crotchetsOffset);
@@ -139,6 +144,7 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
             }
         }
 
+        // move reserved and true heights down to below the default height for each line
         reservedHeight += DEFAULT_LINE_HEIGHT;
         trueHeight += DEFAULT_LINE_HEIGHT;
     }
@@ -397,6 +403,7 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
             image = images.get(fileName);
         }
 
+        // calculate width/height to preserve aspect ratio from original image rather than streching, if set to 0
         if (width == 0) {
             width = (height / image.getHeight()) * image.getWidth();
         }
@@ -532,6 +539,7 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
         updateReservedHeight(topLeftAnchor.page, topLeftAnchor.y + topLeftY - height, false);
     }
 
+    // call at the end of every drawing method to extend reserved height for low elements
     private void updateReservedHeight(int pageNum, float y, boolean onlyUpdateTrueHeight) {
         Rectangle pageSize = pdf.getPage(pageNum + 1).getPageSize();
         float newHeight = pageSize.getTop() / STAVE_SPACING - y;
