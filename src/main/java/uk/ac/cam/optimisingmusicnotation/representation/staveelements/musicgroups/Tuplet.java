@@ -13,6 +13,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Holds the bracket and number for a tuplet.
+ */
 public class Tuplet extends LineElement {
 
     private final int num;

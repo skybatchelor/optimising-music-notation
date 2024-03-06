@@ -5,6 +5,9 @@ import uk.ac.cam.optimisingmusicnotation.representation.Line;
 import uk.ac.cam.optimisingmusicnotation.representation.beatlines.PulseLine;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
 
+/**
+ * Used to represent whitespace starting and ending at a given specific time.
+ */
 public class Rest implements Whitespace {
 
     private final MusicalPosition startMusicalPosition;

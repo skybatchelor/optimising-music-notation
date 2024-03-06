@@ -11,6 +11,9 @@ import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A crescendo hairpin.
+ */
 public class Crescendo extends LineElement {
     public Crescendo(List<Chord> chords, Line line, Stave stave, MusicalPosition startPosition, MusicalPosition endPosition) {
         super(chords, line, stave, startPosition, endPosition);

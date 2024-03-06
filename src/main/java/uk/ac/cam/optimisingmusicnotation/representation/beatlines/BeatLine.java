@@ -6,6 +6,9 @@ import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPositi
 import uk.ac.cam.optimisingmusicnotation.representation.properties.Pitch;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 
+/**
+ * A beat line in the score, for a specific beat in the score.
+ */
 public class BeatLine implements PulseLine {
     @Override
     public MusicalPosition getMusicalPosition() {

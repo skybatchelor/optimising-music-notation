@@ -3,6 +3,9 @@ package uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmark
 import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 
+/**
+ * Represents a strong accent, aka marcato on a chord.
+ */
 public class StrongAccent extends ChordMarking {
     // Marcato
     protected float amendYOffset = .5f;

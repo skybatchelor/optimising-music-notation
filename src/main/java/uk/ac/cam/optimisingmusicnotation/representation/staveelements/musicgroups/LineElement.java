@@ -7,6 +7,9 @@ import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
 
 import java.util.List;
 
+/**
+ * An element which exists as a line across multiple notes. Extends {@link MusicGroup}.
+ */
 public abstract class LineElement extends MusicGroup {
     protected final MusicalPosition startPosition;
     protected final MusicalPosition endPosition;

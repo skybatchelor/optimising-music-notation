@@ -2,6 +2,9 @@ package uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmark
 
 import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
 
+/**
+ * Represents a tenuto on a chord.
+ */
 public class Tenuto extends ChordMarking {
     @Override
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Anchor anchor) {

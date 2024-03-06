@@ -24,7 +24,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 /**
- * A collection of static methods for parsing MusicXML into a {@link Score} object
+ * A collection of static methods for parsing MusicXML into a {@link Score} object.
  */
 public class Parser {
     public static final boolean NEW_SECTION_FOR_KEY_SIGNATURE = true;

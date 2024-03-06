@@ -12,6 +12,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A collection of notes as a chord.
+ */
 public class Chord implements StaveElement {
     private final List<Note> notes;
     private final List<ChordMarking> markings;

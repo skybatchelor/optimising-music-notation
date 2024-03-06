@@ -11,6 +11,9 @@ import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A diminuendo hairpin.
+ */
 public class Diminuendo extends LineElement {
     public Diminuendo(List<Chord> chords, Line line, Stave stave, MusicalPosition startPosition, MusicalPosition endPosition) {
         super(chords, line, stave, startPosition, endPosition);

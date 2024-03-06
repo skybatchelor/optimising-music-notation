@@ -11,6 +11,9 @@ import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A slur across several notes.
+ */
 public class Slur extends MusicGroup {
     private final Chord firstChord;
     private final Chord lastChord;

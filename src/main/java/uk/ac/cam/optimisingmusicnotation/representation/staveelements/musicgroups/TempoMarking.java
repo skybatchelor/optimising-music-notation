@@ -12,6 +12,9 @@ import uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType;
 import java.io.IOException;
 import java.util.Map;
 
+/**
+ * A tempo marking.
+ */
 public class TempoMarking extends MusicGroup {
 
     private final MusicalPosition position;

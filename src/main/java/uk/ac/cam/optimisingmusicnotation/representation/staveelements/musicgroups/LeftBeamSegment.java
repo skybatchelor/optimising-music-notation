@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.Map;
 
 /**
- *
+ * Represents a beam segment going to the left.
  */
 public class LeftBeamSegment extends MusicGroup {
     private final Chord preChord;

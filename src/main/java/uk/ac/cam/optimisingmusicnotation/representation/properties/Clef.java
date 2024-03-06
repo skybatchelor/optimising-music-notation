@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * A musical clef.
+ */
 public class Clef {
     public ClefSign getSign() {
         return sign;

@@ -11,6 +11,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A textual dynamic marking.
+ */
 public class Dynamic extends MusicGroup {
     private final String text;
     private final MusicalPosition musicalPosition;

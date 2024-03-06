@@ -3,6 +3,9 @@ package uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmark
 import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 
+/**
+ * A class for markings on a chord.
+ */
 public abstract class ChordMarking {
     protected float absoluteYOffset = 0;
     // signedYOffset is needed for updating the offset in chordAnchors

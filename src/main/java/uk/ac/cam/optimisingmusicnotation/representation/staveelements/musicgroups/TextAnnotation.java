@@ -11,6 +11,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * An annotation for text above or below a score.
+ */
 public class TextAnnotation extends MusicGroup {
     private final String text;
     private final MusicalPosition musicalPosition;

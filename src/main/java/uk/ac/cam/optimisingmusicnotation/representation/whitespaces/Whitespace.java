@@ -4,6 +4,9 @@ import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.Line;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
 
+/**
+ * An interface for generically representing whitespace on the score.
+ */
 public interface Whitespace {
     default float getStartCrotchets() {
         return getStartMusicalPosition().crotchetsIntoLine();

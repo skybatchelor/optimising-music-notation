@@ -10,6 +10,9 @@ import uk.ac.cam.optimisingmusicnotation.representation.properties.TimeSignature
 
 import java.io.IOException;
 
+/**
+ * A bar line on the score. Renders a bar line, as well as bar line information, notably time signatures.
+ */
 public class BarLine implements PulseLine {
     @Override
     public MusicalPosition getMusicalPosition() {

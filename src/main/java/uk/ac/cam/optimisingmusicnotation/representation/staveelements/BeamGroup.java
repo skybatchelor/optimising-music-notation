@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A collection of chords beamed together. Its primary responsibility is to alter the stems of chords in the middle of the group to meet the beam.
+ */
 public class BeamGroup implements StaveElement {
     private static class Beam {
         int startIndex;

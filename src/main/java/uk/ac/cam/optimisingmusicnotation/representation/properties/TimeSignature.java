@@ -7,6 +7,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents a time signature on the score.
+ */
 public class TimeSignature {
     public record BeatTuple(int durationInUnits, int beatType, int subBeats) {
 

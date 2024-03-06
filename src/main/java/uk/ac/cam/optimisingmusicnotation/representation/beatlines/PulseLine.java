@@ -4,6 +4,9 @@ import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.Stave;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
 
+/**
+ * An interface for a generic pulse line.
+ */
 public interface PulseLine {
     MusicalPosition getMusicalPosition();
     <Anchor> void drawAroundStave(MusicCanvas<Anchor> canvas, Stave stave, boolean extendUp, boolean extendDown, float downLength, boolean drawLabel);

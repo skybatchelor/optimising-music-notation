@@ -9,6 +9,9 @@ import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * An image annotation to the score. Primarily used for segnos and codas.
+ */
 public class ImageAnnotation extends MusicGroup {
     private final String filePath;
     private final MusicalPosition musicalPosition;

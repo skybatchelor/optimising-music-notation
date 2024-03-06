@@ -8,6 +8,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents a key signature.
+ */
 public class KeySignature {
 
     public void addAlteration(int index, PitchName pitch, Accidental alteration) {
