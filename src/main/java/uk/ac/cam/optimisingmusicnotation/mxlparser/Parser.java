@@ -27,19 +27,28 @@ import java.util.zip.ZipInputStream;
  * A collection of static methods for parsing MusicXML into a {@link Score} object.
  */
 public class Parser {
+    /** Whether a key signature also creates a new key signature */
     public static final boolean NEW_SECTION_FOR_KEY_SIGNATURE = true;
+    /** An epsilon value used to judge how close two floats are to each other */
     public static final float EPSILON = 0.001f;
+    /** How close two whitespaces have to be in order to be combined into one whitespace */
     public static final float WHITESPACE_EPSILON = 0.08f;
+    /** Whether the bar line at the end of a line has a time signature */
     public static final boolean END_BAR_LINE_TIME_SIGNATURE = false;
+    /** Whether the bar line at the end of a line has a name, typically the bar number */
     public static final boolean END_BAR_LINE_NAME = false;
+    /** Whether the parser normalises the time spacing to account for tempo or not */
     public static final boolean TIME_NORMALISED_PARSING = true;
+    /** How long one second of time is in the normalised time */
     public static final float TIME_NORMALISATION_FACTOR = 60 * 12;
+    /** An offset to codas to account for float errors in parsing */
     public static final float ADD_TO_CODA = 0.004f;
+    /** The BPM to start the score at */
     public static float startBpm = 120f;
 
 
     /**
-     * Parses a given mxl object into a score
+     * Parses a given mxl object into a score, according to the static settings in Parser, and settings in {@link RenderingConfiguration}.
      * @param mxl the mxl to parse
      * @return the score representing the parsed mxl
      */
@@ -1288,9 +1297,9 @@ public class Parser {
     }
 
     /**
-     * opens an mxl, or musicXML
+     * Opens a mxl, or musicXML.
      * @param input the file name to be opened
-     * @return the an object representing the mxl file
+     * @return an object representing the mxl file
      * @throws IOException for a file which cannot be found
      */
     public static Object openMXL(String input) throws IOException {

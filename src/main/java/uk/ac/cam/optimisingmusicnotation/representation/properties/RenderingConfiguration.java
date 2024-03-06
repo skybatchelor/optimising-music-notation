@@ -14,6 +14,9 @@ import java.util.Objects;
  * A class to hold a variety of configuration variables to control how elements of the score render.
  */
 public class RenderingConfiguration {
+    /**
+     *
+     */
     public enum NoneThisNext {
         NONE, THIS , NEXT
     }
