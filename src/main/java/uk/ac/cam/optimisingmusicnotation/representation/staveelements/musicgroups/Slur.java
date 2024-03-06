@@ -35,6 +35,7 @@ public class Slur extends MusicGroup {
         float startNoteheadOffset = 0;
         float endNoteheadOffset = 0;
 
+        // default anchors are at the start and end of the line; designed for slurs across the line
         Anchor startAnchor = canvas.getAnchor(new MusicalPosition(line, stave, 0));
         Anchor endAnchor = canvas.getAnchor(new MusicalPosition(line, stave, line.getLengthInCrotchets()));
 
