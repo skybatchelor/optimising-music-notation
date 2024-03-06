@@ -34,6 +34,11 @@ public class Section {
         this.keySignature = keySignature;
     }
 
+    /**
+     * Draws the section, by drawing the first line with the clefs and key signatures, and all the subsequent lines without.
+     * @param canvas the canvas rendering the score
+     * @param <Anchor> the anchor type used by the canvas
+     */
     public <Anchor> void draw(MusicCanvas<Anchor> canvas) {
         //canvas.addLine(lines.get(0).getOffsetInCrotchets());
         //drawClefAndKey(canvas);
@@ -45,14 +50,26 @@ public class Section {
         canvas.reserveHeight(RenderingConfiguration.postSectionHeight);
     }
 
+    /**
+     * Gets the minimum line offset in this section.
+     * @return the minimum line offset in this section
+     */
     public float getMinOffset() {
         return lines.stream().map(Line::getOffsetInCrotchets).min(Float::compareTo).orElse(0f);
     }
 
+    /**
+     * Gets the furthest distance from the origin a line reaches in this section.
+     * @return the furthest line ending in this section
+     */
     public float getMaxEnd() {
         return lines.stream().map(Line::getEndInCrotchets).max(Float::compareTo).orElse(0f);
     }
 
+    /**
+     * Gets the maximum length of a ine in this section.
+     * @return
+     */
     public float getMaxCrotchetsPerLine() {
         return lines.stream().map(Line::getLengthInCrotchets).max(Float::compareTo).orElse(0f);
     }
