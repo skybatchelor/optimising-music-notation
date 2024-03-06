@@ -78,76 +78,119 @@ public class RenderingConfiguration {
     public static boolean hookStart = true;
     /** Whether the chord at the end of a beam group should be hooked. If so, it is hooked left. Primarily used in conjunction with flag settings */
     public static boolean hookEnd = true;
+    /** The line width of beams */
     public static float beamWidth = 0.5f;
+    /** The gap between two beams vertically */
     public static float gapBetweenBeams = 0.25f;
+    /** A height offset from the stem end for the beam. */
     public static float beamOffset = -0f;
 
     // Flag information
+    /** The proportion of the duration of the note the flag occupies */
     public static float flagRatio = 0.5f;
+    /** Whether beam groups have a flag to the left */
     public static boolean allFlaggedLeft = false;
+    /** Whether single flagged notes have a flag to the left */
     public static boolean singleFlaggedLeft = true;
+    /** Whether beam groups have a flag to the right */
     public static boolean allFlaggedRight = false;
+    /** Whether single flagged notes have a flag to the right */
     public static boolean singleFlaggedRight = false;
 
     // Beamlet information
+    /** The proportion of the duration of the note the beamlet occupies */
     public static float beamletRatio = 0.25f;
+    /** Whether beam groups have a beamlet to the left */
     public static boolean beamletLeft = false;
+    /** Whether single flagged notes have a beamlet to the left */
     public static boolean singleBeamletLeft = false;
+    /** Whether beam groups have a beamlet to the right */
     public static boolean beamletRight = true;
+    /** Whether single flagged notes have a beamlet to the right */
     public static boolean singleBeamletRight = true;
+    /** How many beams a beamlet can draw. Will usually be either 0 (1 beam), or 10 (all beams) */
     public static int beamletLimit = 0;
 
     // Whitespace information
+    /** The crotchet duration of artistic whitespace */
     public static float artisticWhitespaceWidth = 0.4f; // A crotchet of whitespace + dead space
 
     // Text information
+    /** The file path of the default font */
     public static String defaultFontFilePath;
+    /** The file path of the font for dynamic markings */
     public static String dynamicsFontFilePath;
+    /** The base file path for fonts */
     public static String fontFilePath;
 
     // Image information
+    /** The base file path for images */
     public static String imgFilePath;
 
     // Dynamics information
+    /** The vertical offset below the lowest anchor that the centre of dynamic markings are put at */
     public static float dynamicsOffset = -3f;
+    /** The height of a hairpin */
     public static float hairpinHeight = 1.5f;
+    /** The horizontal inset of a hairpin from both ends */
     public static float hairpinInset = 1.5f;
+    /** The line width used to draw hairpins */
     public static float hairpinLineWidth = 0.1f;
+    /** How tall dynamic text markings should be */
     public static float dynamicsTextHeight = 6f;
 
     // Tuplet information
+    /** Hwo far above/below the notes/stave to draw the tuple bracket */
     public static float tupletOffset = 1.5f;
+    /** How long the end of the tuplet bracket is */
     public static float tupletEndHook = 1f;
+    /** The height of the number in a tuplet */
     public static float tupletNumHeight = 5f;
+    /** The line width used to draw the tuplet bracket */
     public static float tupletLineWidth = 0.1f;
+    /** How far the tuplet should extend past the end and start time */
     public static float tupletOverHook = 0f;
+    /** Whether tuplets should end at the last note, or the end of the period they effect */
     public static boolean tupletFillPeriod = false;
 
     // Tempo marking information
+    /** The scale of notes used in tempo markings */
     public static float tempoNoteScale = 0.5f;
+    /** The spacing between the note and the rest of the tempo marking */
     public static float tempoNoteSpacing = 1.5f;
+    /** The timescale that tempo notes use */
     public static float tempoNoteTimeScale = 2.5f;
 
     // Stave text information
+    /** The height of stave text */
     public static float staveTextHeight = 5f;
 
     // Stave image information
+    /** How much vertical whitespace should be drawn around images with whitespace backings */
     public static float verticalMargin = 0.25f;
+    /** How much horizontal whitespace should be drawn around images with whitespace backings */
     public static float horizontalMargin = 0.25f;
 
     // Coda and segno information
+    /** How wide the signs are */
     public static float signWidth = 4f;
+    /** How tall the signs are */
     public static float signHeight = 4f;
+    /** How far above the highest point on the stave the sigs are */
     public static float signOffset = 5f;
 
     // Line information
+    /** How much space is given after a line */
     public static float postLineHeight = 5f;
 
     // Section information
+    /** How much space is given after a section */
     public static float postSectionHeight = 5f;
 
     // Color information
+    /** The light grey used by pulse lines */
     public static Color greyColor = new Color(0xCCCCCC);
+    /** The black used by the title and composer */
     public static Color blackColor = new Color(0x000000);
 
     static {
