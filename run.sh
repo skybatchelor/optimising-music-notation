@@ -1,7 +1,7 @@
 #!/bin/bash
 # Has not been tested on Mac
 
-/Applications/stenbergconverter.app/Contents/MacOS/stenbergconverter $1 $2 > OUTPUT 2> ERRORS
+open -n /Applications/stenbergconverter.app/Contents/MacOS/stenbergconverter --args $1 $2 > OUTPUT 2> ERRORS
 
 if [ -s ERRORS ]
 then
@@ -12,4 +12,4 @@ fi
 
 while IFS= read -r line; do
     open "$line"
-done
+done < OUTPUT
