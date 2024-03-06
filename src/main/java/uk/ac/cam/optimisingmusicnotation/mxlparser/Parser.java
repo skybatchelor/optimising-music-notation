@@ -235,6 +235,7 @@ public class Parser {
                                 prevChange = 0;
                                 prevDivs = 0;
                             }
+                            // deal with if the note is in a chord or not
                             if (note.getChord() == null) {
                                 currentChord = new ChordTuple(measureStartTime + measureTime,
                                         lowestLineGrandStaveLines.get(getStaff(note.getStaff())), currentKeySignature);
@@ -242,9 +243,11 @@ public class Parser {
                                 divisionsInBar += prevDivs;
                             }
                             currentChord.notes.add(note);
+                            // get chord duration
                             if (note.getDuration() != null) {
                                 currentChord.duration = note.getDuration().intValue() / (float)divisions;
                             }
+                            // handle beams
                             boolean addedToBeamGroup = false;
                             if (note.getBeam() != null) {
                                 for(Beam beam : note.getBeam()) {
@@ -684,6 +687,8 @@ public class Parser {
                 Line tempLine = new Line(new ArrayList<>(), newlinesList.get(i), lineLengths.get(i), lineOffsets.get(i), i,
                         part.getValue().get(i).extendUp, part.getValue().get(i).extendDown);
                 finalLines.get(part.getKey()).add(new InstantiatedLineTuple(newlinesList.get(i), tempLine));
+
+                // add the rests
                 for (var staffEntry : part.getValue().get(i).rests.entrySet()) {
                     Util.ensureCapacity(tempLine.getStaves(), () -> new Stave(tempLine, tempLine.getStaves().size()), staffEntry.getKey() - 1);
                     chords.get(i).putIfAbsent(staffEntry.getKey(), new HashMap<>());
@@ -703,6 +708,7 @@ public class Parser {
                     }
                 }
 
+                // add the beam groups
                 for (var staffEntry : part.getValue().get(i).beamGroups.entrySet()) {
                     Util.ensureCapacity(tempLine.getStaves(), () -> new Stave(tempLine, tempLine.getStaves().size()), staffEntry.getKey() - 1);
                     chords.get(i).putIfAbsent(staffEntry.getKey(), new HashMap<>());
@@ -721,10 +727,12 @@ public class Parser {
                     }
                 }
 
+                // add the pulse lines
                 for (InstantiatedPulseLineTuple pulseTuple : part.getValue().get(i).pulses) {
                     tempLine.addPulseLine(pulseTuple.toPulseLine(tempLine));
                 }
 
+                // add the music groups
                 for (var staffEntry : part.getValue().get(i).musicGroups.entrySet()) {
                     Util.ensureCapacity(tempLine.getStaves(), () -> new Stave(tempLine, tempLine.getStaves().size()), staffEntry.getKey() - 1);
                     for (InstantiatedMusicGroupTuple musicGroupTuple : staffEntry.getValue()) {
@@ -733,12 +741,16 @@ public class Parser {
                     }
                 }
 
+                // add the tempo markings
                 for (InstantiatedTempoTuple tempoTuple : part.getValue().get(i).tempoMarkings) {
                     tempLine.getStaves().get(0).addMusicGroup(tempoTuple.toMusicGroup(tempLine.getStaves().get(0), chords.get(i)));
                 }
             }
+
+            // decide which way round the stems should go
             parsingPart.get(part.getKey()).upwardsStems = averager.getAverageStaveLine() < 4;
 
+            // remove pre ties on notes that do not start a line
             for (var lineEntry : chords) {
                 for (var staffEntry : lineEntry.entrySet()) {
                     for (var voiceEntry : staffEntry.getValue().entrySet()) {
