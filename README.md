@@ -1,11 +1,10 @@
 # optimising-music-notation
 ## Sibelius Plugin
-The plugin has not been tested on MacOS.
+
 ### Installing the plugin
 To load the plugin into Sibelius, copy `Mike.plg` into `%APPDATA%/Avid/Sibelius/Plugins/{CATEGORY}` where `{CATEGORY}` is the category you would like the plugin to appear in in the (alphabetically sorted) menu. On MacOS, the filepath is `~/Library/Application Support/Avid/Sibelius/Plugins/{CATEGORY}`.
-You will also need to ensure you set the correct path to the installation directory (the one containing `run.bat` and `run.sh` by modifying `INSTALL_DIR` on line 337 of `Mike.plg` (or from within Sibelius), and to place the file `optimisingmusicnotation.jar` in this installation directory.
-> Note: `INSTALL_DIR` *cannot* contain any spaces (using MS-DOS short names will work)
 
+You also need to install the converter program by running `stenbergconverter.msi` on Windows or `stenbergconverter.dmg` on MacOS and following the prompts.
 
 ### Using the plugin
 With a Sibelius score open:
@@ -26,6 +25,11 @@ To pass on information only required in the novel notation, create a boxed lette
 ### Debugging the plugin
 If anything in the plugin itself goes wrong, the easiest way to debug is to add `trace` calls. Editing the plugin is done through `File -> Plug-ins -> Edit Plug-ins -> Mike (user copy) -> Edit...`.
 
-If something in the Java executable goes wrong, the error should be propogated through to Sibelius and appear as a MessageBox.
+If something in the Java executable goes wrong, the error should be propagated through to Sibelius and appear as a MessageBox.
 
-TODO
+## Building installers
+
+To build an installer for the converter program, first run `maven clean package` in the project root to generate a `.jar` file, then navigate to the directory containing the `.jar` file and:
+
+- For Windows, run `jpackage --input . --name stenbergconverter --main-jar <jar name> --main-class uk.ac.cam.optimisingmusicnotation.Main --type msi --win-console`
+- For MacOS, run `jpackage --input . --name stenbergconverter --main-jar <jar name> --main-class uk.ac.cam.optimisingmusicnotation.Main --type dmg`
