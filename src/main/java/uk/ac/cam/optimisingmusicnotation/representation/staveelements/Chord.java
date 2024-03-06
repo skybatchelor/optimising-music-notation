@@ -52,23 +52,23 @@ public class Chord implements StaveElement {
     }
 
     public Chord(List<Pitch> pitches, List<Accidental> accidentals, List<Boolean> tiesFrom, List<Boolean> tiesTo, float noteScale,
-                 MusicalPosition musicalPosition, float durationIncrotchets, NoteType noteType, int dots, List<ChordMarking> markings) {
+                 MusicalPosition musicalPosition, float durationInCrotchets, NoteType noteType, int dots, List<ChordMarking> markings) {
         notes = new ArrayList<>(pitches.size());
         for (int i = 0; i < pitches.size(); ++i) {
             notes.add(new Note(pitches.get(i), accidentals.get(i), tiesFrom.get(i), tiesTo.get(i)));
         }
         this.noteScale = noteScale;
         this.musicalPosition = musicalPosition;
-        this.durationInCrotchets = durationIncrotchets;
+        this.durationInCrotchets = durationInCrotchets;
         this.noteType = noteType;
         this.dots = dots;
         this.markings = markings;
     }
 
-    private Chord(List<Note> notes, MusicalPosition musicalPosition, float durationIncrotchets, NoteType noteType, int dots, List<ChordMarking> markings, boolean render) {
+    private Chord(List<Note> notes, MusicalPosition musicalPosition, float durationInCrotchets, NoteType noteType, int dots, List<ChordMarking> markings, boolean render) {
         this.notes = notes;
         this.musicalPosition = musicalPosition;
-        this.durationInCrotchets = durationIncrotchets;
+        this.durationInCrotchets = durationInCrotchets;
         this.noteType = noteType;
         this.dots = dots;
         this.markings = markings;
