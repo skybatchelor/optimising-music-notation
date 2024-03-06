@@ -1,5 +1,8 @@
 package uk.ac.cam.optimisingmusicnotation.representation.properties;
 
+/**
+ * An enum for different accidental types.
+ */
 public enum Accidental {
     SHARP,
     FLAT,
