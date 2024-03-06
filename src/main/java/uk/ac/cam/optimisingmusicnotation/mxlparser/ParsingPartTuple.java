@@ -6,8 +6,10 @@ import uk.ac.cam.optimisingmusicnotation.representation.properties.KeySignature;
 
 import java.util.*;
 
+/**
+ * Holds all the information for a part as it is being parsed
+ */
 class ParsingPartTuple {
-
     public void putInBeamGroup(BeamGroupTuple beamGroup) {
         Util.putInMapInMapMap(staveBeamGroups, HashMap::new, TreeMap::new, beamGroup.staff, beamGroup.voice, beamGroup.startTime, beamGroup);
     }

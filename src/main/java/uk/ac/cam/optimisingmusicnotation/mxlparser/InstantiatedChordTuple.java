@@ -11,12 +11,15 @@ import uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmarki
 
 import java.util.List;
 
+/**
+ * Holds information for chords adjusted to belong to a given line
+ */
 class InstantiatedChordTuple {
     List<Pitch> pitches;
     List<Accidental> accidentals;
     List<Boolean> tiesFrom;
     List<Boolean> tiesTo;
-    boolean capital = false;
+    boolean capital;
 
     public float getCrotchetsIntoLine() {
         return crotchetsIntoLine;

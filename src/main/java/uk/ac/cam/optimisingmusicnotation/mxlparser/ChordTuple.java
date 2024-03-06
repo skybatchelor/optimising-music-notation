@@ -13,6 +13,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
 
+/**
+ * Holds chord information as it is being parsed
+ */
 class ChordTuple {
 
     static int getDotNumber(Note note) {

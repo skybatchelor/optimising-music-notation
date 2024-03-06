@@ -13,97 +13,97 @@ public interface MusicCanvas<Anchor> {
 
     /**
      * Creates an anchor representing the given musical position at the top of the corresponding stave.
-     * **/
+     */
     Anchor getAnchor(MusicalPosition musicalPosition);
     /**
      * Creates an anchor representing the given musical position and pitch.
-     * **/
+     */
     Anchor getAnchor(MusicalPosition musicalPosition, Pitch pitch);
     /**
      * Creates an anchor representing the top left of the line which the given musical position is on.
-     * **/
+     */
     Anchor getLineStartAnchor(MusicalPosition musicalPosition);
     /**
      * Creates an anchor representing the left of the line which the given musical position is on with the given pitch.
-     * **/
+     */
     Anchor getLineStartAnchor(MusicalPosition musicalPosition, Pitch pitch);
     /**
      * Creates an anchor representing the given musical position at the bottom of the corresponding stave.
-     * **/
+     */
     Anchor getLowestStaveLineAnchor(MusicalPosition musicalPosition);
     /**
      * Creates an anchor representing the bottom left of the given stave on the given line.
-     * **/
+     */
     Anchor getLowestStaveLineStartOfLineAnchor(Line line, Stave stave);
     /**
      * Creates an anchor representing the top left of the given stave on the given line.
-     * **/
+     */
     Anchor getStartOfLineAnchor(Line line, Stave stave);
     /**
      * Creates an anchor representing the top right of the given stave on the given line.
-     * **/
+     */
     Anchor getEndOfLineAnchor(Line line, Stave stave);
     /**
      * Creates a new anchor using an offset from a given anchor.
-     * **/
+     */
     Anchor offsetAnchor(Anchor anchor, float x, float y);
     /**
      * Creates a new anchor by linear interpolation between two given anchors.
-     * **/
+     */
     Anchor interpolateAnchors(Anchor anchor1, Anchor anchor2, float t);
     /**
      * Creates a new anchor with the horizontal position of the first anchor and the vertical position of the second.
-     * **/
+     */
     Anchor getTakeXTakeYAnchor(Anchor anchorX, Anchor anchorY);
     /**
      * Returns the anchor with the minimum value according to the provided comparator function.
-     * **/
+     */
     Anchor getMinAnchor(java.util.List<Anchor> anchors, Anchor start, BiFunction<Anchor, Anchor, Boolean> lessThan);
     /**
      * Creates an anchor representing the top left of the output.
-     * **/
+     */
     Anchor topLeftAnchor();
     /**
      * Creates an anchor representing the top centre of the output.
-     * **/
+     */
     Anchor topCentreAnchor();
     /**
      * Creates an anchor representing the top right of the output.
-     * **/
+     */
     Anchor topRightAnchor();
     /**
      * Creates an anchor at the lowest point that any element was drawn on the line with the given number.
-     * **/
+     */
     Anchor getTrueBottomAnchor(int line);
 
     /**
      * Tests if an anchor is below another.
-     * **/
+     */
     boolean isAnchorBelow(Anchor anchor1, Anchor anchor2);
     /**
      * Tests if an anchor is above another.
-     * **/
+     */
     boolean isAnchorAbove(Anchor anchor1, Anchor anchor2);
     /**
      * Tests if two anchors are on the same page.
-     * **/
+     */
     boolean areAnchorsOnSamePage(Anchor anchor1, Anchor anchor2);
 
     /**
      * Start a new musical line and add a stave to it.
-     * **/
+     */
     void addFirstStave(float crotchetsOffset, int staveNumber);
     /**
      * Adds a stave to the lowest musical line with no offset.
-     * **/
+     */
     void addStave();
     /**
      * Adds a stave to the lowest musical line with a given offset.
-     * **/
+     */
     void addStave(float crotchetsOffset);
     /**
      * Reserves a given amount of height before the next stave is placed.
-     * **/
+     */
     void reserveHeight(float height);
 
     /**
@@ -112,7 +112,7 @@ public interface MusicCanvas<Anchor> {
      * @param x the centre's horizontal offset from the anchor
      * @param y the centre's vertical offset from the anchor
      * @param r the radius
-     * **/
+     */
     void drawCircle(Anchor anchor, float x, float y, float r);
     /**
      * Draws a circle.
@@ -121,7 +121,7 @@ public interface MusicCanvas<Anchor> {
      * @param y the centre's vertical offset from the anchor
      * @param r the radius
      * @param fill if true, fills the circle black, otherwise the centre is white
-     * **/
+     */
     void drawCircle(Anchor anchor, float x, float y, float r, boolean fill);
 
     /**
@@ -132,7 +132,7 @@ public interface MusicCanvas<Anchor> {
      * @param x2 the second endpoint's horizontal offset from the anchor
      * @param y2 the second endpoint's vertical offset from the anchor
      * @param lineWidth the width of the line
-     * **/
+     */
     void drawLine(Anchor anchor, float x1, float y1, float x2, float y2, float lineWidth);
     /**
      * Draws a straight line.
@@ -143,7 +143,7 @@ public interface MusicCanvas<Anchor> {
      * @param y2 the second endpoint's vertical offset from the anchor
      * @param lineWidth the width of the line
      * @param color the colour of the line
-     * **/
+     */
     void drawLine(Anchor anchor, float x1, float y1, float x2, float y2, float lineWidth, Color color);
     /**
      * Draws a straight line.
@@ -155,7 +155,7 @@ public interface MusicCanvas<Anchor> {
      * @param lineWidth the width of the line
      * @param color the colour of the line
      * @param reserveHeight if false, the line endpoints don't reserve space before the next stave (e.g. for pulse lines)
-     * **/
+     */
     void drawLine(Anchor anchor, float x1, float y1, float x2, float y2, float lineWidth, Color color, boolean reserveHeight);
     /**
      * Draws a black straight line.
@@ -166,7 +166,7 @@ public interface MusicCanvas<Anchor> {
      * @param x2 the second endpoint's horizontal offset from the anchor
      * @param y2 the second endpoint's vertical offset from the anchor
      * @param lineWidth the width of the line
-     * **/
+     */
     void drawLine(Anchor anchor1,  float x1, float y1, Anchor anchor2, float x2, float y2, float lineWidth);
     /**
      * Draws a straight line.
@@ -178,7 +178,7 @@ public interface MusicCanvas<Anchor> {
      * @param y2 the second endpoint's vertical offset from the anchor
      * @param lineWidth the width of the line
      * @param color the colour of the line
-     * **/
+     */
     void drawLine(Anchor anchor1,  float x1, float y1, Anchor anchor2, float x2, float y2, float lineWidth, Color color);
     /**
      * Draws a straight line.
@@ -191,7 +191,7 @@ public interface MusicCanvas<Anchor> {
      * @param lineWidth the width of the line
      * @param color the colour of the line
      * @param reserveHeight if false, the line endpoints don't reserve space before the next stave (e.g. for pulse lines)
-     * **/
+     */
     void drawLine(Anchor anchor1,  float x1, float y1, Anchor anchor2, float x2, float y2, float lineWidth, Color color, boolean reserveHeight);
 
     /**
@@ -250,7 +250,7 @@ public interface MusicCanvas<Anchor> {
      * @param rx the horizontal radius
      * @param ry the vertical radius
      * @param fill if true, fills the ellipse black, otherwise the centre is white
-     * **/
+     */
     void drawEllipse(Anchor centre, float x, float y, float rx, float ry, boolean fill);
 
     /**
