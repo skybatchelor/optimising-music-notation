@@ -12,41 +12,79 @@ import java.util.List;
  * A musical clef.
  */
 public class Clef {
+    /**
+     * Gets the sign of the clef
+     * @return sign the sign of the clef
+     */
     public ClefSign getSign() {
         return sign;
     }
-    ClefSign sign;
-
+    private final ClefSign sign;
+    /**
+     * Gets the line the clef is drawn on
+     * The lineDistanceFromBottomOfClef property of ClefSign
+     * indicates which part of the clef goes on this line.
+     * @return line the line that the clef is drawn on
+     */
     public int getLine() {
         return line;
     }
 
-    int line;
-
+    private final int line;
+    /**
+     * Gets the number of octaves below or above the conventional octave the clef is.
+     * Default 0.
+     * @return octaveChange
+     */
     public int getOctaveChange() {
         return octaveChange;
     }
 
-    int octaveChange;
+    private final int octaveChange;
 
+    /**
+     * Make a clef with the given sign, with default positioning.
+     * @param sign the sign of the clef to make
+     */
     public Clef(ClefSign sign){
         this.sign = sign;
         this.line = sign.defaultLinesFromBottomOfStave;
         this.octaveChange = 0;
     }
 
+    /**
+     * Make a clef with the given sign which will be drawn on the given line.
+     * @param sign the sign of the clef to make
+     * @param line the line to draw the clef on
+     */
     public Clef(ClefSign sign, int line){
         this.sign = sign;
         this.line = line;
         this.octaveChange = 0;
     }
 
+    /**
+     * Make a clef with the given sign which will be drawn on the given line,
+     * changed by the given octaves.
+     * @param sign the sign of the clef to make
+     * @param line the line to draw the clef on
+     * @param octaveChange the number of octaves below or above the default octave for the clef
+     */
     public Clef(ClefSign sign, int line, int octaveChange) {
         this.sign = sign;
         this.line = line;
         this.octaveChange = octaveChange;
     }
 
+    /**
+     * Draw a clef
+     * @param canvas the canvas rendering the score
+     * @param line the line to draw the clef at the start of
+     * @param stave the stave to draw the clef on
+     * @param numAlterations the number of alterations in the key signature
+     *                       being drawn next to the clef
+     * @param <Anchor> the anchor type used by the canvas
+     */
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Line line, Stave stave, int numAlterations){
         Anchor anchor = canvas.getLineStartAnchor(new MusicalPosition(line, stave, 0));
         String clefPath = RenderingConfiguration.imgFilePath + "/clefs/" + this.toString().toLowerCase() + ".svg";
@@ -58,11 +96,21 @@ public class Clef {
         }
     }
 
+    /**
+     * Gets the sign name to a string
+     * @return the sign name as a string
+     */
     @Override
     public String toString() {
         return sign.toString();
     }
 
+    /**
+     * Convert a pitch name to a list of pitches between the bottom line of the stave
+     * and 3 spaces above the stave
+     * @param name the name of the pitch to convert
+     * @return a list of pitches with the given pitch name
+     */
     public List<Pitch> pitchNameToPitches(PitchName name){
         List<Pitch> retList = new ArrayList<>();
         List<PitchName> pitches = Arrays.stream(PitchName.values()).toList();
