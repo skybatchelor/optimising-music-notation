@@ -16,5 +16,12 @@ public abstract class ChordMarking {
         absoluteYOffset += y;
     }
     // takes in the Notehead anchor. Only change the offset when drawing articulations
+
+    /**
+     * Draws the chord marking.
+     * @param canvas the canvas rendering the score
+     * @param anchor the anchor of the notehead
+     * @param <Anchor> the anchor type used by the score
+     */
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Anchor anchor) {}
 }

@@ -16,6 +16,14 @@ public abstract class LineElement extends MusicGroup {
     protected final Line line;
     protected final Stave stave;
 
+    /**
+     * Creates a new line element with the given information.
+     * @param chords the chords which might affect the line's placement
+     * @param line the line the element is on
+     * @param stave the stave the element is on
+     * @param startPosition the start position of the element, which may be null for an element split by a newline
+     * @param endPosition the end position of the element, which may be null for an element split by a newline
+     */
     protected LineElement(List<Chord> chords, Line line, Stave stave, MusicalPosition startPosition, MusicalPosition endPosition) {
         super(chords);
         this.line = line;
