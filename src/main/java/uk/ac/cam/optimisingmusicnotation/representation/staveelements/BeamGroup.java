@@ -18,13 +18,10 @@ public class BeamGroup implements StaveElement {
      * Represents a secondary beam.
      */
     private static class Beam {
-        /**
-         *
-         */
-        int startIndex;
-        int endIndex;
+        int startIndex; /** The index of the chord in the beam group the beam starts at */
+        int endIndex; /** The index of the chord in the beam group the beam ends at */
         // Zero indexed beams
-        int number;
+        int number; /** The beam number. The 0th beam is the implicit beam between all the notes */
 
         public Beam(int startIndex, int endIndex, int number) {
             this.startIndex = startIndex;
@@ -42,15 +39,33 @@ public class BeamGroup implements StaveElement {
         beams = new ArrayList<>();
     }
 
+    /**
+     * Creates a BeamGroup with a given list of chords.
+     * @param chords the chords in the beam group
+     */
     public BeamGroup(List<Chord> chords) {
         this.chords = chords;
         beams = new ArrayList<>();
     }
 
+    /**
+     * Add a secondary beam to the beam group.
+     * @param startIndex the index of the chord which starts the secondary beam
+     * @param endIndex the index of the chord which ends the secondary beam
+     * @param number the number of the beam
+     */
     public void addBeam(int startIndex, int endIndex, int number) {
         beams.add(new Beam(startIndex, endIndex, number));
     }
 
+    /**
+     * Draws the beam group.
+     * It does this by first drawing the start and end chord, after which it modifies the middle chords' stem end anchors to account for the beam.
+     * It the draws all of the beam.
+     * @param canvas the canvas being used to render the score
+     * @param chordAnchorsMap the anchor map the chords are putting the anchors into
+     * @param <Anchor> the anchor type used by the canvas
+     */
     @Override
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Map<Chord, ChordAnchors<Anchor>> chordAnchorsMap) {
         // decide to draw the not stem upwards or downwards
