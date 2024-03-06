@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.TreeMap;
 
 /**
- * Holds music groups adjusted to belong to a given line
+ * Holds music groups adjusted to belong to a given line.
  */
 class InstantiatedMusicGroupTuple {
     Float startTime;

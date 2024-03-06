@@ -8,7 +8,7 @@ import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPositi
 import uk.ac.cam.optimisingmusicnotation.representation.properties.TimeSignature;
 
 /**
- * Holds pulse line information, adjusted to belong to a specific line
+ * Holds pulse line information, adjusted to belong to a specific line.
  */
 class InstantiatedPulseLineTuple {
     float timeInLine;

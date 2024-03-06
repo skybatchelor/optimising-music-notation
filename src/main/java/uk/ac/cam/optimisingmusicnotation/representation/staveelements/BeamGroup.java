@@ -31,7 +31,7 @@ public class BeamGroup implements StaveElement {
     }
 
     private final List<Chord> chords;
-    // The list of secondary beams. Note that beam groups always have an implicit first level beam.
+    /** The list of secondary beams. Note that beam groups always have an implicit first level beam. */
     private final List<Beam> beams;
 
     public BeamGroup() {
@@ -61,7 +61,7 @@ public class BeamGroup implements StaveElement {
     /**
      * Draws the beam group.
      * It does this by first drawing the start and end chord, after which it modifies the middle chords' stem end anchors to account for the beam.
-     * It the draws all of the beam.
+     * It the draws all the secondary beams.
      * @param canvas the canvas being used to render the score
      * @param chordAnchorsMap the anchor map the chords are putting the anchors into
      * @param <Anchor> the anchor type used by the canvas

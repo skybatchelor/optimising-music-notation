@@ -12,7 +12,7 @@ import uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmarki
 import java.util.List;
 
 /**
- * Holds information for chords adjusted to belong to a given line
+ * Holds information for chords adjusted to belong to a given line.
  */
 class InstantiatedChordTuple {
     List<Pitch> pitches;

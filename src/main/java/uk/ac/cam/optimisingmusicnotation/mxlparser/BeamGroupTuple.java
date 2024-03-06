@@ -6,7 +6,7 @@ import org.audiveris.proxymusic.Note;
 import java.util.*;
 
 /**
- * Represents information for a group of beamed notes during parsing
+ * Represents information for a group of beamed notes during parsing.
  */
 class BeamGroupTuple {
 

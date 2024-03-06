@@ -5,7 +5,7 @@ import uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType;
 import java.util.TreeMap;
 
 /**
- * Holds information for tempo markings
+ * Holds information for tempo markings.
  */
 class TempoTuple {
     float time;

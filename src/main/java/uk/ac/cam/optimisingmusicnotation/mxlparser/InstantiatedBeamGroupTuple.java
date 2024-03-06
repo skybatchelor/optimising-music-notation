@@ -9,7 +9,7 @@ import uk.ac.cam.optimisingmusicnotation.representation.staveelements.StaveEleme
 import java.util.*;
 
 /**
- * Holds information for a beam group on  a line
+ * Holds information for a beam group on  a line.
  */
 class InstantiatedBeamGroupTuple {
 

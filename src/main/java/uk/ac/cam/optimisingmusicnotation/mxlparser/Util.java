@@ -7,7 +7,7 @@ import java.util.TreeSet;
 import java.util.function.Supplier;
 
 /**
- * A class for performing common collection manipulations in the parser
+ * A class for performing common collection manipulations in the parser.
  */
 class Util {
     /**

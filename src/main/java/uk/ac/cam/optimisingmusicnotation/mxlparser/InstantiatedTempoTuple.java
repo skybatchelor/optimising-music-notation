@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.TreeMap;
 
 /**
- * Holds the tempo tuple adjusted to exist on a given line
+ * Holds the tempo tuple adjusted to exist on a given line.
  */
 class InstantiatedTempoTuple {
     float time;

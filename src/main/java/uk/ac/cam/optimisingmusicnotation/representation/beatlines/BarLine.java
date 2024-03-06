@@ -19,6 +19,7 @@ public class BarLine implements PulseLine {
         return musicalPosition;
     }
     private final MusicalPosition musicalPosition;
+    /** The name of the bar, typically its bar number */
     private final String barName;
 
     /**

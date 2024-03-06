@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.TreeMap;
 
 /**
- * Holds chord information as it is being parsed
+ * Holds chord information as it is being parsed.
  */
 class ChordTuple {
 
