@@ -70,6 +70,12 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     private final Map<String, PdfFont> fonts;
     private final PdfDocument pdf;
 
+    /**
+     * Creates a new canvas rendering to a given pdf.
+     * @param pdf the document to render to
+     * @param crotchetsPerLine the horizontal scale factor
+     * @param centreOffset the offset for the 'start' of the staves
+     */
     public PdfMusicCanvas(PdfDocument pdf, float crotchetsPerLine, float centreOffset) {
         lineAnchors = new ArrayList<>();
         leftLineAnchors = new ArrayList<>();

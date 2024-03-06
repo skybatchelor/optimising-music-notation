@@ -13,14 +13,29 @@ import java.util.List;
  */
 public class KeySignature {
 
+    /**
+     * Adds an alteration to this key signature at the given index.
+     * @param index the index to add the alteration at
+     * @param pitch the pitch being altered
+     * @param alteration the accidental applied to that pitch
+     */
     public void addAlteration(int index, PitchName pitch, Accidental alteration) {
         alterations.add(index, new Alteration(pitch, alteration));
     }
 
+    /**
+     * Adds an alteration to this key signature.
+     * @param pitch the pitch being altered
+     * @param alteration the accidental applied to that pitch
+     */
     public void addAlteration(PitchName pitch, Accidental alteration) {
         alterations.add(new Alteration(pitch, alteration));
     }
 
+    /**
+     * Gets a list of the alterations this key signature makes.
+     * @return the alterations
+     */
     public List<Alteration> getAlterations() {
         return alterations;
     }
@@ -59,6 +74,9 @@ public class KeySignature {
         }
     }
 
+    /**
+     * Holds a pitch name and an accidental, representing how a key signature alters the pitch of a given pitch name.
+     */
     public static class Alteration {
         public PitchName getAlteredPitch() {
             return alteredPitch;

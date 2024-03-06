@@ -21,6 +21,12 @@ public record ChordAnchors<Anchor>(Anchor lowestNotehead, Anchor highestNotehead
         return RenderingConfiguration.upwardStems ? lowestNotehead() : highestNotehead();
     }
 
+    /**
+     * Gets the lowest anchor of the chord.
+     * @param canvas the canvas rendering the score
+     * @param chord the chord which generated the anchors
+     * @return the lowest anchor
+     */
     public Anchor getLowestAnchor(MusicCanvas<Anchor> canvas, Chord chord) {
         if (chord.getNoteType().defaultLengthInCrotchets <= 2) {
             if (canvas.isAnchorBelow(lowestNotehead, stemEnd)) {
@@ -33,6 +39,12 @@ public record ChordAnchors<Anchor>(Anchor lowestNotehead, Anchor highestNotehead
         }
     }
 
+    /**
+     * Gets the highest anchor of the chord.
+     * @param canvas the canvas rendering the score
+     * @param chord the chord which generated teh anchors
+     * @return the highest anchor
+     */
     public Anchor getHighestAnchor(MusicCanvas<Anchor> canvas, Chord chord) {
         if (chord.getNoteType().defaultLengthInCrotchets <= 2) {
             if (canvas.isAnchorAbove(highestNotehead, stemEnd)) {

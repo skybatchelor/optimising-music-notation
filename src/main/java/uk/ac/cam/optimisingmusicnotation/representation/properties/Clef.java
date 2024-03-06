@@ -41,7 +41,7 @@ public class Clef {
         this.octaveChange = 0;
     }
 
-    public Clef(ClefSign sign, int line, int octaveChange){
+    public Clef(ClefSign sign, int line, int octaveChange) {
         this.sign = sign;
         this.line = line;
         this.octaveChange = octaveChange;

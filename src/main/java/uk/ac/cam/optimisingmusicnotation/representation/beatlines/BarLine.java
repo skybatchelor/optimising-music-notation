@@ -21,6 +21,10 @@ public class BarLine implements PulseLine {
     private final MusicalPosition musicalPosition;
     private final String barName;
 
+    /**
+     * Get the time signature attached to the bar line. Null if the bar line has no time signature attached.
+     * @return the time signature
+     */
     public TimeSignature getTimeSignature() {
         return timeSignature;
     }

@@ -12,6 +12,10 @@ import java.util.List;
  * The music for a single part.
  */
 public class Part {
+    /**
+     * The sections in this part
+     * @return this part's sections
+     */
     public List<Section> getSections() {
         return sections;
     }
@@ -21,6 +25,11 @@ public class Part {
     }
 
     private List<Section> sections;
+
+    /**
+     * The name of the instrument this part is for.
+     * @return the name of the instrument
+     */
     public String getName() {
         return name;
     }
@@ -28,6 +37,10 @@ public class Part {
     private String name;
     private String abbreviation;
 
+    /**
+     * Whether this part's stems should go up or down
+     * @return whether the stems should go up
+     */
     public boolean getUpwardsStems() {
         return upwardsStems;
     }
@@ -61,6 +74,13 @@ public class Part {
         sections.add(s);
     }
 
+    /**
+     * Renders a part using the given canvas, drawing the given work title and composer.
+     * @param canvas the canvas rendering the score
+     * @param workTitle the work title
+     * @param composer the composer
+     * @param <Anchor> the anchor type used by the canvas
+     */
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, String workTitle, String composer) {
         RenderingConfiguration.upwardStems = upwardsStems;
         try {
