@@ -92,7 +92,7 @@ public class Stave {
     }
 
     /**
-     * Draws a {@link Clef} and a {@link KeySignature}.
+     * Draws the stave with a {@link Clef} and a {@link KeySignature}.
      * @param canvas the canvas rendering the score
      * @param line the line the stave is one
      * @param clef the clef being rendered
