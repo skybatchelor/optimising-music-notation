@@ -403,7 +403,7 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
             image = images.get(fileName);
         }
 
-        // calculate width/height to preserve aspect ratio from original image rather than streching, if set to 0
+        // calculate width/height to preserve aspect ratio from original image rather than stretching, if set to 0
         if (width == 0) {
             width = (height / image.getHeight()) * image.getWidth();
         }
