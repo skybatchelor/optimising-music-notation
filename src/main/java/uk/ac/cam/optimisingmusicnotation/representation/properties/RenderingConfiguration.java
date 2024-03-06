@@ -15,7 +15,7 @@ import java.util.Objects;
  */
 public class RenderingConfiguration {
     /**
-     *
+     * Represents how tags might affect other settings. Primarily used for how different elements capitalise notes.
      */
     public enum NoneThisNext {
         NONE, THIS , NEXT
@@ -23,9 +23,13 @@ public class RenderingConfiguration {
 
 
     // Pulse line information
+    /** The width of sub beat / offbeat pulse lines */
     public static float subBeatLineWidth = 0.1f;
+    /** The width of beat pulse lines */
     public static float beatLineWidth = 0.201f;
+    /** The width of bar lines */
     public static float barLineWidth = 0.4f;
+    /** How high above a stave non-extended pulse lines are drawn */
     public static float pulseLineHeight = 5f;
 
     // Stave information
