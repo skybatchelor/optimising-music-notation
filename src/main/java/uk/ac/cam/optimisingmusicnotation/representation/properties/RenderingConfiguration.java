@@ -153,4 +153,6 @@ public class RenderingConfiguration {
             throw new RuntimeException(e);
         }
     }
+
+    private RenderingConfiguration() {}
 }
