@@ -362,7 +362,13 @@ public class Chord implements StaveElement {
         Pitch pitch;
         Accidental accidental;
 
-        // ties are represented as flags in Note;
+        /** Ties are represented as flags in Note
+         *  Both flags are false by default.
+         *  note.hasTieFrom is true if and only if there is a tie that starts from the node
+         *  note.hasTieTo is true if and only if there is a tie that ends at the node AND that the node where the tie starts is on the previous line.
+         *  Note that when there is a tie in a line, the note that the tie ends at should have hasTieTo to be false.
+         *
+         */
         boolean hasTieFrom;
         boolean hasTieTo;
 
