@@ -387,7 +387,7 @@ public class Parser {
     }
 
     /**
-     * Gets the staff from a BigInteger
+     * Gets the staff from a BigInteger.
      * @param staff the staff value to get
      * @return a non-null integer representing the staff number
      */
@@ -396,7 +396,7 @@ public class Parser {
     }
 
     /**
-     * Gets the voice from a String
+     * Gets the voice from a String.
      * @param voice the voice value to get
      * @return a non-null integer representing the voice number
      */
@@ -433,7 +433,7 @@ public class Parser {
     }
 
     /**
-     * Normalises the time for all the newlines
+     * Normalises the time for all the newlines.
      * @param newlines the newlines
      * @param integratedTime the integrated time list
      * @return the time normalised newlines
@@ -447,7 +447,7 @@ public class Parser {
     }
 
     /**
-     * Normalises the time for all the sections
+     * Normalises the time for all the sections.
      * @param newSections the new sections
      * @param integratedTime the integrated time list
      * @return the time normalised new sections
@@ -460,6 +460,12 @@ public class Parser {
         return normalisedSections;
     }
 
+    /**
+     * Generates section indices.
+     * @param newSections the set of new sections
+     * @param partSections the map of part sections
+     * @return a map of section indices
+     */
     static Map<Float, Integer> createSectionIndices(TreeSet<Float> newSections, TreeMap<String, List<TreeMap<Float, Line>>> partSections) {
         Map<Float, Integer> sectionIndices = new HashMap<>();
         int index = 0;
