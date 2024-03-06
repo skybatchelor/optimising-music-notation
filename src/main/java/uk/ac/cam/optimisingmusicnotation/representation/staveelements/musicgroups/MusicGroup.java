@@ -20,6 +20,13 @@ public abstract class MusicGroup implements StaveElement {
     public MusicGroup(List<Chord> chords){
         this.chords = chords;
     }
+
+    /**
+     * Draws the music group using the given canvas, and accounting for the anchors in the given anchor map.
+     * @param canvas the canvas being used to render the score
+     * @param chordAnchorsMap the generated anchors from drawing the chords
+     * @param <Anchor> the anchor type used by the canvas
+     */
     @Override
     abstract public <Anchor> void draw(MusicCanvas<Anchor> canvas, Map<Chord, ChordAnchors<Anchor>> chordAnchorsMap);
 }
