@@ -1,12 +1,8 @@
 package uk.ac.cam.optimisingmusicnotation.mxlparser;
 
-import com.itextpdf.kernel.geom.PageSize;
-import com.itextpdf.kernel.pdf.PdfDocument;
-import com.itextpdf.kernel.pdf.PdfWriter;
 import org.audiveris.proxymusic.*;
 import org.audiveris.proxymusic.Pitch;
 import org.audiveris.proxymusic.util.Marshalling;
-import uk.ac.cam.optimisingmusicnotation.rendering.PdfMusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.*;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.*;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.Clef;
@@ -20,9 +16,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.String;
 import java.math.BigInteger;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -30,6 +23,9 @@ import java.util.function.Function;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+/**
+ * A collection of static methods for parsing MusicXML into a {@link Score} object
+ */
 public class Parser {
     public static final boolean NEW_SECTION_FOR_KEY_SIGNATURE = true;
     public static final float EPSILON = 0.001f;
@@ -42,6 +38,11 @@ public class Parser {
     public static float startBpm = 120f;
 
 
+    /**
+     * Parses a given mxl object into a score
+     * @param mxl the mxl to parse
+     * @return the score representing the parsed mxl
+     */
     public static Score parseToScore(Object mxl) {
         if (mxl instanceof ScorePartwise partwise) {
             TreeMap<Float, Float> newlines = new TreeMap<>() {{ put(0f, 0f); }};
@@ -357,11 +358,20 @@ public class Parser {
         return null;
     }
 
+    /**
+     * Gets the staff from a BigInteger
+     * @param staff the staff value to get
+     * @return a non-null integer representing the staff number
+     */
     static int getStaff(BigInteger staff) {
         return staff == null ? 1 : staff.intValue();
     }
 
-
+    /**
+     * Gets the voice from a String
+     * @param voice the voice value to get
+     * @return a non-null integer representing the voice number
+     */
     static int getVoice(String voice) {
         if (voice != null) {
             return Integer.parseInt(voice);
@@ -590,15 +600,15 @@ public class Parser {
                 finalLines.get(part.getKey()).add(new InstantiatedLineTuple(newlinesList.get(i), tempLine));
                 for (var staffEntry : part.getValue().get(i).rests.entrySet()) {
                     Util.ensureCapacity(tempLine.getStaves(), () -> new Stave(tempLine, tempLine.getStaves().size()), staffEntry.getKey() - 1);
-                    Util.ensureKey(chords.get(i), HashMap::new, staffEntry.getKey());
-                    Util.ensureKey(rests.get(i), HashMap::new, staffEntry.getKey());
-                    Util.ensureKey(needsFlag.get(i), HashMap::new, staffEntry.getKey());
-                    Util.ensureKey(needsBeamlet.get(i), HashMap::new, staffEntry.getKey());
+                    chords.get(i).putIfAbsent(staffEntry.getKey(), new HashMap<>());
+                    rests.get(i).putIfAbsent(staffEntry.getKey(), new HashMap<>());
+                    needsFlag.get(i).putIfAbsent(staffEntry.getKey(), new HashMap<>());
+                    needsBeamlet.get(i).putIfAbsent(staffEntry.getKey(), new HashMap<>());
                     for (var voiceEntry : staffEntry.getValue().entrySet()) {
-                        Util.ensureKey(chords.get(i).get(staffEntry.getKey()), TreeMap::new, voiceEntry.getKey());
-                        Util.ensureKey(rests.get(i).get(staffEntry.getKey()), TreeMap::new, voiceEntry.getKey());
-                        Util.ensureKey(needsFlag.get(i).get(staffEntry.getKey()), HashMap::new, voiceEntry.getKey());
-                        Util.ensureKey(needsBeamlet.get(i).get(staffEntry.getKey()), HashMap::new, voiceEntry.getKey());
+                        chords.get(i).get(staffEntry.getKey()).putIfAbsent(voiceEntry.getKey(), new TreeMap<>());
+                        rests.get(i).get(staffEntry.getKey()).putIfAbsent(voiceEntry.getKey(), new TreeMap<>());
+                        needsFlag.get(i).get(staffEntry.getKey()).putIfAbsent(voiceEntry.getKey(), new HashMap<>());
+                        needsBeamlet.get(i).get(staffEntry.getKey()).putIfAbsent(voiceEntry.getKey(), new HashMap<>());
                         var fusedRests = InstantiatedRestTuple.fuseRestTuples(voiceEntry.getValue().values().stream().toList());
                         for (InstantiatedRestTuple restTuple : fusedRests) {
                             tempLine.getStaves().get(staffEntry.getKey() - 1)
@@ -609,15 +619,15 @@ public class Parser {
 
                 for (var staffEntry : part.getValue().get(i).beamGroups.entrySet()) {
                     Util.ensureCapacity(tempLine.getStaves(), () -> new Stave(tempLine, tempLine.getStaves().size()), staffEntry.getKey() - 1);
-                    Util.ensureKey(chords.get(i), HashMap::new, staffEntry.getKey());
-                    Util.ensureKey(rests.get(i), HashMap::new, staffEntry.getKey());
-                    Util.ensureKey(needsFlag.get(i), HashMap::new, staffEntry.getKey());
-                    Util.ensureKey(needsBeamlet.get(i), HashMap::new, staffEntry.getKey());
+                    chords.get(i).putIfAbsent(staffEntry.getKey(), new HashMap<>());
+                    rests.get(i).putIfAbsent(staffEntry.getKey(), new HashMap<>());
+                    needsFlag.get(i).putIfAbsent(staffEntry.getKey(), new HashMap<>());
+                    needsBeamlet.get(i).putIfAbsent(staffEntry.getKey(), new HashMap<>());
                     for (var voiceEntry : staffEntry.getValue().entrySet()) {
-                        Util.ensureKey(chords.get(i).get(staffEntry.getKey()), TreeMap::new, voiceEntry.getKey());
-                        Util.ensureKey(rests.get(i).get(staffEntry.getKey()), TreeMap::new, voiceEntry.getKey());
-                        Util.ensureKey(needsFlag.get(i).get(staffEntry.getKey()), HashMap::new, voiceEntry.getKey());
-                        Util.ensureKey(needsBeamlet.get(i).get(staffEntry.getKey()), HashMap::new, voiceEntry.getKey());
+                        chords.get(i).get(staffEntry.getKey()).putIfAbsent(voiceEntry.getKey(), new TreeMap<>());
+                        rests.get(i).get(staffEntry.getKey()).putIfAbsent(voiceEntry.getKey(), new TreeMap<>());
+                        needsFlag.get(i).get(staffEntry.getKey()).putIfAbsent(voiceEntry.getKey(), new HashMap<>());
+                        needsBeamlet.get(i).get(staffEntry.getKey()).putIfAbsent(voiceEntry.getKey(), new HashMap<>());
                         for (var beamTuple : voiceEntry.getValue().values()) {
                             beamTuple.addToAverager(averager);
                             tempLine.getStaves().get(staffEntry.getKey() - 1).addStaveElement(beamTuple.toBeamGroup(tempLine.getStaves().get(staffEntry.getKey() - 1), chords.get(i), needsFlag.get(i), needsBeamlet.get(i)));
@@ -1283,6 +1293,12 @@ public class Parser {
         }
     }
 
+    /**
+     * opens an mxl, or musicXML
+     * @param input the file name to be opened
+     * @return the an object representing the mxl file
+     * @throws IOException for a file which cannot be found
+     */
     public static Object openMXL(String input) throws IOException {
         try (FileInputStream xml = new FileInputStream(input)) {
             return Marshalling.unmarshal(xml);
@@ -1308,73 +1324,4 @@ public class Parser {
     }
 
     private Parser() {}
-
-    public static void main(String[] args) {
-        String target = "test_scores/TestScore2.mxl";
-        if (args.length > 0) {
-            target = args[0];
-        }
-
-        Object mxl;
-        try {
-            mxl = Parser.openMXL(target);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        Score score = Parser.parseToScore(mxl);
-        String outDir = "./out/"; // Output Directory
-        Path outDirPath = Paths.get(outDir);
-        if (!Files.exists(outDirPath)) {
-            try {
-                Files.createDirectory(outDirPath);
-            } catch (IOException e) {
-                System.err.println("Error while creating output directory path: ");
-                e.printStackTrace();
-            }
-        }
-
-        String outTarget = "output";
-
-        if (args.length > 2) {
-            outTarget = args[2];
-        }
-
-        int targetPart = 0;
-        if (args.length > 1) {
-            targetPart = Integer.parseInt(args[1]);
-        }
-
-        if (targetPart == -1) {
-            for (Part part : score.getParts()) {
-                try (PdfWriter writer = new PdfWriter(outDir + outTarget + "_" + part.getName() + ".pdf")) {
-                    PdfDocument pdf = new PdfDocument(writer);
-                    PageSize ps = PageSize.A4;
-                    pdf.addNewPage(ps);
-
-                    PdfMusicCanvas canvas = new PdfMusicCanvas(pdf, part.getMaxWidth(), part.getMinOffset());
-                    part.draw(canvas, score.getWorkTitle(), score.getComposer());
-                    pdf.close();
-                }
-                catch (Exception e) {
-                    System.err.println("Error while creating PDF: ");
-                    e.printStackTrace();
-                }
-            }
-        } else {
-            try (PdfWriter writer = new PdfWriter(outDir + outTarget + ".pdf")) {
-                PdfDocument pdf = new PdfDocument(writer);
-                PageSize ps = PageSize.A4;
-                pdf.addNewPage(ps);
-
-                Part testPart = score.getParts().get(targetPart);
-                PdfMusicCanvas canvas = new PdfMusicCanvas(pdf, testPart.getMaxWidth(), testPart.getMinOffset());
-                testPart.draw(canvas, score.getWorkTitle(), score.getComposer());
-                pdf.close();
-            }
-            catch (IOException e) {
-                System.err.println("Error while creating PDF: ");
-                e.printStackTrace();
-            }
-        }
-    }
 }

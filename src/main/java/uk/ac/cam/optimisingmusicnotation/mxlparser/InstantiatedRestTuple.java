@@ -9,6 +9,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.TreeMap;
 
+/**
+ * Holds information for a rest, adjusted to be on a given line
+ */
 class InstantiatedRestTuple {
     float startTime;
     float endTime;

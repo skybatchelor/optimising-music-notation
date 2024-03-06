@@ -4,6 +4,9 @@ import uk.ac.cam.optimisingmusicnotation.representation.properties.TimeSignature
 
 import java.util.TreeMap;
 
+/**
+ * Holds information for pulse lines
+ */
 class PulseLineTuple {
     float time;
     String name;

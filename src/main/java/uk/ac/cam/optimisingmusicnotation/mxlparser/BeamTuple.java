@@ -1,5 +1,8 @@
 package uk.ac.cam.optimisingmusicnotation.mxlparser;
 
+/**
+ * Represents secondary beams in a beam group
+ */
 class BeamTuple {
     int start;
     int end;

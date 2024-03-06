@@ -5,6 +5,9 @@ import org.audiveris.proxymusic.Note;
 
 import java.util.*;
 
+/**
+ * Represents information for a group of beamed notes during parsing
+ */
 class BeamGroupTuple {
 
     List<ChordTuple> chords;
@@ -133,7 +136,7 @@ class BeamGroupTuple {
         for (var entry : iChords.entrySet()) {
             var tuple = new InstantiatedBeamGroupTuple(staff, voice);
             tuple.chords = entry.getValue();
-            tuple.beams = Util.getListInMap(splitBeams, entry.getKey());
+            tuple.beams = splitBeams.getOrDefault(entry.getKey(), new ArrayList<>());
             target.get(lineIndices.get(newlines.floorKey(entry.getKey()))).addBeamGroup(tuple);
         }
     }

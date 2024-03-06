@@ -7,6 +7,9 @@ import uk.ac.cam.optimisingmusicnotation.representation.beatlines.PulseLine;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.MusicalPosition;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.TimeSignature;
 
+/**
+ * Holds pulse line information, adjusted to belong to a specific line
+ */
 class InstantiatedPulseLineTuple {
     float timeInLine;
     String name;
