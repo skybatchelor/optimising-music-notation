@@ -32,11 +32,11 @@ public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
     // TODO: make these configurable
     private final float LINE_WIDTH = 0.8f;
     private final float STAVE_SPACING = 5f;
-    private final float TOP_MARGIN = 10f;
+    private final float TOP_MARGIN = 8f;
     private final float BOTTOM_MARGIN = 1f;
     private final float DEFAULT_LINE_HEIGHT = 5f;
     private final float SPACE_ABOVE_LINE = 1.6f;
-    private final float RESERVED_HEIGHT_BELOW_LOWEST = 1f;
+    private final float RESERVED_HEIGHT_BELOW_LOWEST = 0.8f;
 
     private final float crotchetsPerLine;
     private final float leftOffset;
