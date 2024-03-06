@@ -2,7 +2,7 @@
 ## Sibelius Plugin
 
 ### Installing the plugin
-To load the plugin into Sibelius, copy `Mike.plg` into `%APPDATA%/Avid/Sibelius/Plugins/{CATEGORY}` where `{CATEGORY}` is the category you would like the plugin to appear in in the (alphabetically sorted) menu. On MacOS, the filepath is `~/Library/Application Support/Avid/Sibelius/Plugins/{CATEGORY}`.
+To load the plugin into Sibelius, copy `Stenberg.plg` into `%APPDATA%/Avid/Sibelius/Plugins/Stenberg` where `Stenberg` is the category you would like the plugin to appear in in the (alphabetically sorted) menu. On MacOS, the filepath is `~/Library/Application Support/Avid/Sibelius/Plugins/Stenberg`.
 
 You also need to install the converter program by running `stenbergconverter.msi` on Windows or `stenbergconverter.dmg` on MacOS and following the prompts.
 
@@ -10,7 +10,7 @@ You also need to install the converter program by running `stenbergconverter.msi
 With a Sibelius score open:
 - select the `Home` tab
 - open the `Plug-ins` dropdown
-- select `Mike` from `{CATEGORY}`
+- select `Convert to Stenberg Notation` from `Stenberg`
 - choose your destination (any extensions here will be ignored)
 - start the conversion and view the PDFs in your chosen output location
 
@@ -25,7 +25,7 @@ To pass on information only required in the novel notation, create a boxed lette
 ### Debugging the plugin
 If anything in the plugin itself goes wrong, the easiest way to debug is to add `trace` calls. Editing the plugin is done through `File -> Plug-ins -> Edit Plug-ins -> Mike (user copy) -> Edit...`.
 
-If something in the Java executable goes wrong, the error should be propagated through to Sibelius and appear as a MessageBox.
+If something in the Java executable goes wrong, the error should be propagated through to Sibelius and appear as a MessageBox. _This doesn't happen without `run.bat` and appropriate code changes within the `Convert` method_.
 
 ## Building installers
 
