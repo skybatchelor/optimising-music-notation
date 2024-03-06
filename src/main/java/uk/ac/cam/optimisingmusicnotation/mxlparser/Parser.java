@@ -379,6 +379,11 @@ public class Parser {
         return 1;
     }
 
+    /**
+     * Takes all the tempo changes, and produces an integrated time list, which has the time for each tempo change.
+     * @param tempoChanges the list of tempo changes
+     * @return the map of integrated time
+     */
     static TreeMap<Float, TempoChangeTuple> integrateTime(TreeMap<Float, Float> tempoChanges) {
         TreeMap<Float, TempoChangeTuple> integratedTime = new TreeMap<>() {{ put(0f, new TempoChangeTuple(0f, 0f, TIME_NORMALISATION_FACTOR / tempoChanges.firstEntry().getValue())); }};
         if (TIME_NORMALISED_PARSING) {
@@ -399,6 +404,12 @@ public class Parser {
         return integratedTime;
     }
 
+    /**
+     * Normalises the time for all the newlines
+     * @param newlines the newlines
+     * @param integratedTime the integrated time list
+     * @return the time normalised newlines
+     */
     static TreeMap<Float, Float> normalisedNewlines(TreeMap<Float, Float> newlines, TreeMap<Float, TempoChangeTuple> integratedTime) {
         var normalisedNewlines = new TreeMap<Float, Float>();
         for (var newline : newlines.entrySet()) {
@@ -407,6 +418,12 @@ public class Parser {
         return normalisedNewlines;
     }
 
+    /**
+     * Normalises the time for all the sections
+     * @param newSections the new sections
+     * @param integratedTime the integrated time list
+     * @return the time normalised new sections
+     */
     static TreeSet<Float> normalisedSections(TreeSet<Float> newSections, TreeMap<Float, TempoChangeTuple> integratedTime) {
         var normalisedSections = new TreeSet<Float>();
         for (var newSection : newSections) {
@@ -428,6 +445,17 @@ public class Parser {
         return sectionIndices;
     }
 
+    /**
+     * Populates a map of lists of {@link LineTuple}s with the information from a map of {@link ParsingPartTuple}s.
+     * Converts tuples from their base forms to their instantiated forms.
+     * @param partLines the map of lists of line tuples to populate
+     * @param parsingParts the map of parsing part tuples to convert
+     * @param tempoMarkings the list of tempo markings to add
+     * @param newlines the time normalised newlines
+     * @param lineIndices a map converting from a time start line to a newline number
+     * @param integratedTime the integrated time
+     * @return partLines
+     */
     static TreeMap<String, List<LineTuple>> populatePartLines(TreeMap<String, List<LineTuple>> partLines,
                                                               TreeMap<String, ParsingPartTuple> parsingParts,
                                                               TreeMap<Float, TempoTuple> tempoMarkings,
@@ -548,6 +576,10 @@ public class Parser {
         return partLines;
     }
 
+    /**
+     * Decide which lines need to have their pulse lines extended.
+     * @param lines the lines to process
+     */
     static void parseLineExtensions(List<LineTuple> lines) {
         for (int i = 0; i < lines.size() - 1; ++i) {
             int j = i;
@@ -562,6 +594,13 @@ public class Parser {
         }
     }
 
+    /**
+     * A function to test whether a pulse line matches a pulse line in the other line.
+     * @param tuple the pulse line to compare
+     * @param line the line tuple holding the pulse line being used
+     * @param other the line tuple to compare against
+     * @return whether there is a match or not
+     */
     static boolean matchPulseLine(InstantiatedPulseLineTuple tuple, LineTuple line, LineTuple other) {
         if (tuple.beatWeight > 1) return true;
         float position = tuple.timeInLine + line.offset;
@@ -573,6 +612,15 @@ public class Parser {
         });
     }
 
+    /**
+     * Converts a map of lists of {@link LineTuple}s to a map of lists of {@link Line}s.
+     * @param newlines the newlines
+     * @param partLines the map of the lists
+     * @param lineLengths the lengths of the lines
+     * @param lineOffsets the offsets of the lines
+     * @param parsingPart the parsing information
+     * @return the map of lists of lines
+     */
     static TreeMap<String, List<InstantiatedLineTuple>> instantiateLines(TreeMap<Float, Float> newlines, TreeMap<String, List<LineTuple>> partLines,
                                                                          List<Float> lineLengths, List<Float> lineOffsets, TreeMap<String, ParsingPartTuple> parsingPart) {
         TreeMap<String, List<InstantiatedLineTuple>> finalLines = new TreeMap<>();
@@ -746,6 +794,14 @@ public class Parser {
         return finalLines;
     }
 
+    /**
+     * Collates the lines into groups according to their sections.
+     * @param partSections the map of lists of lines
+     * @param finalLines the map of list of instantiated lines
+     * @param newSections the set of new sections
+     * @param sectionIndices the map converting section start times to section indices
+     * @return a map of lists of maps of lines
+     */
     static TreeMap<String, List<TreeMap<Float, Line>>> populatePartSections(TreeMap<String, List<TreeMap<Float, Line>>> partSections,
                                                                             TreeMap<String, List<InstantiatedLineTuple>> finalLines,
                                                                             TreeSet<Float> newSections, Map<Float, Integer> sectionIndices) {
@@ -760,6 +816,12 @@ public class Parser {
         return partSections;
     }
 
+    /**
+     * Groups the collated line sections in a map of lists of sections.
+     * @param partSections the collated lines
+     * @param parsingParts the parsing information
+     * @return the map of lists of sections
+     */
     static TreeMap<String, List<Section>> finaliseSections(TreeMap<String, List<TreeMap<Float, Line>>> partSections, TreeMap<String, ParsingPartTuple> parsingParts) {
         TreeMap<String, List<Section>> finalSections = new TreeMap<>();
 
@@ -781,6 +843,11 @@ public class Parser {
         return finalSections;
     }
 
+    /**
+     * Gets the work title of a score.
+     * @param score the score to get the work title from
+     * @return the work title
+     */
     static String getWorkTitle(ScorePartwise score) {
         if (score.getWork() != null && score.getWork().getWorkTitle() != null) {
             return score.getWork().getWorkTitle();
@@ -788,6 +855,11 @@ public class Parser {
         return "";
     }
 
+    /**
+     * Gets the composer of a score.
+     * @param score the score to get the composer from
+     * @return the composer
+     */
     static String getComposer(ScorePartwise score) {
         if (score.getIdentification() != null && score.getIdentification().getCreator() != null) {
             var composers = new ArrayList<String>();
@@ -801,6 +873,14 @@ public class Parser {
         return "";
     }
 
+    /**
+     * Converts a given time into a normalised time.
+     * The initial time is given in crotchets since the start of the piece.
+     * The resulting time is the normalised time, which may be tempo normalised depending on the parsing settings.
+     * @param time the crotchets from the start of the piece
+     * @param integratedTime the list of integrated time changes
+     * @return the normalised time
+     */
     static float normaliseTime(float time, TreeMap<Float, TempoChangeTuple> integratedTime) {
         if (TIME_NORMALISED_PARSING) {
             var timeEntry = integratedTime.floorEntry(time);
@@ -814,13 +894,26 @@ public class Parser {
         }
     }
 
+    /**
+     * Converts a given duration at a given time into a normalised time.
+     * The initial time is given in crotchets since the start of the piece. The duration is given in crotchets.
+     * The resulting duration is the normalised duration, which may be tempo normalised depending on the parsing settings.
+     * @param time the crotchets from the start of the piece
+     * @param duration the duration to be normalised
+     * @param integratedTime the list of integrated time changes
+     * @return the normalised time
+     */
     static float normaliseDuration(float time, float duration, TreeMap<Float, TempoChangeTuple> integratedTime) {
         var startTime = normaliseTime(time, integratedTime);
         var endTime = normaliseTime(time + duration, integratedTime);
         return endTime - startTime;
     }
 
-    // translates a pitch into the number of lines above the root of C0.
+    /**
+     * Translates a pitch into the number of spaces and lines, that is named pitches, above the root of C0.
+     * @param pitch the pitch to translate
+     * @return the number of spaces and lines above the root of C0
+     */
     static int pitchToGrandStaveLine(Pitch pitch) {
         return switch (pitch.getStep()) {
             case C -> 0;
@@ -833,7 +926,11 @@ public class Parser {
         } + 7 * pitch.getOctave();
     }
 
-    // translates a pitch into the number of lines above the root of C0.
+    /**
+     * Translates a pitch into the number of spaces and lines, that is named pitches, above the root of C0.
+     * @param unpitched the pitch to translate
+     * @return the number of spaces and lines above the root of C0
+     */
     static int pitchToGrandStaveLine(Unpitched unpitched) {
         return switch (unpitched.getDisplayStep()) {
             case C -> 0;
@@ -846,6 +943,12 @@ public class Parser {
         } + 7 * unpitched.getDisplayOctave();
     }
 
+    /**
+     * Translates a pitch into the number of spaces and lines, that is named pitches, above the root of C0.
+     * @param step the pitch name
+     * @param octave the octave of the pitch
+     * @return the number of spaces and lines above the root of C0
+     */
     static int pitchToGrandStaveLine(Step step, int octave) {
         return switch (step) {
             case C -> 0;
@@ -877,6 +980,16 @@ public class Parser {
         };
     }
 
+    /**
+     * Determines if a direction marks a newline.
+     * If so, it calls addNewline with the line start time and offset, and then returns true.
+     * Otherwise, it returns false.
+     * @param formattedText the text being checked
+     * @param time the time of the text
+     * @param offset the offset for the newline
+     * @param addNewline a function to add a newline
+     * @return whether a newline was successfully added or not
+     */
     static boolean isNewline(FormattedTextId formattedText, float time, float offset, BiConsumer<Float, Float> addNewline) {
         String text = formattedText.getValue().toLowerCase();
         if (text.equals("n") && formattedText.getEnclosure() == EnclosureShape.RECTANGLE) {
@@ -889,6 +1002,17 @@ public class Parser {
         return false;
     }
 
+
+    /**
+     * Determines if a direction marks a new section.
+     * If so, it calls addNewSection with the line start time and offset, and then returns true.
+     * Otherwise, it returns false.
+     * @param formattedText the text being checked
+     * @param time the time of the text
+     * @param offset the offset for the newline
+     * @param addNewSection a function to add a new section
+     * @return whether a new section was successfully added or not
+     */
     static boolean isNewSection(FormattedTextId formattedText, float time, float offset, BiConsumer<Float, Float> addNewSection) {
         String text = formattedText.getValue().toLowerCase();
         if (text.equals("s") && formattedText.getEnclosure() == EnclosureShape.RECTANGLE) {
@@ -901,6 +1025,16 @@ public class Parser {
         return false;
     }
 
+    /**
+     * Determines if a direction is a pulse directive, changing the pulse line layout.
+     * If so, it changes the pulse settings on the time signature, adds the change, and return true.
+     * Otherwise, it returns false.
+     * @param formattedText the text being checked
+     * @param time the time of the text
+     * @param beatChanges a record of all the beat changes in the score
+     * @param timeSig the current time signature
+     * @return whether this was a pulse line directive or not
+     */
     static boolean isPulseDirective(FormattedTextId formattedText, float time, TreeMap<Float, List<TimeSignature.BeatTuple>> beatChanges, TimeSignature timeSig) {
         String text = formattedText.getValue().toLowerCase();
         String pulseRules;
@@ -941,6 +1075,15 @@ public class Parser {
         }
     }
 
+    /**
+     * Determines if a direction is for adding a breath whitespace or not.
+     * If so, it calls addArtisticWhitespace with the voice number and the start time and returns true.
+     * Otherwise, it returns false.
+     * @param formattedText the text being checked
+     * @param time the time of the text
+     * @param addArtisticWhitespace the function to add breath whitespace
+     * @return whether the directive added a breath whitespace or not
+     */
     static boolean isArtisticWhitespace(FormattedTextId formattedText, float time, BiConsumer<Integer, Float> addArtisticWhitespace) {
         String text = formattedText.getValue().toLowerCase();
         if (text.startsWith("w") && formattedText.getEnclosure() == EnclosureShape.RECTANGLE) {
@@ -970,6 +1113,15 @@ public class Parser {
         return false;
     }
 
+    /**
+     * Determines if a directive is a capital note directive.
+     * If so, it adds the capital note and returns true.
+     * Otherwise, it returns false.
+     * @param formattedText the text being checked
+     * @param time the time of the text
+     * @param addCapitalNote a function to add a capital note
+     * @return whether a capital note was added or not
+     */
     static boolean isCapitalNote(FormattedTextId formattedText, float time, BiConsumer<Integer, Float> addCapitalNote) {
         String text = formattedText.getValue().toLowerCase();
         if (text.startsWith("c") && formattedText.getEnclosure() == EnclosureShape.RECTANGLE) {
@@ -1000,6 +1152,21 @@ public class Parser {
     }
 
     static List<MusicGroupType> wedgeGroups = new ArrayList<>(2) {{ add(MusicGroupType.DIM); add(MusicGroupType.CRESC); }};
+
+    /**
+     * Parses a music directive.
+     * @param target the music group tuples to add to
+     * @param currentPart the current part being parsed
+     * @param direction the direction to parse
+     * @param time the time the direction occurs at
+     * @param newlineOffset the time offset a newline would need
+     * @param beatChanges the beat changes map used to track all beat changes in a score
+     * @param timeSig the current time signature
+     * @param addNewline the function to add newlines
+     * @param addNewSection the function to add new sections
+     * @param addArtisticWhitespace the function to add breath whitespaces
+     * @param addCapital the function to add capital notes
+     */
     static void parseMusicDirective(TreeMap<MusicGroupType, TreeMap<Integer, MusicGroupTuple>> target, ParsingPartTuple currentPart, Direction direction,
                                     float time, float newlineOffset,
                                     TreeMap<Float, List<TimeSignature.BeatTuple>> beatChanges, TimeSignature timeSig,
@@ -1077,6 +1244,15 @@ public class Parser {
         }
     }
 
+    /**
+     * Parses a tempo marking, and returns the new tempo.
+     * @param tempoMarkings the tempo marking to parse
+     * @param tempoChanges the map of tempo changes
+     * @param currentTempo the current tempo
+     * @param direction the direction the tempo was in
+     * @param time the time the tempo marking occurs at
+     * @return the new tempo
+     */
     static float parseTempoMarking(TreeMap<Float, TempoTuple> tempoMarkings, TreeMap<Float, Float> tempoChanges, float currentTempo, Direction direction, float time) {
         if (direction.getDirectionType() != null) {
             for (DirectionType directionType : direction.getDirectionType()) {
@@ -1126,6 +1302,14 @@ public class Parser {
         return currentTempo;
     }
 
+    /**
+     * Parses slurs and ties from within notes.
+     * @param target the music group map to add to
+     * @param currentPart the current part being parsed
+     * @param divisions the current time divisions
+     * @param note the note being processed
+     * @param time the time the note starts at
+     */
     static void parseSlurs(TreeMap<MusicGroupType, TreeMap<Integer, MusicGroupTuple>> target, ParsingPartTuple currentPart, int divisions, Note note, float time) {
         if (note.getNotations() != null) {
             for (var notation : note.getNotations()) {
@@ -1176,6 +1360,11 @@ public class Parser {
         }
     }
 
+    /**
+     * Parses time signatures.
+     * @param timeSignature the time signature to parse
+     * @return the parsed time signature.
+     */
     static TimeSignature parseTimeSignature(List<JAXBElement<String>> timeSignature) {
         if (timeSignature != null) {
             TimeSignature ret = new TimeSignature();
@@ -1192,6 +1381,12 @@ public class Parser {
         return null;
     }
 
+    /**
+     * Parses key signatures.
+     * @param keySignature the key signature to parse
+     * @param currentKeySignature the current key signature
+     * @return the parsed key signature.
+     */
     static KeySignature parseKeySignature(Key keySignature, KeySignature currentKeySignature) {
         if (keySignature != null) {
             KeySignature ret = new KeySignature();
@@ -1241,6 +1436,11 @@ public class Parser {
         return null;
     }
 
+    /**
+     * Gets the grand stave line (named pitches above C0) for the lowest stave line for a stave marked by the given clef
+     * @param clef the given clef
+     * @return the lowest grand stave line of the lowest stave line
+     */
     static int clefToLowestLineGrandStaveLine(uk.ac.cam.optimisingmusicnotation.representation.properties.Clef clef) {
         return switch (clef.getSign()) {
             case C -> pitchToGrandStaveLine(Step.C, 4);
@@ -1280,6 +1480,14 @@ public class Parser {
         throw new IllegalArgumentException("Unknown clef symbol");
     }
 
+    /**
+     * Adds pulse lines after parsing a measure
+     * @param timeSig the current time signature
+     * @param measureStartTime the start time of the measure
+     * @param pulseLines the list to add the pulse lines to
+     * @param measureName the name of the measure, typically the bar number
+     * @param displaySig the time signature to display, which is null if no time signature needs to be displayed
+     */
     static void addPulseLines(TimeSignature timeSig, float measureStartTime, List<PulseLineTuple> pulseLines, String measureName, TimeSignature displaySig) {
         float fromStartTime = 0;
         for (var beatTuple : timeSig.getBeatPattern()) {
