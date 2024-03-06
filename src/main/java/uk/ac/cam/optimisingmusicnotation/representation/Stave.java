@@ -21,6 +21,10 @@ public class Stave {
     private final List<MusicGroup> musicGroups;
     private final Line line;
 
+    /**
+     * Gets the number of this stave in the given line
+     * @return the stave number
+     */
     public int getStaveNumber() {
         return staveNumber;
     }
@@ -42,19 +46,37 @@ public class Stave {
         this.whitespaces = whitespaces;
         this.musicGroups = musicGroups;
     }
-  
+
+    /**
+     * Adds a {@link Whitespace} to this stave.
+     * @param whitespace the whitespace to add
+     */
     public void addWhiteSpace(Whitespace whitespace) {
         whitespaces.add(whitespace);
     }
-  
+
+    /**
+     * Adds a {@link StaveElement} to this stave.
+     * @param staveElement the stave element to add
+     */
     public void addStaveElement(StaveElement staveElement) {
         staveElements.add(staveElement);
     }
 
+    /**
+     * Adds a {@link MusicGroup} to this stave.
+     * @param musicGroup the music group to add
+     */
     public void addMusicGroup(MusicGroup musicGroup) {
         musicGroups.add(musicGroup);
     }
 
+    /**
+     * Draws the given stave. Works by drawing the whitespaces, then the stave elements then the music groups, and then the stave lines.
+     * @param canvas the canvas rendering the score
+     * @param line the line the stave is being rendered on
+     * @param <Anchor> the anchor type used by the canvas
+     */
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Line line) {
         for (Whitespace w : whitespaces) {
             w.draw(canvas, line);
@@ -69,6 +91,14 @@ public class Stave {
         drawStaveLines(canvas, line);
     }
 
+    /**
+     * Draws a {@link Clef} and a {@link KeySignature}.
+     * @param canvas the canvas rendering the score
+     * @param line the line the stave is one
+     * @param clef the clef being rendered
+     * @param keySignature the key signature being rendered
+     * @param <Anchor> the anchor type used by the canvas
+     */
     public <Anchor> void drawWithClefAndKeySig(MusicCanvas<Anchor> canvas, Line line, Clef clef, KeySignature keySignature) {
         drawClefAndKey(canvas, clef, keySignature);
         draw(canvas, line);
