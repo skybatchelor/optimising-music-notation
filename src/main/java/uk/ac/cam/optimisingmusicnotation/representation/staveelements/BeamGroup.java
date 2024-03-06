@@ -9,10 +9,18 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A collection of chords beamed together. Its primary responsibility is to alter the stems of chords in the middle of the group to meet the beam.
+ * A collection of chords beamed together.
+ * Its primary responsibility is to alter the stems of chords in the middle of the group to meet the beam.
+ * Beam groups have an implicit beam connecting all of the notes.
  */
 public class BeamGroup implements StaveElement {
+    /**
+     * Represents a secondary beam.
+     */
     private static class Beam {
+        /**
+         *
+         */
         int startIndex;
         int endIndex;
         // Zero indexed beams

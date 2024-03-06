@@ -12,7 +12,7 @@ import java.util.TreeMap;
 /**
  * Holds the tempo tuple adjusted to exist on a given line
  */
-public class InstantiatedTempoTuple {
+class InstantiatedTempoTuple {
     float time;
     NoteType leftItem;
     int leftDots;
