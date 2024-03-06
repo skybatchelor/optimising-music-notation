@@ -227,10 +227,10 @@ public class Chord implements StaveElement {
             if (!(marking instanceof StrongAccent)) {
                 marking.increaseYOffset(cumulatedYOffsetIncrease);
                 marking.draw(canvas, noteAnchor);
-                cumulatedYOffsetIncrease += 1;
+                cumulatedYOffsetIncrease += 1; // increase by one for each articulation
             }
         }
-
+        // high anchor and low anchor for drawing strong accent (Marcato)
         Anchor highAnchor = canvas.getAnchor(musicalPosition, new Pitch(9, 0, 0));
         Anchor lowAnchor = canvas.getAnchor(musicalPosition, new Pitch(-1, 0, 0));
 
