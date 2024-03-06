@@ -36,28 +36,47 @@ public class RenderingConfiguration {
     public static float staveLineWidth = 0.1f;
 
     // Note information
+    /** How wide stems are drawn */
     public static float stemWidth = 0.15f;
+    /** Whether stems are drawn upwards or not. Changed by each part */
     public static boolean upwardStems = false;
+    /** The length of stems */
     public static float stemLength = 3f;
+    /** The height of the space between a note and the pulse lines */
     public static float gapHeight = 0.125f;
+    /** How wide ledger lines are */
     public static float ledgerLineWidth = 1.5f;
+    /** The radius of dots used for dotted notes */
     public static float dotRadius = 0.2f;
+    /** The space between dots used for dotted notes */
     public static float dotSpacing = 0.2f;
+    /** The base radius of a notehead */
     public static float noteheadRadius = 0.5f;
 
     // Capital information
+    /** Whether a new section does not capitalise a note, capitalises the note below it, or capitalises the next available note */
     public static NoneThisNext newSectionAddsCapital = NoneThisNext.NEXT;
+    /** Whether a newline does not capitalise a note, capitalises the note below it, or capitalises the next available note */
     public static NoneThisNext newlineAddsCapital = NoneThisNext.NONE;
+    /** Whether a breath whitespace does not capitalise a note, capitalises the note below it, or capitalises the next available note */
     public static NoneThisNext artisticWhitespaceAddsCapital = NoneThisNext.THIS;
+    /** The factor by which capitalised notes are made larger */
     public static float capitalScaleFactor = 1.333f;
 
     // Beaming information
+    /** What proportion of the duration of the note are filled by hooks in beams */
     public static float hookRatio = 0.5f;
+    /** Whether a single hook should hook left */
     public static boolean hookSingleLeft = false;
+    /** Whether all secondary beams should hook left */
     public static boolean hookAllLeft = false;
+    /** Whether a single hook should hook right */
     public static boolean hookSingleRight = true;
+    /** Whether all secondary beams should hook right */
     public static boolean hookAllRight = false;
+    /** Whether the chord at the start of a beam group should be hooked. If so, it is hooked right. Primarily used in conjunction with flag settings */
     public static boolean hookStart = true;
+    /** Whether the chord at the end of a beam group should be hooked. If so, it is hooked left. Primarily used in conjunction with flag settings */
     public static boolean hookEnd = true;
     public static float beamWidth = 0.5f;
     public static float gapBetweenBeams = 0.25f;
