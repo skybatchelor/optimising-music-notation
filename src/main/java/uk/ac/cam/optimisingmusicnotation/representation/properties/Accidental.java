@@ -11,6 +11,10 @@ public enum Accidental {
     NATURAL,
     NONE;
 
+    /**
+     * Get the number of semitones implied by the Accidental
+     * @return a number of semitones
+     */
     public int getSemitoneOffset() {
         return switch (this) {
             case SHARP -> 1;
