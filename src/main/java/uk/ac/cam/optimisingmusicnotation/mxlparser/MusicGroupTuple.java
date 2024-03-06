@@ -4,6 +4,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+/**
+ * A tuple for a music group before it is placed on a line.
+ */
 class MusicGroupTuple {
     float startTime;
     float endTime;
