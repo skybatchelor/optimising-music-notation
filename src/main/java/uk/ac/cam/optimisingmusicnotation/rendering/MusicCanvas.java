@@ -9,6 +9,10 @@ import java.awt.*;
 import java.io.IOException;
 import java.util.function.BiFunction;
 
+/**
+ * An interface for the abstract drawing functions.
+ * @param <Anchor> the type of the physical anchor the canvas uses
+ */
 public interface MusicCanvas<Anchor> {
 
     /**
