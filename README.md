@@ -33,3 +33,5 @@ To build an installer for the converter program, first run `maven clean package`
 
 - For Windows, run `jpackage --input . --name stenbergconverter --main-jar <jar name> --main-class uk.ac.cam.optimisingmusicnotation.Main --type msi --win-console`
 - For MacOS, run `jpackage --input . --name stenbergconverter --main-jar <jar name> --main-class uk.ac.cam.optimisingmusicnotation.Main --type dmg`
+
+Ensure `jar` and `jpackage` use the same version of Java (>=17).
