@@ -183,6 +183,17 @@ public class Chord implements StaveElement {
         return chordAnchors;
     }
 
+    /**
+     * Statically draws a chord, with a notehead positioned at the given anchor.
+     * Primarily used by {@link uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.TempoMarking}.
+     * @param canvas the canvas rendering the score
+     * @param anchor the anchor for the notehead
+     * @param noteType the type of note being rendered
+     * @param dots how many dots the note needs
+     * @param timeScaleFactor the timescale factor, used for the flags
+     * @param scaleFactor the scale factor of the note
+     * @param <Anchor> the anchor type used by the canvas
+     */
     public static <Anchor> void draw(MusicCanvas<Anchor> canvas, Anchor anchor, NoteType noteType, int dots, float timeScaleFactor, float scaleFactor) {
         ChordAnchors<Anchor> chordAnchors = computeAnchors(canvas, anchor, scaleFactor);
 
