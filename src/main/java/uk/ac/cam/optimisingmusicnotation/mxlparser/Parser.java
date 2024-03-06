@@ -375,7 +375,7 @@ public class Parser {
                                             partLines, parsingParts, tempoMarkings, nNewlines, lineIndices, integratedTime),
                                     lineLengths, lineOffsets, parsingParts),
                             nNewSections, sectionIndices),
-                    parsingParts);
+                    parsingParts, integratedTime);
 
             for (Map.Entry<String, List<Section>> part : finalSections.entrySet()) {
                 parts.get(part.getKey()).setSections(part.getValue());
@@ -880,10 +880,19 @@ public class Parser {
      * @param parsingParts the parsing information
      * @return the map of lists of sections
      */
-    static TreeMap<String, List<Section>> finaliseSections(TreeMap<String, List<TreeMap<Float, Line>>> partSections, TreeMap<String, ParsingPartTuple> parsingParts) {
+    static TreeMap<String, List<Section>> finaliseSections(TreeMap<String, List<TreeMap<Float, Line>>> partSections,
+                                                           TreeMap<String, ParsingPartTuple> parsingParts,
+                                                           TreeMap<Float, TempoChangeTuple> integratedTime) {
         TreeMap<String, List<Section>> finalSections = new TreeMap<>();
 
+        TreeMap<Float, KeySignature> normalisedKeySignatures = new TreeMap<>();
+
         for (Map.Entry<String, List<TreeMap<Float, Line>>> part : partSections.entrySet()) {
+
+            for (var entry : parsingParts.get(part.getKey()).keySignatures.entrySet()) {
+                normalisedKeySignatures.put(normaliseTime(entry.getKey(), integratedTime), entry.getValue());
+            }
+
             List<Section> sections = new ArrayList<>();
             for (TreeMap<Float, Line> lines : part.getValue()) {
                 if (lines.size() != 0) {
@@ -893,10 +902,11 @@ public class Parser {
                     }
                     sections.add(new Section(lines.values().stream().toList(),
                             clefs,
-                            parsingParts.get(part.getKey()).keySignatures.floorEntry(lines.firstKey()).getValue()));
+                            normalisedKeySignatures.floorEntry(lines.firstKey()).getValue()));
                 }
             }
             finalSections.put(part.getKey(), sections);
+            normalisedKeySignatures.clear();
         }
         return finalSections;
     }
