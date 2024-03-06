@@ -4,7 +4,7 @@ import uk.ac.cam.optimisingmusicnotation.rendering.MusicCanvas;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConfiguration;
 
 public class StrongAccent extends ChordMarking {
-    // TODO: Should this be Marcato?
+    // Marcato
     protected float amendYOffset = .5f;
     @Override
     public float signedYOffset() {
