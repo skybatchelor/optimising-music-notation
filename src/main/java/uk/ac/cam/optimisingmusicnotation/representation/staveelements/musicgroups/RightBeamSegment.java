@@ -50,7 +50,7 @@ public class RightBeamSegment extends MusicGroup {
             );
         }
         int sign = RenderingConfiguration.upwardStems ? 1 : -1;
-        for (int i = 0; i <= maxBeam && i <= RenderingConfiguration.beamletLimit; ++i) {
+        for (int i = 0; i <= maxBeam && (i <= RenderingConfiguration.beamletLimit || flag); ++i) {
             float beamOffset = -(sign * i * RenderingConfiguration.beamWidth
                     + sign * RenderingConfiguration.gapBetweenBeams * i + sign * RenderingConfiguration.beamOffset);
             canvas.drawBeam(
