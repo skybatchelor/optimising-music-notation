@@ -11,6 +11,13 @@ import java.util.List;
  * Represents a time signature on the score.
  */
 public class TimeSignature {
+
+    /**
+     * Represents a beat in the type signature, which is used to change the rendered pulse lines.
+     * @param durationInUnits the duration of the beat tuple in the supplied beat units
+     * @param beatType the type of note used as the unit
+     * @param subBeats how many sub beats the beat should have
+     */
     public record BeatTuple(int durationInUnits, int beatType, int subBeats) {
 
     }
@@ -51,7 +58,13 @@ public class TimeSignature {
         this.beatPattern = defaultBeatPatterns(beatNum, beatType);
     }
 
-    public List<BeatTuple> defaultBeatPatterns(int beatNum, int beatType) {
+    /**
+     * Gets the default beat patterns for a time signature.
+     * @param beatNum the number of beats in the time signature
+     * @param beatType the type of beat from the time signature
+     * @return the default beat pattern
+     */
+    public static List<BeatTuple> defaultBeatPatterns(int beatNum, int beatType) {
         switch (beatNum) {
             case 5 -> {
                 return new ArrayList<>() {{ add(new BeatTuple(3, beatType, 3));

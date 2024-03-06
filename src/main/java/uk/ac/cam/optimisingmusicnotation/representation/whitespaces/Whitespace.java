@@ -16,11 +16,21 @@ public interface Whitespace {
         return getEndMusicalPosition().crotchetsIntoLine();
     }
 
+    /**
+     * Creates a copy of this whitespace on the next line
+     * @param line the next line
+     * @return the whitespace on the next line
+     */
     default Whitespace moveToNextLine(Line line) {
         return new Rest(new MusicalPosition(line, getStartMusicalPosition().stave(), getStartMusicalPosition().crotchetsIntoLine() - getStartMusicalPosition().line().getLengthInCrotchets()),
                 new MusicalPosition(line, getStartMusicalPosition().stave(), getEndMusicalPosition().crotchetsIntoLine() - getEndMusicalPosition().line().getLengthInCrotchets()));
     }
 
+    /**
+     * Creates a copy of this whitespace on the previous line
+     * @param line the previous line
+     * @return the whitespace on the previous line
+     */
     default Whitespace moveToPrevLine(Line line) {
         return new Rest(new MusicalPosition(line, getStartMusicalPosition().stave(), getStartMusicalPosition().crotchetsIntoLine() + line.getLengthInCrotchets()),
                 new MusicalPosition(line, getStartMusicalPosition().stave(), getEndMusicalPosition().crotchetsIntoLine() + line.getLengthInCrotchets()));

@@ -11,7 +11,7 @@ import java.util.Map;
 public interface StaveElement {
 
     /**
-     * Draws the given stave element on the score, adding hte generated anchors to the anchor map.
+     * Draws the given stave element on the score, adding the generated anchors to the anchor map.
      * @param canvas the canvas being used to render the score
      * @param chordAnchorsMap the anchor map the chords are putting the anchors into
      * @param <Anchor> the anchor type the canvas uses
