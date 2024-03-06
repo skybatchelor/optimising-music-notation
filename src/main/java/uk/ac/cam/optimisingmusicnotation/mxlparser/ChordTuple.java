@@ -50,7 +50,7 @@ class ChordTuple {
                 if (notations.getTiedOrSlurOrTuplet() != null) {
                     for (Object object : notations.getTiedOrSlurOrTuplet()) {
                         if (object instanceof Articulations articulations) {
-                            for (JAXBElement element : articulations.getAccentOrStrongAccentOrStaccato()) {
+                            for (JAXBElement<?> element : articulations.getAccentOrStrongAccentOrStaccato()) {
                                 switch (element.getName().getLocalPart()) {
                                     case "staccato" -> target.add(new Staccato());
                                     case "tenuto" -> target.add(new Tenuto());
@@ -72,9 +72,9 @@ class ChordTuple {
     KeySignature keySig;
     boolean capital = false;
 
-    public ChordTuple(float crochets, int lowestLine, KeySignature keySig) {
+    public ChordTuple(float crotchets, int lowestLine, KeySignature keySig) {
         notes = new ArrayList<>();
-        this.crotchets = crochets;
+        this.crotchets = crotchets;
         this.lowestLine = lowestLine;
         this.keySig = keySig;
     }

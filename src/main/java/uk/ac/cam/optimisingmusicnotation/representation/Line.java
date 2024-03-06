@@ -32,7 +32,7 @@ public class Line {
 
     private final int lineNumber;
 
-    public float getEndInCrotchets() { return lengthInCrotchets + offsetInCrochets; }
+    public float getEndInCrotchets() { return lengthInCrotchets + offsetIncrotchets; }
 
     public float getLengthInCrotchets() {
         return lengthInCrotchets;
@@ -41,10 +41,10 @@ public class Line {
     private final float lengthInCrotchets;
 
     public float getOffsetInCrotchets() {
-        return offsetInCrochets;
+        return offsetIncrotchets;
     }
 
-    private final float offsetInCrochets;
+    private final float offsetIncrotchets;
 
     public float getStartTimeInCrotchets() {
         return startTimeInCrotchets;
@@ -55,24 +55,24 @@ public class Line {
     private final boolean extendPulseLinesUp;
     private final boolean extendPulseLinesDown;
 
-    public Line(List<Stave> staves, float startTimeInCrotchets, float lengthInCrochets, float offsetInCrochets,
+    public Line(List<Stave> staves, float startTimeInCrotchets, float lengthIncrotchets, float offsetIncrotchets,
                 int lineNumber, boolean extendPulseLinesUp, boolean extendPulseLinesDown) {
         this.staves = staves;
         this.lineNumber = lineNumber;
         this.startTimeInCrotchets = startTimeInCrotchets;
-        this.lengthInCrotchets = lengthInCrochets;
-        this.offsetInCrochets = offsetInCrochets;
+        this.lengthInCrotchets = lengthIncrotchets;
+        this.offsetIncrotchets = offsetIncrotchets;
         this.extendPulseLinesUp = extendPulseLinesUp;
         this.extendPulseLinesDown = extendPulseLinesDown;
         pulseLines = new ArrayList<>();
     }
 
     public <Anchor> void draw(MusicCanvas<Anchor> canvas) {
-        canvas.addFirstStave(offsetInCrochets, staves.size());
+        canvas.addFirstStave(offsetIncrotchets, staves.size());
         for (int i = 0; i < staves.size(); ++i) {
             Stave s = staves.get(i);
             if (i != 0) {
-                canvas.addStave(offsetInCrochets);
+                canvas.addStave(offsetIncrotchets);
             }
             for (PulseLine p: pulseLines) {
                 p.drawAroundStave(canvas, s, extendPulseLinesUp || i > 0,
@@ -87,11 +87,11 @@ public class Line {
     }
 
     public <Anchor> void drawWithClefAndKeySig(MusicCanvas<Anchor> canvas, List<Clef> clefs, KeySignature keySignature) {
-        canvas.addFirstStave(offsetInCrochets, staves.size());
+        canvas.addFirstStave(offsetIncrotchets, staves.size());
         for (int i = 0; i < staves.size(); ++i) {
             Stave s = staves.get(i);
             if (i != 0) {
-                canvas.addStave(offsetInCrochets);
+                canvas.addStave(offsetIncrotchets);
             }
             for (PulseLine p: pulseLines) {
                 p.drawAroundStave(canvas, s, extendPulseLinesUp || i > 0,

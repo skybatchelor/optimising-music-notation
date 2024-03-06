@@ -69,7 +69,7 @@ public class RenderingConfiguration {
     public static int beamletLimit = 0;
 
     // Whitespace information
-    public static float artisticWhitespaceWidth = 0.4f; // A crochet of whitespace + dead space
+    public static float artisticWhitespaceWidth = 0.4f; // A crotchet of whitespace + dead space
 
     // Text information
     public static String defaultFontFilePath;
