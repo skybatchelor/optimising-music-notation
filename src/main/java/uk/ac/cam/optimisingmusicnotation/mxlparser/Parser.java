@@ -54,7 +54,10 @@ public class Parser {
      */
     public static Score parseToScore(Object mxl) {
         if (mxl instanceof ScorePartwise partwise) {
+
+            // the newlines in the score
             TreeMap<Float, Float> newlines = new TreeMap<>() {{ put(0f, 0f); }};
+            // the new sections in the score
             TreeSet<Float> newSections = new TreeSet<>() {{ add(0f); }};
             TreeMap<String, Part> parts = new TreeMap<>();
 
@@ -144,6 +147,7 @@ public class Parser {
 
             TreeMap<String, List<TreeMap<Float, Line>>> partSections = new TreeMap<>();
 
+            // parse each part into a ParsingPartTuple
             for (ScorePartwise.Part part : partwise.getPart()) {
                 float currentTempo = startBpm;
 
@@ -170,14 +174,17 @@ public class Parser {
                 ChordTuple currentChord = new ChordTuple(0, 0, currentKeySignature);
                 BeamGroupTuple beamGroup = new BeamGroupTuple();
 
+                // parse each measure
                 for (var measure : part.getMeasure()) {
                     boolean newTimeSignature = false;
                     float measureTime = 0;
                     int divisionsInBar = 0;
                     float measureLength = currentTimeSignature.getBeatNum() * 4f / (currentTimeSignature.getBeatType());
 
+                    // parse the elements of the measure
                     for(Object component : measure.getNoteOrBackupOrForward()) {
                         if (component instanceof Attributes attributes) {
+                            // parse attributes
                             if (attributes.getTime() != null) {
                                 for(Time time : attributes.getTime()) {
                                     var timeSignature = parseTimeSignature(time.getTimeSignature());
@@ -217,7 +224,9 @@ public class Parser {
                                 divisions = attributes.getDivisions().intValue();
                             }
                             measureLength = currentTimeSignature.getBeatNum() * 4f / (currentTimeSignature.getBeatType());
+
                         } else if (component instanceof Note note) {
+                            // parse notes
                             parseSlurs(musicGroupTuples, currentPart, divisions, note, measureStartTime + measureTime);
                             if (note.getDuration() != null) {
                                 prevChange = note.getDuration().intValue() / (float)divisions;
@@ -260,19 +269,25 @@ public class Parser {
                                 currentPart.putInBeamGroup(beamGroup);
                                 beamGroup = new BeamGroupTuple();
                             }
+
                         } else if (component instanceof Backup backup) {
+                            // parse backup
                             divisionsInBar -= backup.getDuration().intValue();
                             measureTime = divisionsInBar / (float) divisions;
+
                         } else if (component instanceof Direction direction) {
+                            // parse directions
+                            // get the direction time
                             float offset = 0;
                             if (direction.getOffset() != null) {
                                 offset = direction.getOffset().getValue().intValue() / (float) divisions;
                             }
+                            // get the newline offset
                             float newlineOffset = 0;
-
                             if (measureTime + offset != 0) {
                                 newlineOffset = measureTime + offset - measureLength;
                             }
+                            // parse directives
                             parseMusicDirective(musicGroupTuples, currentPart, direction,
                                     measureStartTime + measureTime + offset, newlineOffset,
                                     beatChanges, currentTimeSignature,
@@ -280,11 +295,14 @@ public class Parser {
                                     addNewSectionGenerator.apply(currentPart),
                                     addNewArtisticWhitespaceGenerator.apply(currentKeySignature).apply(currentPart, getStaff(direction.getStaff())),
                                     (voice, time) -> currentPart.addCapital(getStaff(direction.getStaff()), voice, time));
+                            // parse tempo changes
                             currentTempo = parseTempoMarking(tempoMarkings, tempoChanges, currentTempo, direction, measureStartTime + measureTime + offset);
+                            // for safe keeping if future extensions need it later
                             currentPart.directions.put(measureStartTime + measureTime + offset, direction);
                         }
                     }
 
+                    // Add pulse lines
                     var beatChange = beatChanges.lowerEntry(measureStartTime + measureTime);
                     if (beatChange != null && beatChange.getKey() >= measureStartTime) {
                         currentTimeSignature.setBeatPattern(beatChange.getValue());
@@ -296,6 +314,8 @@ public class Parser {
                         addPulseLines(currentTimeSignature, measureStartTime, currentPart.pulseLines,
                                 measure.getText() == null ? measure.getNumber() == null ? "" : measure.getNumber() : measure.getText(), null);
                     }
+
+                    // Update measure start time
                     measureStartTime += measureLength;
                 }
                 totalLength = Math.max(measureStartTime, totalLength);
@@ -307,11 +327,14 @@ public class Parser {
                 part.getValue().globalCapitalNextNotes = globalCapitalNextNotes;
             }
 
+            // integrate time
             var integratedTime = integrateTime(tempoChanges);
 
+            // normalise newlines and new sections
             var nNewlines = normalisedNewlines(newlines, integratedTime);
             var nNewSections = normalisedSections(newSections, integratedTime);
 
+            // generate line indices
             Map<Float, Integer> lineIndices = new HashMap<>();
             List<Float> lineLengths = new ArrayList<>();
             List<Float> lineOffsets = new ArrayList<>();
@@ -336,8 +359,10 @@ public class Parser {
             }
             lineLengths.add(lineLength);
 
+            // generate section indices
             var sectionIndices = createSectionIndices(nNewSections, partSections);
 
+            // collate the parsed data into the final form
             var finalSections = finaliseSections(
                     populatePartSections(
                             partSections,
@@ -462,8 +487,10 @@ public class Parser {
                                                               TreeMap<Float, Float> newlines,
                                                               Map<Float, Integer> lineIndices,
                                                               TreeMap<Float, TempoChangeTuple> integratedTime) {
-        for (Map.Entry<String, ParsingPartTuple> part : parsingParts.entrySet()) {
 
+        // parse each part
+        for (Map.Entry<String, ParsingPartTuple> part : parsingParts.entrySet()) {
+            // parse beam groups
             for (var staffEntry : part.getValue().staveBeamGroups.entrySet()) {
                 for (var voiceEntry : staffEntry.getValue().entrySet()) {
                     TreeSet<Float> beamBreaks = new TreeSet<>(newlines.keySet());
@@ -476,16 +503,20 @@ public class Parser {
                         }
                     }
 
+                    // convert beam groups into their instantiated forms, depending on if they are rests or not
                     for (BeamGroupTuple beam : voiceEntry.getValue().values()) {
                         if (beam.isRest()) {
+                            // beam group is rest, so turn into a rest split by newlines
                             beam.splitToInstantiatedRestTuple(newlines, lineIndices, integratedTime, partLines.get(part.getKey()));
                         } else {
+                            // beam group is beam group, so turn into a beam group split by beam breaks
                             beam.splitToInstantiatedBeamGroupTuple(beamBreaks, newlines, lineIndices, integratedTime, part.getValue(), partLines.get(part.getKey()));
                         }
                     }
                 }
             }
 
+            // Capitalise staff and voice specific capitals
             TreeSet<Float> normalisedCapitalEntries = new TreeSet<>();
             for (var staffEntry : part.getValue().capitalNextNotes.entrySet()) {
                 for (var voiceEntry : staffEntry.getValue().entrySet()) {
@@ -509,9 +540,11 @@ public class Parser {
                     normalisedCapitalEntries.clear();
                 }
             }
+            // capitalise global capitals
             HashMap<Integer, HashMap<Integer, HashSet<Float>>> seenMap = new HashMap<>();
             HashMap<Integer, HashSet<Float>> emptyMap = new HashMap<>();
             HashSet<Float> emptySet = new HashSet<>();
+            // normalise the next capitals entries
             for (var entry : part.getValue().globalCapitalNextNotes) {
                 normalisedCapitalEntries.add(normaliseTime(entry, integratedTime));
             }
@@ -540,16 +573,21 @@ public class Parser {
             }
             normalisedCapitalEntries.clear();
 
+            // convert the music groups
             for (var staffEntry : part.getValue().staveMusicGroups.entrySet()) {
                 for (MusicGroupTuple musicGroup : staffEntry.getValue()) {
                     musicGroup.splitToInstantiatedMusicGroupTuple(newlines, lineIndices, integratedTime, partLines.get(part.getKey()));
                 }
             }
+
+            // convert the tempo markings
             for (Map.Entry<Float, TempoTuple> entry : tempoMarkings.entrySet()) {
                 float lineStart = newlines.floorKey(normaliseTime(entry.getValue().time, integratedTime));
                 int lineNum = lineIndices.get(lineStart);
                 partLines.get(part.getKey()).get(lineNum).tempoMarkings.add(entry.getValue().toInstantiatedTempoTuple(lineStart, integratedTime));
             }
+
+            // convert the pulse lines
             for (PulseLineTuple pulseLine : part.getValue().pulseLines) {
                 float lineStart = newlines.floorKey(normaliseTime(pulseLine.time, integratedTime));
                 int lineNum = lineIndices.get(lineStart);
@@ -713,6 +751,7 @@ public class Parser {
                 }
             }
 
+            // add left beam segments
             HashMap<Integer, TreeMap<Float, Chord>> emptyStaffChords = new HashMap<>();
             HashMap<Integer, TreeMap<Float, Whitespace>> emptyStaffRests = new HashMap<>();
             TreeMap<Float, Chord> emptyVoiceChords = new TreeMap<>();
@@ -754,6 +793,7 @@ public class Parser {
                 }
             }
 
+            // add right beam segments
             for (int i = 0; i < needsFlag.size(); ++i) {
                 for (var staffEntry : needsBeamlet.get(i).entrySet()) {
                     for (var voiceEntry : staffEntry.getValue().entrySet()) {
