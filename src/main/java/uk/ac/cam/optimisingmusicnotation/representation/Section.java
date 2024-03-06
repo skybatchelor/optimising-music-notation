@@ -8,6 +8,9 @@ import uk.ac.cam.optimisingmusicnotation.representation.properties.RenderingConf
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A section of music, which appears as a collection with lines, with a key signature
+ */
 public class Section {
     private final List<Line> lines;
   

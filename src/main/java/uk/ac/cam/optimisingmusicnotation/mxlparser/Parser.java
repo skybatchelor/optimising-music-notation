@@ -7,8 +7,8 @@ import uk.ac.cam.optimisingmusicnotation.representation.*;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.*;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.Clef;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
-import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.Beamlet;
-import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.Flag;
+import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.RightBeamSegment;
+import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.LeftBeamSegment;
 import uk.ac.cam.optimisingmusicnotation.representation.whitespaces.Whitespace;
 
 import javax.xml.bind.JAXBElement;
@@ -689,7 +689,7 @@ public class Parser {
                             if (preChord != null && prevLine) {
                                 tempLine.getStaves().get(staffEntry.getKey() - 1).addStaveElement(preChord);
                             }
-                            tempLine.getStaves().get(staffEntry.getKey() - 1).addMusicGroup(new Flag(preChord, entry.getKey(), tempLine,
+                            tempLine.getStaves().get(staffEntry.getKey() - 1).addMusicGroup(new LeftBeamSegment(preChord, entry.getKey(), tempLine,
                                     tempLine.getStaves().get(staffEntry.getKey() - 1),
                                     entry.getValue().number(), entry.getValue().flag()));
                         }
@@ -726,7 +726,7 @@ public class Parser {
                             if (postChord != null && nextLine) {
                                 tempLine.getStaves().get(staffEntry.getKey() - 1).addStaveElement(postChord);
                             }
-                            tempLine.getStaves().get(staffEntry.getKey() - 1).addMusicGroup(new Beamlet(postChord, entry.getKey(), tempLine,
+                            tempLine.getStaves().get(staffEntry.getKey() - 1).addMusicGroup(new RightBeamSegment(postChord, entry.getKey(), tempLine,
                                     tempLine.getStaves().get(staffEntry.getKey() - 1),
                                     entry.getValue().number(), entry.getValue().flag()));
                         }
@@ -1151,8 +1151,10 @@ public class Parser {
                                 MusicGroupTuple tuple = new MusicGroupTuple(time, MusicGroupType.TUPLET, getStaff(note.getStaff()));
                                 if (tuplet.getTupletActual() != null) {
                                     tuple.num = tuplet.getTupletActual().getTupletNumber().getValue().intValue();
-                                } else {
+                                } else if (note.getTimeModification() != null) {
                                     tuple.num = note.getTimeModification().getActualNotes().intValue();
+                                } else {
+                                    tuple.num = 1;
                                 }
                                 tuple.bool = tuplet.getBracket() == YesNo.YES;
                                 tuple.voice = getVoice(note.getVoice());

@@ -12,6 +12,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Represents a single stave of music.
+ */
 public class Stave {
     private final List<StaveElement> staveElements;
     private final List<Whitespace> whitespaces;
@@ -65,7 +68,6 @@ public class Stave {
         }
         drawStaveLines(canvas, line);
     }
-
 
     public <Anchor> void drawWithClefAndKeySig(MusicCanvas<Anchor> canvas, Line line, Clef clef, KeySignature keySignature) {
         drawClefAndKey(canvas, clef, keySignature);

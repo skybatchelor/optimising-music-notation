@@ -9,6 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Represents an annotation to a stave, such as dynamic markings and slurs.
+ */
 public abstract class MusicGroup implements StaveElement {
     protected final List<Chord> chords;
     public MusicGroup(){

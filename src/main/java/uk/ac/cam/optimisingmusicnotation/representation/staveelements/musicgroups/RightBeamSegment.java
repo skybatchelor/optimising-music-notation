@@ -11,7 +11,10 @@ import uk.ac.cam.optimisingmusicnotation.representation.staveelements.Chord;
 import java.util.ArrayList;
 import java.util.Map;
 
-public class Beamlet extends MusicGroup {
+/**
+ * Represents a beam segment going to the right.
+ */
+public class RightBeamSegment extends MusicGroup {
     private final Chord postChord;
     private final Chord chord;
     private final Line line;
@@ -19,7 +22,7 @@ public class Beamlet extends MusicGroup {
     private final int maxBeam;
     private final boolean flag;
 
-    public Beamlet(Chord preChord, Chord chord, Line line, Stave stave, int number, boolean flag) {
+    public RightBeamSegment(Chord preChord, Chord chord, Line line, Stave stave, int number, boolean flag) {
         super(new ArrayList<>(0));
         this.postChord = preChord;
         this.chord = chord;

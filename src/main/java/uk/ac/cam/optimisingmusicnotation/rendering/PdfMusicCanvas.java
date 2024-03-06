@@ -27,6 +27,9 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.function.BiFunction;
 
+/**
+ * An implementation of MusicCanvas for rendering to a pdf with pages.
+ */
 public class PdfMusicCanvas implements MusicCanvas<PdfMusicCanvas.Anchor> {
 
     // TODO: make these configurable

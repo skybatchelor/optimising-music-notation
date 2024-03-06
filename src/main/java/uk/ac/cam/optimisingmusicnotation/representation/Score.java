@@ -2,6 +2,9 @@ package uk.ac.cam.optimisingmusicnotation.representation;
 
 import java.util.List;
 
+/**
+ * Represents a score of music.
+ */
 public class Score {
     public String getWorkTitle() {
         return workTitle;

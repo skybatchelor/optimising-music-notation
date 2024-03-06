@@ -5,7 +5,7 @@ import uk.ac.cam.optimisingmusicnotation.representation.Line;
 import uk.ac.cam.optimisingmusicnotation.representation.properties.*;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmarkings.ChordMarking;
 import uk.ac.cam.optimisingmusicnotation.representation.staveelements.chordmarkings.StrongAccent;
-import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.Flag;
+import uk.ac.cam.optimisingmusicnotation.representation.staveelements.musicgroups.LeftBeamSegment;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -163,7 +163,7 @@ public class Chord implements StaveElement {
 
         drawNotehead(canvas, anchor, noteType, fillInCircle, scaleFactor);
         drawDots(canvas, anchor, noteType, dots, false, scaleFactor);
-        Flag.draw(canvas, chordAnchors, noteType, timeScaleFactor, scaleFactor);
+        LeftBeamSegment.draw(canvas, chordAnchors, noteType, timeScaleFactor, scaleFactor);
     }
 
     @Override

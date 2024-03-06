@@ -12,22 +12,25 @@ import uk.ac.cam.optimisingmusicnotation.representation.staveelements.NoteType;
 import java.util.ArrayList;
 import java.util.Map;
 
-public class Flag extends MusicGroup {
+/**
+ *
+ */
+public class LeftBeamSegment extends MusicGroup {
     private final Chord preChord;
     private final Chord chord;
     private final Line line;
     private final Stave stave;
     private final int maxBeam;
-    private final boolean beamlet;
+    private final boolean flag;
 
-    public Flag(Chord preChord, Chord chord, Line line, Stave stave, int number, boolean flag) {
+    public LeftBeamSegment(Chord preChord, Chord chord, Line line, Stave stave, int number, boolean flag) {
         super(new ArrayList<>(0));
         this.preChord = preChord;
         this.chord = chord;
         this.line = line;
         this.stave = stave;
         this.maxBeam = number;
-        this.beamlet = !flag;
+        this.flag = flag;
     }
 
     public static <Anchor> void draw(MusicCanvas<Anchor> canvas, ChordAnchors<Anchor> chordAnchors, NoteType noteType, float timeScale, float scaleFactor) {
@@ -47,7 +50,7 @@ public class Flag extends MusicGroup {
 
     @Override
     public <Anchor> void draw(MusicCanvas<Anchor> canvas, Map<Chord, ChordAnchors<Anchor>> chordAnchorsMap) {
-        if (preChord == null && beamlet) return;
+        if (preChord == null && !flag) return;
         Anchor startAnchor;
         if (preChord == null) {
             startAnchor = canvas.getTakeXTakeYAnchor(canvas.getAnchor(new MusicalPosition(line, stave,
@@ -59,7 +62,7 @@ public class Flag extends MusicGroup {
             startAnchor = canvas.interpolateAnchors(
                 chordAnchorsMap.get(chord).stemEnd(),
                 chordAnchorsMap.get(preChord).stemEnd(),
-                    chord.getDurationInCrotchets() * (beamlet ? RenderingConfiguration.beamletRatio : RenderingConfiguration.flagRatio) / preChord.getDurationInCrotchets()
+                    chord.getDurationInCrotchets() * (flag ? RenderingConfiguration.flagRatio : RenderingConfiguration.beamletRatio) / preChord.getDurationInCrotchets()
             );
         }
         int sign = RenderingConfiguration.upwardStems ? 1 : -1;

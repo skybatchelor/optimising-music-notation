@@ -8,6 +8,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * The music for a single part.
+ */
 public class Part {
     public List<Section> getSections() {
         return sections;

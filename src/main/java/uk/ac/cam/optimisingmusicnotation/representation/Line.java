@@ -8,6 +8,9 @@ import uk.ac.cam.optimisingmusicnotation.representation.properties.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents a line of music, which might have multiple lines. In general, any two points with the same horizontal position in a line should occur at the same time.
+ */
 public class Line {
   
     public List<Stave> getStaves() {
